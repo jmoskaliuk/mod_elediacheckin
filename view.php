@@ -27,6 +27,11 @@ require_once(__DIR__ . '/lib.php');
 
 $id         = required_param('id', PARAM_INT);
 $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
+// Optional externalid of a specific question to lock onto on first load.
+// Used by block_elediacheckin: when the block preview shows question X and
+// the user clicks "Open Check-in", we want view.php to show the same X
+// instead of rolling a fresh random one. Empty means "random".
+$qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
 
 $cm       = get_coursemodule_from_id('elediacheckin', $id, 0, false, MUST_EXIST);
 $course   = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -90,9 +95,20 @@ $langcandidates[] = current_language();
 // The activity_pool helper merges bundle questions (filtered via
 // question_provider) with the teacher's per-activity own questions
 // additively — see concept doc §10.13.
-$question = \mod_elediacheckin\local\service\activity_pool::pick_random(
-    $instance, $activeziel, $langcandidates
-);
+// If the caller passed ?q=<externalid> (block launcher), try to pin that
+// specific card first. Fall back to random if the id is unknown in the
+// current pool (e.g. bundle resynced between block render and click).
+$question = null;
+if ($qext !== '') {
+    $question = \mod_elediacheckin\local\service\activity_pool::pick_by_externalid(
+        $instance, $qext, $activeziel, $langcandidates
+    );
+}
+if (!$question) {
+    $question = \mod_elediacheckin\local\service\activity_pool::pick_random(
+        $instance, $activeziel, $langcandidates
+    );
+}
 
 // Build ziel-picker buttons (only used if $multiziel).
 $zielbuttons = [];

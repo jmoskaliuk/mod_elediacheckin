@@ -71,6 +71,41 @@ final class activity_pool {
     }
 
     /**
+     * Looks up a specific question from the merged pool by externalid.
+     *
+     * Used when the block preview passes the currently-displayed question
+     * into the launch URL (view.php / present.php) via ?q=<externalid>, so
+     * clicking "Open Check-in" or "Open as popup" shows the same card the
+     * user was just looking at instead of rolling a new one. Falls back to
+     * null if the id is unknown in the current pool — the caller then rolls
+     * a random, which is the correct behaviour e.g. after the bundle was
+     * resynced between block render and click.
+     *
+     * @param \stdClass $instance
+     * @param string $externalid  The externalid to match (e.g. 'checkin-0001' or 'own-3').
+     * @param string $activeziel  The ziel to build the pool for (bundle filter).
+     * @param string[] $langcandidates
+     * @return \stdClass|null
+     */
+    public static function pick_by_externalid(
+        \stdClass $instance,
+        string $externalid,
+        string $activeziel,
+        array $langcandidates
+    ): ?\stdClass {
+        if ($externalid === '') {
+            return null;
+        }
+        $pool = self::build_pool($instance, $activeziel, $langcandidates);
+        foreach ($pool as $item) {
+            if (((string) ($item->externalid ?? '')) === $externalid) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Builds the merged pool without sampling — exposed for tests and
      * potential future "avoid repeat" logic that needs the full list.
      *

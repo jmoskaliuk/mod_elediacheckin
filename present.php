@@ -31,6 +31,10 @@ require_once(__DIR__ . '/lib.php');
 
 $id         = required_param('id', PARAM_INT);
 $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
+// Same "lock onto a specific card" mechanism as view.php: the block
+// launcher passes ?q=<externalid> so the popup shows exactly the card the
+// user was looking at in the block preview. See view.php for rationale.
+$qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
 
 $cm       = get_coursemodule_from_id('elediacheckin', $id, 0, false, MUST_EXIST);
 $course   = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -64,10 +68,20 @@ if ($configured === '_auto_') {
 $langcandidates[] = current_language();
 
 // Bundle-Pool + eigene Fragen werden in activity_pool zusammengeführt
-// (Konzept §10.13).
-$question = \mod_elediacheckin\local\service\activity_pool::pick_random(
-    $instance, $activeziel, $langcandidates
-);
+// (Konzept §10.13). Wenn der Aufrufer ?q=<externalid> mitschickt (Block-
+// Launcher), pinnen wir diese konkrete Karte — damit das Popup aus dem
+// Block heraus dieselbe Frage zeigt wie die Vorschau. Fallback: random.
+$question = null;
+if ($qext !== '') {
+    $question = \mod_elediacheckin\local\service\activity_pool::pick_by_externalid(
+        $instance, $qext, $activeziel, $langcandidates
+    );
+}
+if (!$question) {
+    $question = \mod_elediacheckin\local\service\activity_pool::pick_random(
+        $instance, $activeziel, $langcandidates
+    );
+}
 
 $zielbuttons = [];
 foreach ($ziele as $z) {
