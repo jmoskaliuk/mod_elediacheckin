@@ -180,34 +180,44 @@ class dashboard_renderer {
         if (!panel) { return false; }
         var form = panel.closest('form');
         if (!form) { return false; }
-        // Moodle admin settings save button: <input type="submit"
-        // name="savebutton" value="Save changes"> inside a div. Match any
-        // submit input/button anywhere inside this form.
         var submit = form.querySelector('input[type="submit"], button[type="submit"]');
         if (!submit) { return false; }
-        // Walk up until we find the direct child of <form> that contains
-        // the submit button.
+        // Find the submit button's immediate wrapper that is a direct
+        // child of some shared parent with the panel. Strategy: walk
+        // submit up until its parentNode is an ancestor of the panel.
+        // Then walk panel up until its parentNode matches that shared
+        // ancestor — so both containers are siblings in the same box.
+        var sharedParent = null;
         var submitContainer = submit;
-        while (submitContainer.parentNode && submitContainer.parentNode !== form) {
+        while (submitContainer.parentNode) {
+            if (submitContainer.parentNode.contains(panel) && submitContainer.parentNode !== submitContainer) {
+                sharedParent = submitContainer.parentNode;
+                break;
+            }
             submitContainer = submitContainer.parentNode;
+            if (submitContainer === form.parentNode) { return false; }
         }
-        if (!submitContainer || submitContainer.parentNode !== form) { return false; }
-        // Walk the panel up to ITS form-level ancestor too — admin_setting_
-        // heading renders an <h3> sibling next to the description div that
-        // contains our wrapper. If we only move the inner wrapper, the
-        // heading ("Sync status") stays behind and orphans itself above the
-        // save button. Moving the whole form-item container keeps heading
-        // + panel together.
+        if (!sharedParent) { return false; }
         var panelContainer = panel;
-        while (panelContainer.parentNode && panelContainer.parentNode !== form) {
+        while (panelContainer.parentNode && panelContainer.parentNode !== sharedParent) {
             panelContainer = panelContainer.parentNode;
         }
-        if (!panelContainer || panelContainer.parentNode !== form) { return false; }
-        form.insertBefore(panelContainer, submitContainer.nextSibling);
-        // Breathing room between save-changes row and the Sync-status
-        // heading that now sits directly below it. Inline so it only
-        // applies after a successful reorder.
-        panelContainer.style.marginTop = '2.5rem';
+        if (!panelContainer || panelContainer.parentNode !== sharedParent) { return false; }
+        if (panelContainer === submitContainer) { return false; }
+        // admin_setting_heading renders an <h3 class="main"> as a flat
+        // sibling *before* the description box that wraps our panel. Move
+        // it together with the panelContainer so "Sync status" doesn't
+        // stay orphaned above the save button.
+        var heading = panelContainer.previousElementSibling;
+        var movedHeading = !!(heading && heading.tagName === 'H3');
+        // Insert: ... submitContainer, [heading], panelContainer, ...
+        sharedParent.insertBefore(panelContainer, submitContainer.nextSibling);
+        if (movedHeading) {
+            sharedParent.insertBefore(heading, panelContainer);
+            heading.style.marginTop = '2.5rem';
+        } else {
+            panelContainer.style.marginTop = '2.5rem';
+        }
         MOVED = true;
         return true;
     }
