@@ -1,38 +1,463 @@
-/* mod_elediacheckin — namespaced styles. All selectors scoped under .path-mod-elediacheckin. */
+/*
+ * mod_elediacheckin — namespaced styles.
+ *
+ * Palette follows the eLeDia Moodle UX system:
+ *   --el-orange #f98012  --el-dark-blue #194866
+ *   --el-sand #fff8ee    --el-light-blue #e8f1f7
+ *   --el-ink  #1b2a36
+ *
+ * All non-overlay selectors are scoped under .path-mod-elediacheckin so they
+ * never leak into the rest of Moodle. The fullscreen overlay uses its own
+ * top-level class because position:fixed elements are portalled out of the
+ * page body.
+ */
+
+.path-mod-elediacheckin {
+    --el-orange: #f98012;
+    --el-orange-dark: #d96a00;
+    --el-dark-blue: #194866;
+    --el-light-blue: #e8f1f7;
+    --el-sand: #fff8ee;
+    --el-ink: #1b2a36;
+    --el-muted: #6c7a86;
+}
+
+/* ----- Card container ------------------------------------------------- */
 
 .path-mod-elediacheckin .elediacheckin-stage {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
 }
 
-.path-mod-elediacheckin .elediacheckin-question-card {
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.75rem;
-    padding: 2rem 1.5rem;
-    text-align: center;
-    background: #fff;
+.path-mod-elediacheckin .elediacheckin-card {
+    position: relative;
+    background: linear-gradient(135deg, #fff 0%, var(--el-sand) 100%);
+    border: 1px solid #e5dbc9;
+    border-left: 6px solid var(--el-orange);
+    border-radius: 14px;
+    padding: 36px 40px 32px;
+    box-shadow: 0 2px 10px rgba(249, 128, 18, .07);
 }
+
+/* ----- Icon launchers (top-right) ------------------------------------- */
+
+.path-mod-elediacheckin .elediacheckin-launchers {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    gap: 6px;
+}
+
+.path-mod-elediacheckin .elediacheckin-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #d4d9de;
+    background: #fff;
+    color: var(--el-dark-blue);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.path-mod-elediacheckin .elediacheckin-icon-btn:hover {
+    background: var(--el-light-blue);
+    border-color: var(--el-dark-blue);
+}
+
+.path-mod-elediacheckin .elediacheckin-icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ----- Ziel picker (only rendered if multiziel) ----------------------- */
+
+.path-mod-elediacheckin .elediacheckin-ziel-picker {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 22px;
+    flex-wrap: wrap;
+}
+
+.path-mod-elediacheckin .elediacheckin-ziel-btn {
+    display: inline-block;
+    border: 2px solid var(--el-dark-blue);
+    background: #fff;
+    color: var(--el-dark-blue);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+
+.path-mod-elediacheckin .elediacheckin-ziel-btn:hover {
+    background: var(--el-light-blue);
+    text-decoration: none;
+}
+
+.path-mod-elediacheckin .elediacheckin-ziel-btn.is-active {
+    background: var(--el-dark-blue);
+    color: #fff;
+}
+
+/* ----- Question text -------------------------------------------------- */
 
 .path-mod-elediacheckin .elediacheckin-question-text {
-    font-size: 1.4rem;
+    font-size: 1.7rem;
     font-weight: 600;
-    line-height: 1.4;
-    margin: 0;
+    line-height: 1.35;
+    color: var(--el-ink);
+    margin: 6px 0 22px;
 }
 
-.path-mod-elediacheckin .elediacheckin-mode-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    color: var(--bs-secondary-color, #6c757d);
-    margin-bottom: 0.75rem;
+/* ----- Answer toggle -------------------------------------------------- */
+
+.path-mod-elediacheckin .elediacheckin-answer {
+    margin: 0 0 22px;
 }
+
+.path-mod-elediacheckin .elediacheckin-answer summary {
+    display: inline-block;
+    color: var(--el-dark-blue);
+    font-weight: 600;
+    font-size: 0.92rem;
+    border-bottom: 1px dashed var(--el-dark-blue);
+    padding-bottom: 2px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.path-mod-elediacheckin .elediacheckin-answer summary::-webkit-details-marker {
+    display: none;
+}
+
+.path-mod-elediacheckin .elediacheckin-answer[open] summary {
+    margin-bottom: 10px;
+}
+
+.path-mod-elediacheckin .elediacheckin-answer-body {
+    background: rgba(25, 72, 102, .06);
+    border-left: 3px solid var(--el-dark-blue);
+    padding: 14px 18px;
+    border-radius: 6px;
+    color: var(--el-dark-blue);
+    font-size: 1rem;
+}
+
+/* ----- Controls ------------------------------------------------------- */
 
 .path-mod-elediacheckin .elediacheckin-controls {
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
     justify-content: center;
-    margin-top: 1.5rem;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.path-mod-elediacheckin .elediacheckin-next-btn,
+.path-mod-elediacheckin .elediacheckin-next-btn:hover {
+    background: var(--el-orange);
+    border-color: var(--el-orange);
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 26px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.path-mod-elediacheckin .elediacheckin-next-btn:hover {
+    background: var(--el-orange-dark);
+    border-color: var(--el-orange-dark);
+}
+
+/* ============ Fullscreen overlay ====================================== */
+
+/* Not scoped under .path-mod-elediacheckin because position:fixed elements
+   are portalled to the top of the body by the browser. We still namespace
+   every class. */
+
+.elediacheckin-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    flex-direction: column;
+    padding: 48px 72px;
+    color: #fff;
+    background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(249, 128, 18, .18), transparent 70%),
+        radial-gradient(900px 500px at 80% 90%, rgba(25, 72, 102, .28), transparent 70%),
+        linear-gradient(180deg, #1b2a36 0%, #0c1920 100%);
+    animation: elediacheckin-fadein .25s ease;
+}
+
+.elediacheckin-fullscreen.is-open {
+    display: flex;
+}
+
+@keyframes elediacheckin-fadein {
+    from { opacity: 0; transform: scale(.985); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+body.elediacheckin-fs-locked {
+    overflow: hidden;
+}
+
+.elediacheckin-fs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: auto;
+}
+
+.elediacheckin-fs-ziel-picker {
+    display: flex;
+    gap: 10px;
+}
+
+.elediacheckin-fs-ziel-btn {
+    display: inline-block;
+    background: rgba(255, 255, 255, .08);
+    border: 2px solid rgba(255, 255, 255, .35);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+
+.elediacheckin-fs-ziel-btn.is-active,
+.elediacheckin-fs-ziel-btn:hover {
+    background: #f98012;
+    border-color: #f98012;
+    color: #fff;
+    text-decoration: none;
+}
+
+.elediacheckin-fs-close {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .1);
+    border: 2px solid rgba(255, 255, 255, .35);
+    color: #fff;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.elediacheckin-fs-close:hover {
+    background: rgba(255, 255, 255, .2);
+    transform: rotate(90deg);
+}
+
+.elediacheckin-fs-middle {
+    align-self: center;
+    max-width: 1400px;
+    text-align: center;
+}
+
+.elediacheckin-fs-question {
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 auto;
+    text-shadow: 0 4px 40px rgba(0, 0, 0, .3);
+}
+
+.elediacheckin-fs-answer {
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+    margin: 24px auto 0;
+    opacity: .85;
+    line-height: 1.4;
+}
+
+.elediacheckin-fs-footer {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: auto;
+}
+
+.elediacheckin-fs-btn {
+    display: inline-block;
+    background: rgba(255, 255, 255, .1);
+    border: 2px solid rgba(255, 255, 255, .35);
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.elediacheckin-fs-btn:hover {
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+    text-decoration: none;
+}
+
+.elediacheckin-fs-btn.is-primary {
+    background: #f98012;
+    border-color: #f98012;
+}
+
+.elediacheckin-fs-btn.is-primary:hover {
+    background: #d96a00;
+    border-color: #d96a00;
+}
+
+/* ============ Present (popup window) view ============================= */
+
+.elediacheckin-present {
+    --el-orange: #f98012;
+    --el-dark-blue: #194866;
+    --el-sand: #fff8ee;
+    --el-ink: #1b2a36;
+
+    min-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 40px 36px;
+    background:
+        radial-gradient(600px 300px at 30% 20%, rgba(249, 128, 18, .08), transparent 60%),
+        linear-gradient(180deg, #fff 0%, var(--el-sand) 100%);
+    color: var(--el-ink);
+}
+
+.elediacheckin-present-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.elediacheckin-present-ziel-picker {
+    display: flex;
+    gap: 6px;
+}
+
+.elediacheckin-present-ziel-btn {
+    display: inline-block;
+    border: 2px solid var(--el-dark-blue);
+    background: #fff;
+    color: var(--el-dark-blue);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    text-decoration: none;
+}
+
+.elediacheckin-present-ziel-btn.is-active,
+.elediacheckin-present-ziel-btn:hover {
+    background: var(--el-dark-blue);
+    color: #fff;
+    text-decoration: none;
+}
+
+.elediacheckin-present-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(25, 72, 102, .08);
+    color: var(--el-dark-blue);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.elediacheckin-present-close:hover {
+    background: rgba(25, 72, 102, .15);
+}
+
+.elediacheckin-present-middle {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.elediacheckin-present-question {
+    font-size: clamp(1.8rem, 3.4vw, 3rem);
+    font-weight: 700;
+    color: var(--el-dark-blue);
+    line-height: 1.2;
+    margin: 0;
+    max-width: 1000px;
+}
+
+.elediacheckin-present-answer {
+    margin: 20px auto 0;
+    max-width: 900px;
+    text-align: center;
+    color: var(--el-dark-blue);
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    background: rgba(25, 72, 102, .06);
+    border-left: 3px solid var(--el-dark-blue);
+    border-radius: 6px;
+    padding: 14px 18px;
+}
+
+.elediacheckin-present-footer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.elediacheckin-present-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 2px solid var(--el-dark-blue);
+    background: #fff;
+    color: var(--el-dark-blue);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.elediacheckin-present-btn:hover {
+    background: rgba(25, 72, 102, .08);
+    color: var(--el-dark-blue);
+    text-decoration: none;
+}
+
+.elediacheckin-present-btn.is-primary,
+.elediacheckin-present-btn.is-primary:hover {
+    background: var(--el-orange);
+    border-color: var(--el-orange);
+    color: #fff;
+}
+
+.elediacheckin-present-btn.is-primary:hover {
+    background: #d96a00;
+    border-color: #d96a00;
+}
+
+.elediacheckin-present-empty {
+    color: var(--el-dark-blue);
+    font-size: 1.2rem;
+    margin: 0;
 }

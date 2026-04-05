@@ -1,0 +1,59 @@
+{{!
+    @template mod_elediacheckin/present
+
+    Chrome-less popup layout for screen-sharing in video calls. Loaded via
+    window.open() from view.php. Shares the "no categories, no ziel-chip,
+    ziel-picker only when multi, answer toggle only when hasanswer" rules
+    with the normal view (see docs/display-modes-mockup-v2.html).
+
+    Context variables:
+      * cmid, hasquestion, question{frage,antwort,hasanswer}
+      * multiziel, zielbuttons[{label,active,url}]
+      * nextquestionurl
+      * strnext, strshowanswer, strnone, strclose
+}}
+<div id="mod-elediacheckin-present" class="elediacheckin-present" data-cmid="{{cmid}}">
+    <div class="elediacheckin-present-header">
+        <div class="elediacheckin-present-ziel-picker">
+            {{#multiziel}}
+                {{#zielbuttons}}
+                    <a class="elediacheckin-present-ziel-btn {{#active}}is-active{{/active}}"
+                        href="{{url}}">{{label}}</a>
+                {{/zielbuttons}}
+            {{/multiziel}}
+        </div>
+        <button type="button" class="elediacheckin-present-close"
+            data-action="close-present"
+            title="{{strclose}}"
+            aria-label="{{strclose}}">&times;</button>
+    </div>
+
+    {{#hasquestion}}
+        <div class="elediacheckin-present-middle">
+            <p class="elediacheckin-present-question">{{question.frage}}</p>
+        </div>
+        <div class="elediacheckin-present-footer">
+            {{#question.hasanswer}}
+                <button type="button"
+                    class="elediacheckin-present-btn"
+                    data-action="toggle-present-answer"
+                    data-answer="{{question.antwort}}">
+                    {{strshowanswer}}
+                </button>
+            {{/question.hasanswer}}
+            <a href="{{nextquestionurl}}"
+                class="elediacheckin-present-btn is-primary">{{strnext}}</a>
+        </div>
+        {{#question.hasanswer}}
+            <div class="elediacheckin-present-answer" data-region="present-answer" hidden>
+                {{question.antwort}}
+            </div>
+        {{/question.hasanswer}}
+    {{/hasquestion}}
+
+    {{^hasquestion}}
+        <div class="elediacheckin-present-middle">
+            <p class="elediacheckin-present-empty">{{strnone}}</p>
+        </div>
+    {{/hasquestion}}
+</div>

@@ -15,7 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for mod_elediacheckin.
+ * Post-install hook for mod_elediacheckin.
+ *
+ * Runs an initial content synchronisation so the bundled default questions
+ * are available immediately after installation — without waiting for the
+ * scheduled task to run. Failures are logged but do NOT abort the install;
+ * an admin can always re-run the sync from the admin report.
  *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
@@ -24,8 +29,17 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_elediacheckin';
-$plugin->version   = 2026040502;
-$plugin->requires  = 2024100700; // Moodle 4.5.
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.2.0';
+/**
+ * Post-install callback.
+ */
+function xmldb_elediacheckin_install() {
+    try {
+        $service = new \mod_elediacheckin\local\service\sync_service();
+        $service->run('install');
+    } catch (\Throwable $e) {
+        debugging(
+            'mod_elediacheckin: initial content sync failed during install: ' . $e->getMessage(),
+            DEBUG_DEVELOPER
+        );
+    }
+}

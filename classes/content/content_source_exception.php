@@ -15,17 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for mod_elediacheckin.
+ * Exception raised by content sources on any fetch / validation failure.
  *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_elediacheckin\content;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_elediacheckin';
-$plugin->version   = 2026040502;
-$plugin->requires  = 2024100700; // Moodle 4.5.
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.2.0';
+/**
+ * Domain-specific exception for all content-source failures.
+ *
+ * Kept deliberately simple — the caller only needs to distinguish source
+ * failures from truly exceptional PHP errors.
+ */
+class content_source_exception extends \moodle_exception {
+
+    /**
+     * @param string $errorcode Language string identifier.
+     * @param string $debuginfo Additional debug detail (not shown to users).
+     */
+    public function __construct(string $errorcode, string $debuginfo = '') {
+        parent::__construct($errorcode, 'elediacheckin', '', null, $debuginfo);
+    }
+}

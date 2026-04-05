@@ -31,6 +31,139 @@ defined('MOODLE_INTERNAL') || die();
  * @return bool Always true.
  */
 function xmldb_elediacheckin_upgrade(int $oldversion): bool {
-    // Initial release - no upgrade steps yet.
+    global $DB;
+    $dbman = $DB->get_manager();
+
+    // 2026040501 — Content-source schema v1.0.
+    //
+    // Replaces the initial scaffold schema with the final Phase-1 layout:
+    //  - elediacheckin_question gains all fields from the content JSON
+    //    schema (ziel, categories CSV, hasanswer/antwort, license, author,
+    //    quelle, qversion, qstatus, link, media, extcreated/extmodified)
+    //    plus a 'stage' flag for the staging-swap sync pattern.
+    //  - elediacheckin (activity instance) renames 'mode' → 'ziele' so a
+    //    single activity can draw from multiple ziele.
+    //  - The separate category + question-category tables are dropped:
+    //    categories are a fixed enum validated by the schema validator, so
+    //    a CSV column on the question row is sufficient and avoids joins.
+    //  - elediacheckin_sync_log gains bundleid/bundleversion/sourceid.
+    //
+    // Because the plugin is still MATURITY_ALPHA and has never shipped to a
+    // production site, the upgrade simply drops & recreates the affected
+    // tables. Any dev-only sync data will be re-populated on the next sync.
+    if ($oldversion < 2026040501) {
+
+        // Drop the old per-question category link table.
+        $tablelink = new xmldb_table('elediacheckin_question_cat');
+        if ($dbman->table_exists($tablelink)) {
+            $dbman->drop_table($tablelink);
+        }
+
+        // Drop the old category master table.
+        $tablecat = new xmldb_table('elediacheckin_category');
+        if ($dbman->table_exists($tablecat)) {
+            $dbman->drop_table($tablecat);
+        }
+
+        // Drop and recreate elediacheckin_question with the new layout.
+        $tablequestion = new xmldb_table('elediacheckin_question');
+        if ($dbman->table_exists($tablequestion)) {
+            $dbman->drop_table($tablequestion);
+        }
+
+        $tablequestion->add_field('id',            XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $tablequestion->add_field('stage',         XMLDB_TYPE_INTEGER, '1',  null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('bundleid',      XMLDB_TYPE_CHAR,    '64', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('bundleversion', XMLDB_TYPE_CHAR,    '64', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('externalid',    XMLDB_TYPE_CHAR,    '128', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('ziel',          XMLDB_TYPE_CHAR,    '16', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('categories',    XMLDB_TYPE_CHAR,    '255', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('frage',         XMLDB_TYPE_TEXT,    null, null, XMLDB_NOTNULL, null, null);
+        $tablequestion->add_field('hasanswer',     XMLDB_TYPE_INTEGER, '1',  null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('antwort',       XMLDB_TYPE_TEXT,    null, null, null,          null, null);
+        $tablequestion->add_field('lang',          XMLDB_TYPE_CHAR,    '10', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('author',        XMLDB_TYPE_CHAR,    '255', null, null,         null, null);
+        $tablequestion->add_field('quelle',        XMLDB_TYPE_CHAR,    '255', null, null,         null, null);
+        $tablequestion->add_field('license',       XMLDB_TYPE_CHAR,    '64', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('qversion',      XMLDB_TYPE_CHAR,    '32', null, XMLDB_NOTNULL, null, '1');
+        $tablequestion->add_field('qstatus',       XMLDB_TYPE_CHAR,    '16', null, XMLDB_NOTNULL, null, 'published');
+        $tablequestion->add_field('link',          XMLDB_TYPE_CHAR,    '1333', null, null,        null, null);
+        $tablequestion->add_field('media',         XMLDB_TYPE_CHAR,    '1333', null, null,        null, null);
+        $tablequestion->add_field('extcreated',    XMLDB_TYPE_INTEGER, '10', null, null,          null, null);
+        $tablequestion->add_field('extmodified',   XMLDB_TYPE_INTEGER, '10', null, null,          null, null);
+        $tablequestion->add_field('timecreated',   XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('timemodified',  XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $tablequestion->add_index('stage_ext_lang', XMLDB_INDEX_UNIQUE, ['stage', 'externalid', 'lang']);
+        $tablequestion->add_index('stage_ziel_lang_status', XMLDB_INDEX_NOTUNIQUE, ['stage', 'ziel', 'lang', 'qstatus']);
+        $dbman->create_table($tablequestion);
+
+        // Activity instance: rename 'mode' → 'ziele' and widen the default.
+        $tableinstance = new xmldb_table('elediacheckin');
+        $fieldmode = new xmldb_field('mode', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'both');
+        if ($dbman->field_exists($tableinstance, $fieldmode)) {
+            $dbman->rename_field($tableinstance, $fieldmode, 'ziele');
+            // After rename, widen it to 255 chars to hold a CSV list.
+            $fieldziele = new xmldb_field('ziele', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, 'checkin,checkout');
+            $dbman->change_field_precision($tableinstance, $fieldziele);
+            $dbman->change_field_default($tableinstance, $fieldziele);
+            // Migrate any old 'both' values to the new CSV default.
+            $DB->execute("UPDATE {elediacheckin} SET ziele = 'checkin,checkout' WHERE ziele = 'both'");
+        }
+
+        // Sync log: add bundle metadata columns.
+        $tablelog = new xmldb_table('elediacheckin_sync_log');
+
+        $fieldsourceid = new xmldb_field('sourceid', XMLDB_TYPE_CHAR, '32', null, null, null, null, 'source');
+        if (!$dbman->field_exists($tablelog, $fieldsourceid)) {
+            $dbman->add_field($tablelog, $fieldsourceid);
+        }
+
+        $fieldbundleid = new xmldb_field('bundleid', XMLDB_TYPE_CHAR, '64', null, null, null, null, 'sourceid');
+        if (!$dbman->field_exists($tablelog, $fieldbundleid)) {
+            $dbman->add_field($tablelog, $fieldbundleid);
+        }
+
+        $fieldbundleversion = new xmldb_field('bundleversion', XMLDB_TYPE_CHAR, '64', null, null, null, null, 'bundleid');
+        if (!$dbman->field_exists($tablelog, $fieldbundleversion)) {
+            $dbman->add_field($tablelog, $fieldbundleversion);
+        }
+
+        // Drop legacy sourceversion/sourcecommit fields if they still exist.
+        foreach (['sourceversion', 'sourcecommit'] as $legacy) {
+            $field = new xmldb_field($legacy);
+            if ($dbman->field_exists($tablelog, $field)) {
+                $dbman->drop_field($tablelog, $field);
+            }
+        }
+
+        // Widen 'source' to 32 chars to match the installer.
+        $fieldsource = new xmldb_field('source', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, 'manual');
+        if ($dbman->field_exists($tablelog, $fieldsource)) {
+            $dbman->change_field_precision($tablelog, $fieldsource);
+        }
+
+        upgrade_mod_savepoint(true, 2026040501, 'elediacheckin');
+    }
+
+    // 2026040502 — Trigger an initial content sync.
+    //
+    // The post-install hook (db/install.php) only runs on a fresh install.
+    // Existing dev sites that installed earlier versions have an empty
+    // question table until cron runs the scheduled task. Force an immediate
+    // sync here so the bundled default questions become visible right after
+    // the upgrade. Failures are logged but never abort the upgrade.
+    if ($oldversion < 2026040502) {
+        try {
+            (new \mod_elediacheckin\local\service\sync_service())->run('upgrade');
+        } catch (\Throwable $e) {
+            debugging(
+                'mod_elediacheckin: initial content sync failed during upgrade: ' . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+        }
+        upgrade_mod_savepoint(true, 2026040502, 'elediacheckin');
+    }
+
     return true;
 }

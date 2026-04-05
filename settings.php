@@ -24,8 +24,41 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// Hidden admin page for the sync-log report.
+$ADMIN->add('modsettings', new admin_externalpage(
+    'mod_elediacheckin_synclog',
+    get_string('synclog_title', 'elediacheckin'),
+    new moodle_url('/mod/elediacheckin/admin/sync_log.php'),
+    'moodle/site:config'
+));
+
 if ($ADMIN->fulltree) {
 
+    // ---------------------------------------------------------------------
+    // Content source selection.
+    // ---------------------------------------------------------------------
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/sourceheading',
+        get_string('sourceheading', 'elediacheckin'),
+        get_string('sourceheading_desc', 'elediacheckin')
+    ));
+
+    $sourceoptions = [
+        'bundled' => get_string('contentsource_bundled', 'elediacheckin'),
+        'git'     => get_string('contentsource_git', 'elediacheckin'),
+        // 'eledia' => get_string('contentsource_eledia', 'elediacheckin'), // Phase 2.
+    ];
+    $settings->add(new admin_setting_configselect(
+        'mod_elediacheckin/contentsource',
+        get_string('contentsource', 'elediacheckin'),
+        get_string('contentsource_desc', 'elediacheckin'),
+        'bundled',
+        $sourceoptions
+    ));
+
+    // ---------------------------------------------------------------------
+    // Git source configuration.
+    // ---------------------------------------------------------------------
     $settings->add(new admin_setting_heading(
         'mod_elediacheckin/repoheading',
         get_string('repoheading', 'elediacheckin'),
@@ -55,6 +88,20 @@ if ($ADMIN->fulltree) {
         ''
     ));
 
+    // Hide repo fields unless the git source is chosen.
+    $settings->hide_if('mod_elediacheckin/repourl',   'mod_elediacheckin/contentsource', 'neq', 'git');
+    $settings->hide_if('mod_elediacheckin/reporef',   'mod_elediacheckin/contentsource', 'neq', 'git');
+    $settings->hide_if('mod_elediacheckin/repotoken', 'mod_elediacheckin/contentsource', 'neq', 'git');
+
+    // ---------------------------------------------------------------------
+    // Language fallbacks (apply to all sources).
+    // ---------------------------------------------------------------------
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/langheading',
+        get_string('langheading', 'elediacheckin'),
+        get_string('langheading_desc', 'elediacheckin')
+    ));
+
     $settings->add(new admin_setting_configtext(
         'mod_elediacheckin/defaultlang',
         get_string('defaultlang', 'elediacheckin'),
@@ -69,5 +116,16 @@ if ($ADMIN->fulltree) {
         get_string('fallbacklang_desc', 'elediacheckin'),
         'en',
         PARAM_LANG
+    ));
+
+    // ---------------------------------------------------------------------
+    // External link to the sync-log admin report.
+    // ---------------------------------------------------------------------
+    $reporturl = new moodle_url('/mod/elediacheckin/admin/sync_log.php');
+    $settings->add(new admin_setting_description(
+        'mod_elediacheckin/synclogdesc',
+        get_string('synclog_link', 'elediacheckin'),
+        \html_writer::link($reporturl, get_string('synclog_open', 'elediacheckin'),
+            ['class' => 'btn btn-outline-secondary'])
     ));
 }

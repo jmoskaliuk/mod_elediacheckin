@@ -51,14 +51,24 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->addElement('header', 'checkinsettings', get_string('checkinsettings', 'elediacheckin'));
         $mform->setExpanded('checkinsettings');
 
-        $modes = [
-            'both'     => get_string('mode_both', 'elediacheckin'),
-            'checkin'  => get_string('mode_checkin', 'elediacheckin'),
-            'checkout' => get_string('mode_checkout', 'elediacheckin'),
+        // Ziele: multi-select over all available content types. The value is
+        // persisted as a comma-separated string in the 'ziele' column — the
+        // form <-> DB conversion happens in data_preprocessing() and
+        // get_data() below.
+        $zieloptions = [
+            'impuls'   => get_string('ziel_impuls', 'elediacheckin'),
+            'checkin'  => get_string('ziel_checkin', 'elediacheckin'),
+            'checkout' => get_string('ziel_checkout', 'elediacheckin'),
+            'retro'    => get_string('ziel_retro', 'elediacheckin'),
+            'learning' => get_string('ziel_learning', 'elediacheckin'),
+            'funfact'  => get_string('ziel_funfact', 'elediacheckin'),
+            'zitat'    => get_string('ziel_zitat', 'elediacheckin'),
         ];
-        $mform->addElement('select', 'mode', get_string('mode', 'elediacheckin'), $modes);
-        $mform->setDefault('mode', 'both');
-        $mform->addHelpButton('mode', 'mode', 'elediacheckin');
+        $zielselect = $mform->addElement('select', 'ziele',
+            get_string('ziele', 'elediacheckin'), $zieloptions);
+        $zielselect->setMultiple(true);
+        $mform->setDefault('ziele', ['checkin', 'checkout']);
+        $mform->addHelpButton('ziele', 'ziele', 'elediacheckin');
 
         $mform->addElement('text', 'categories', get_string('categories', 'elediacheckin'), ['size' => '48']);
         $mform->setType('categories', PARAM_TEXT);
@@ -93,5 +103,32 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $this->standard_coursemodule_elements();
 
         $this->add_action_buttons();
+    }
+
+    /**
+     * DB → form: expand the 'ziele' CSV string into an array for the
+     * multi-select element.
+     *
+     * @param array $defaultvalues
+     */
+    public function data_preprocessing(&$defaultvalues): void {
+        if (isset($defaultvalues['ziele']) && is_string($defaultvalues['ziele'])) {
+            $defaultvalues['ziele'] = $defaultvalues['ziele'] === ''
+                ? []
+                : explode(',', $defaultvalues['ziele']);
+        }
+    }
+
+    /**
+     * Form → DB: collapse the selected ziele array back into a CSV string.
+     *
+     * @return \stdClass|null
+     */
+    public function get_data() {
+        $data = parent::get_data();
+        if ($data && isset($data->ziele) && is_array($data->ziele)) {
+            $data->ziele = implode(',', $data->ziele);
+        }
+        return $data;
     }
 }

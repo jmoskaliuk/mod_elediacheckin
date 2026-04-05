@@ -7,51 +7,148 @@
 
     @template mod_elediacheckin/view
 
-    The main view for an elediacheckin activity.
+    Normal (embedded) view of a check-in activity. Layout rules follow
+    docs/display-modes-mockup-v2.html:
 
-    Classes required for JS: data-region="elediacheckin-question"
+      - Categories are NEVER shown
+      - Static ziel-chip is never shown
+      - Ziel-picker is shown IFF multiziel is true (more than one ziel configured)
+      - Answer toggle is shown IFF question.hasanswer is truthy
+      - Navigation is a single "Nächste Frage" primary button
+      - Popup + Fullscreen launchers are small round icon buttons top-right
 
     Context variables required for this template:
-    * cmid: course module id
-    * mode: one of both|checkin|checkout
-    * shownav: bool
-    * showother: bool
-    * showfilter: bool
-    * hasquestion: bool
-    * question: object with text, type, lang
-    * strnew, strnone: localised labels
+      * cmid              int
+      * hasquestion       bool
+      * question          { frage, antwort, hasanswer, lang }
+      * multiziel         bool
+      * zielbuttons       array of { key, label, active, url }  (only used if multiziel)
+      * nextquestionurl   string
+      * popupurl          string
+      * presenturl        string
+      * strnext           localised "Nächste Frage"
+      * strshowanswer     localised "Antwort anzeigen"
+      * strnone           localised "Keine Fragen verfügbar"
+      * strpopup          localised "Als Popup öffnen"
+      * strfullscreen     localised "Vollbild"
+      * strclose          localised "Schließen"
 
     Example context (json):
     {
         "cmid": 42,
-        "mode": "both",
-        "shownav": true,
-        "showother": true,
-        "showfilter": false,
         "hasquestion": true,
-        "question": { "text": "Mit welcher Energie bist du heute hier?", "type": "checkin", "lang": "de" },
-        "strnew": "Andere Frage",
-        "strnone": "Keine Fragen verfügbar"
+        "question": { "frage": "Was war dein Highlight?", "antwort": null, "hasanswer": 0, "lang": "de" },
+        "multiziel": true,
+        "zielbuttons": [
+            {"key":"checkin","label":"Check-in","active":true,"url":"view.php?id=42&activeziel=checkin"},
+            {"key":"checkout","label":"Check-out","active":false,"url":"view.php?id=42&activeziel=checkout"}
+        ],
+        "nextquestionurl": "view.php?id=42&activeziel=checkin&r=1",
+        "popupurl": "present.php?id=42&activeziel=checkin",
+        "presenturl": "present.php?id=42&activeziel=checkin",
+        "strnext": "Nächste Frage",
+        "strshowanswer": "Antwort anzeigen",
+        "strnone": "Keine Fragen verfügbar",
+        "strpopup": "Als Popup öffnen",
+        "strfullscreen": "Vollbild",
+        "strclose": "Schließen"
     }
 }}
 <div id="mod-elediacheckin-root" class="elediacheckin-stage" data-cmid="{{cmid}}">
-    <div class="card mb-4">
-        <div class="card-body elediacheckin-question-card" data-region="elediacheckin-question">
-            {{#hasquestion}}
-                <div class="elediacheckin-mode-label">{{question.type}} · {{question.lang}}</div>
-                <p class="elediacheckin-question-text">{{question.text}}</p>
-            {{/hasquestion}}
-            {{^hasquestion}}
-                <div class="alert alert-info mb-0" role="status">{{strnone}}</div>
-            {{/hasquestion}}
-        </div>
-    </div>
+    <div class="elediacheckin-card" data-region="elediacheckin-question">
 
-    <div class="elediacheckin-controls" role="group" aria-label="Check-in controls">
-        {{#showother}}
-            <button type="button" class="btn btn-primary" data-action="new-question">
-                {{strnew}}
+        {{! Icon launchers: top-right corner }}
+        <div class="elediacheckin-launchers">
+            <button type="button"
+                class="elediacheckin-icon-btn"
+                data-action="open-popup"
+                data-url="{{popupurl}}"
+                title="{{strpopup}}"
+                aria-label="{{strpopup}}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M14 3h7v7M21 3l-9 9M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"
+                        fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </button>
-        {{/showother}}
+            <button type="button"
+                class="elediacheckin-icon-btn"
+                data-action="open-fullscreen"
+                title="{{strfullscreen}}"
+                aria-label="{{strfullscreen}}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 9V5a2 2 0 0 1 2-2h4M21 9V5a2 2 0 0 0-2-2h-4M3 15v4a2 2 0 0 0 2 2h4M21 15v4a2 2 0 0 1-2 2h-4"
+                        fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+
+        {{#multiziel}}
+            <div class="elediacheckin-ziel-picker" role="tablist" aria-label="Ziel">
+                {{#zielbuttons}}
+                    <a class="elediacheckin-ziel-btn {{#active}}is-active{{/active}}"
+                        role="tab"
+                        aria-selected="{{#active}}true{{/active}}{{^active}}false{{/active}}"
+                        href="{{url}}">{{label}}</a>
+                {{/zielbuttons}}
+            </div>
+        {{/multiziel}}
+
+        {{#hasquestion}}
+            <p class="elediacheckin-question-text">{{question.frage}}</p>
+
+            {{#question.hasanswer}}
+                <details class="elediacheckin-answer">
+                    <summary>{{strshowanswer}}</summary>
+                    <div class="elediacheckin-answer-body">{{question.antwort}}</div>
+                </details>
+            {{/question.hasanswer}}
+
+            <div class="elediacheckin-controls" role="group">
+                <a href="{{nextquestionurl}}" class="btn btn-primary elediacheckin-next-btn"
+                    data-action="next-question">
+                    {{strnext}}
+                </a>
+            </div>
+        {{/hasquestion}}
+
+        {{^hasquestion}}
+            <div class="alert alert-info mb-0" role="status">{{strnone}}</div>
+        {{/hasquestion}}
     </div>
+</div>
+
+{{! Fullscreen overlay — hidden until JS toggles .is-open }}
+<div class="elediacheckin-fullscreen" data-region="elediacheckin-fullscreen" aria-hidden="true">
+    <div class="elediacheckin-fs-header">
+        <div class="elediacheckin-fs-ziel-picker">
+            {{#multiziel}}
+                {{#zielbuttons}}
+                    <a class="elediacheckin-fs-ziel-btn {{#active}}is-active{{/active}}"
+                        href="{{url}}">{{label}}</a>
+                {{/zielbuttons}}
+            {{/multiziel}}
+        </div>
+        <button type="button" class="elediacheckin-fs-close"
+            data-action="close-fullscreen"
+            title="{{strclose}}"
+            aria-label="{{strclose}}">&times;</button>
+    </div>
+    {{#hasquestion}}
+        <div class="elediacheckin-fs-middle">
+            <p class="elediacheckin-fs-question">{{question.frage}}</p>
+            {{#question.hasanswer}}
+                <p class="elediacheckin-fs-answer" data-region="fs-answer-text" hidden>{{question.antwort}}</p>
+            {{/question.hasanswer}}
+        </div>
+        <div class="elediacheckin-fs-footer">
+            {{#question.hasanswer}}
+                <button type="button" class="elediacheckin-fs-btn" data-action="toggle-fs-answer">
+                    {{strshowanswer}}
+                </button>
+            {{/question.hasanswer}}
+            <a href="{{nextquestionurl}}" class="elediacheckin-fs-btn is-primary">{{strnext}}</a>
+        </div>
+    {{/hasquestion}}
 </div>

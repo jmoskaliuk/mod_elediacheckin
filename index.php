@@ -46,14 +46,25 @@ if (empty($instances)) {
 }
 
 $table = new html_table();
-$table->head = [get_string('name'), get_string('mode', 'elediacheckin')];
+$table->head = [get_string('name'), get_string('ziele', 'elediacheckin')];
 
 foreach ($instances as $instance) {
     $link = html_writer::link(
         new moodle_url('/mod/elediacheckin/view.php', ['id' => $instance->coursemodule]),
         format_string($instance->name)
     );
-    $table->data[] = [$link, get_string('mode_' . $instance->mode, 'elediacheckin')];
+    // Translate each ziel id; leave unknown values as-is for robustness.
+    $labels = [];
+    foreach (explode(',', (string) $instance->ziele) as $ziel) {
+        $ziel = trim($ziel);
+        if ($ziel === '') {
+            continue;
+        }
+        $labels[] = get_string_manager()->string_exists('ziel_' . $ziel, 'elediacheckin')
+            ? get_string('ziel_' . $ziel, 'elediacheckin')
+            : $ziel;
+    }
+    $table->data[] = [$link, implode(', ', $labels)];
 }
 
 echo html_writer::table($table);

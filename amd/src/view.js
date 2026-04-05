@@ -8,13 +8,20 @@
 /**
  * View-page interactions for mod_elediacheckin.
  *
- * Currently handles the "Another question" button as a full page reload.
- * Will be replaced with an AJAX call once the web service is implemented.
+ * Handles:
+ *  - Popup launcher  → window.open('present.php?layout=popup', …)
+ *  - Fullscreen launcher → show overlay + lock scroll
+ *  - Fullscreen close button and Esc key
+ *  - Fullscreen answer toggle
+ *
+ * "Nächste Frage" is a plain <a> link and needs no JS.
  *
  * @module     mod_elediacheckin/view
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+const POPUP_FEATURES = 'width=1100,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
 
 export const init = (rootSelector) => {
     const root = document.querySelector(rootSelector);
@@ -22,12 +29,68 @@ export const init = (rootSelector) => {
         return;
     }
 
-    root.addEventListener('click', (e) => {
-        const target = e.target.closest('[data-action="new-question"]');
-        if (!target) {
+    const fullscreen = document.querySelector('[data-region="elediacheckin-fullscreen"]');
+
+    const openFullscreen = () => {
+        if (!fullscreen) {
             return;
         }
-        // MVP: simple reload. Replace with Ajax.call([...]) once the external function is ready.
-        window.location.reload();
+        fullscreen.classList.add('is-open');
+        fullscreen.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('elediacheckin-fs-locked');
+    };
+
+    const closeFullscreen = () => {
+        if (!fullscreen) {
+            return;
+        }
+        fullscreen.classList.remove('is-open');
+        fullscreen.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('elediacheckin-fs-locked');
+    };
+
+    // Launchers on the card.
+    root.addEventListener('click', (e) => {
+        const popupBtn = e.target.closest('[data-action="open-popup"]');
+        if (popupBtn) {
+            e.preventDefault();
+            const url = popupBtn.dataset.url;
+            if (url) {
+                window.open(url, 'elediacheckin_present', POPUP_FEATURES);
+            }
+            return;
+        }
+
+        const fsBtn = e.target.closest('[data-action="open-fullscreen"]');
+        if (fsBtn) {
+            e.preventDefault();
+            openFullscreen();
+        }
+    });
+
+    // Fullscreen overlay interactions.
+    if (fullscreen) {
+        fullscreen.addEventListener('click', (e) => {
+            if (e.target.closest('[data-action="close-fullscreen"]')) {
+                e.preventDefault();
+                closeFullscreen();
+                return;
+            }
+            const toggle = e.target.closest('[data-action="toggle-fs-answer"]');
+            if (toggle) {
+                e.preventDefault();
+                const ans = fullscreen.querySelector('[data-region="fs-answer-text"]');
+                if (ans) {
+                    ans.hidden = !ans.hidden;
+                }
+            }
+        });
+    }
+
+    // Esc closes fullscreen.
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fullscreen && fullscreen.classList.contains('is-open')) {
+            closeFullscreen();
+        }
     });
 };

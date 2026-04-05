@@ -15,7 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Main (embedded) view page for an elediacheckin activity.
+ * Presentation view for an elediacheckin activity (popup layout).
+ *
+ * Loaded via window.open() from view.php. Uses Moodle's 'popup' page layout
+ * which strips navigation, blocks and footer, leaving a clean chrome-less
+ * window suitable for screen-sharing in video calls.
  *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
@@ -36,26 +40,7 @@ require_login($course, true, $cm);
 $context = \core\context\module::instance($cm->id);
 require_capability('mod/elediacheckin:view', $context);
 
-// Completion & log.
-$completion = new completion_info($course);
-$completion->set_module_viewed($cm);
-
-$event = \mod_elediacheckin\event\course_module_viewed::create([
-    'objectid' => $instance->id,
-    'context'  => $context,
-]);
-$event->add_record_snapshot('course', $course);
-$event->add_record_snapshot('elediacheckin', $instance);
-$event->trigger();
-
-$PAGE->set_url('/mod/elediacheckin/view.php', ['id' => $cm->id]);
-$PAGE->set_title(format_string($instance->name));
-$PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_context($context);
-$PAGE->requires->js_call_amd('mod_elediacheckin/view', 'init', ['#mod-elediacheckin-root']);
-
-// Resolve active ziel: if instance has multiple ziele, honour query param,
-// otherwise default to the first configured ziel. Invalid values fall back.
+// Resolve active ziel (same logic as view.php).
 $ziele = array_values(array_filter(array_map('trim', explode(',', (string)$instance->ziele))));
 if (empty($ziele)) {
     $ziele = ['checkin'];
@@ -65,17 +50,14 @@ if (!$multiziel || !in_array($activeziel, $ziele, true)) {
     $activeziel = $ziele[0];
 }
 
-// Resolve a question through the service layer — only for the active ziel.
-// Language resolution tries (1) the activity's configured lang, (2) the user's
-// current language, (3) any language. This keeps the UX friendly on dev sites
-// where the bundle language may not match the site language yet.
+// Language resolution with graceful fallback (see view.php for rationale).
 $provider = new \mod_elediacheckin\local\service\question_provider();
 $langcandidates = [];
 if (!empty($instance->contentlang)) {
     $langcandidates[] = $instance->contentlang;
 }
 $langcandidates[] = current_language();
-$langcandidates[] = null; // Final fallback: accept any language.
+$langcandidates[] = null;
 $question = null;
 foreach (array_unique($langcandidates, SORT_REGULAR) as $lang) {
     $question = $provider->get_random_question([
@@ -88,7 +70,6 @@ foreach (array_unique($langcandidates, SORT_REGULAR) as $lang) {
     }
 }
 
-// Build ziel-picker buttons (only used if $multiziel).
 $zielbuttons = [];
 foreach ($ziele as $z) {
     $zielbuttons[] = [
@@ -97,24 +78,31 @@ foreach ($ziele as $z) {
             ? get_string('ziel_' . $z, 'elediacheckin')
             : ucfirst($z),
         'active' => ($z === $activeziel),
-        'url'    => (new moodle_url('/mod/elediacheckin/view.php', [
+        'url'    => (new moodle_url('/mod/elediacheckin/present.php', [
             'id'         => $cm->id,
             'activeziel' => $z,
+            'layout'     => 'popup',
         ]))->out(false),
     ];
 }
 
-// URLs used by the template.
-$nexturl = new moodle_url('/mod/elediacheckin/view.php', [
+$nexturl = new moodle_url('/mod/elediacheckin/present.php', [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
-    'r'          => time(), // cache-buster so the "Nächste Frage" link is always a new request.
+    'layout'     => 'popup',
+    'r'          => time(),
 ]);
-$popupurl = new moodle_url('/mod/elediacheckin/present.php', [
+
+$PAGE->set_url('/mod/elediacheckin/present.php', [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
     'layout'     => 'popup',
 ]);
+$PAGE->set_pagelayout('popup'); // Chrome-less Moodle layout.
+$PAGE->set_title(format_string($instance->name));
+$PAGE->set_heading('');
+$PAGE->set_context($context);
+$PAGE->requires->js_call_amd('mod_elediacheckin/present', 'init', ['#mod-elediacheckin-present']);
 
 $templatecontext = [
     'cmid'            => $cm->id,
@@ -123,28 +111,16 @@ $templatecontext = [
         'frage'     => format_text($question->frage, FORMAT_HTML),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
-        'lang'      => $question->lang,
     ] : null,
     'multiziel'       => $multiziel,
     'zielbuttons'     => $zielbuttons,
     'nextquestionurl' => $nexturl->out(false),
-    'popupurl'        => $popupurl->out(false),
-    'presenturl'      => $popupurl->out(false),
     'strnext'         => get_string('nextquestion', 'elediacheckin'),
     'strshowanswer'   => get_string('showanswer', 'elediacheckin'),
     'strnone'         => get_string('noquestions', 'elediacheckin'),
-    'strpopup'        => get_string('openpopup', 'elediacheckin'),
-    'strfullscreen'   => get_string('openfullscreen', 'elediacheckin'),
     'strclose'        => get_string('close', 'elediacheckin'),
 ];
 
 echo $OUTPUT->header();
-
-if (!empty($instance->intro)) {
-    echo $OUTPUT->box(format_module_intro('elediacheckin', $instance, $cm->id),
-        'generalbox mod_introbox', 'elediacheckinintro');
-}
-
-echo $OUTPUT->render_from_template('mod_elediacheckin/view', $templatecontext);
-
+echo $OUTPUT->render_from_template('mod_elediacheckin/present', $templatecontext);
 echo $OUTPUT->footer();
