@@ -194,11 +194,27 @@ $string['contentsource_bundled']   = 'Bundled default questions';
 $string['contentsource_git']       = 'Custom git repository';
 $string['contentsource_eledia']    = 'eLeDia premium questions';
 
+// eLeDia premium settings.
+$string['premiumheading']      = 'eLeDia Premium (license server)';
+$string['premiumheading_desc'] = 'Curated, signed premium questions delivered through the eLeDia license server. Every bundle is verified against an ED25519 public key baked into the plugin code before import — a compromised server cannot inject forged content.';
+$string['licenseserverurl']      = 'License server URL';
+$string['licenseserverurl_desc'] = 'Base URL of the eLeDia license server, no trailing slash. Production: <code>https://licenses.eledia.de</code>. For local tests the MVP server at <code>/license_server/</code> typically runs on e.g. <code>http://host.docker.internal:8787</code>.';
+$string['licensekey']            = 'License key';
+$string['licensekey_desc']       = 'The UUID issued on purchase. Sent to the license server on every sync; the server checks validity, expiry and the <code>max_installs</code> limit.';
+
 // Content-source error messages.
 $string['contenterror_bundlemissing'] = 'The bundled default content was not found. Please check the plugin installation.';
 $string['contenterror_bundleread']    = 'The bundled default content could not be read.';
 $string['contenterror_bundleparse']   = 'The bundled default content contains invalid JSON.';
 $string['contenterror_bundleinvalid'] = 'The bundled default content does not conform to the expected schema.';
+$string['contenterror_eledia_nourl']     = 'No license server URL is configured for eLeDia Premium.';
+$string['contenterror_eledia_nokey']     = 'No license key is configured for eLeDia Premium.';
+$string['contenterror_eledia_http']      = 'The license server is unreachable or returned an error.';
+$string['contenterror_eledia_rejected']  = 'The license server rejected the provided key (invalid, expired or max_installs reached).';
+$string['contenterror_eledia_parse']     = 'The license server response is not valid JSON.';
+$string['contenterror_eledia_sigmalformed'] = 'The premium bundle signature is malformed.';
+$string['contenterror_eledia_sigfailed']    = 'ED25519 signature verification for the premium bundle failed against the hardcoded public key. Import aborted.';
+$string['contenterror_eledia_schema']       = 'The premium bundle does not conform to the expected schema.';
 $string['contenterror_gitnourl']   = 'No repository URL is configured for the Git content source.';
 $string['contenterror_githttp']    = 'The configured repository URL could not be fetched over HTTPS.';
 $string['contenterror_gitempty']   = 'The repository returned an empty response.';

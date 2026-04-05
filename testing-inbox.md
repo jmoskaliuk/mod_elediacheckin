@@ -27,7 +27,16 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-_(leer)_
+- Kategorie Learning Content ist anders gemeint. Es geht um Fragen, die Lernen anregen also z.B. "Was ist das wichtigeste, was ich heute gelernt habe". Bitte Wording überlegen und anpassen. 
+- Use own questions only ist missverständlich. Was passeirt werden Fragen drin stehen, aber nein ausgewählt ist. Es gibt denke ich drei Optionen: Eigene Fragen gemeinsam mit den fertigen Nutzen. Nur eigene Fragen. Keine eigene Fragen. Kannst Du das nochmal überdenken und dann anpassen. 
+- jetzt ist der Sycn-Status weg bei eLeDia Check-In Admin settings. Save button passt aber. 
+-  Run sync now butteon fehlt auch in Admin Settings. 
+- könnten wir den Block so anpassen, dass es auch auf der Startseite funktioniert?
+- Bei Quote wollten wir noch den Autor haben. Bitte LAyout überlegen und Json anpassen. 
+- im Aktivity chooser kannst Du a einen Info link einbauen, wie auch die anderen Akvititäten haben. Sollte sein eledia.de/mod_elediacheckin
+- Können wir eine Usertour für die Teacher erstellen, wenn die Akbitäten zum ersten Mal genutzt wird?
+- Ich nutze Firefox. Wenn ich im Vollbildmodus des Browers bin öffnet sich das Pop up nicht in einem Popup, sondern in einem neuen Fenster. Ist das gewollt oder ein FEhler?
+
 
 ## ❓ Klärung notwendig
 
@@ -41,10 +50,21 @@ _(leer)_
 
 ## 🔧 In Arbeit
 
-_(leer — nächstes großes Thema: Phase 2 License-Server-MVP)_
+_(leer)_
 
 ## ✅ Erledigt
 
+- **Phase 2 License-Server-MVP komplett gebaut** — plugin-seitig:
+  `bundle_signature_verifier` (ED25519 via libsodium), `eledia_premium_content_source`
+  (verify → bundle + sig download → verify → schema-check), Registry-Eintrag,
+  Admin-Settings `licenseserverurl` + `licensekey` (hide_if an `contentsource`),
+  Lang-Strings DE/EN. Server-seitig (`/license_server`): `public/index.php`,
+  `src/{Database,TokenMinter,VerifyController,BundleController,helpers}.php`,
+  `bin/{generate-keypair,sign-bundle,create-license,seed-demo}.php`.
+  Demo-Keypair seeded, Demo-Bundle signiert, Public Key in den Verifier
+  eingepflegt. Kompletter Konzept-Abschnitt §10.17 geschrieben.
+- **Icon auf lucide mirror-round umgestellt** (`pix/icon.svg`) — circle + Linien
+  entsprechend der Lucide-Struktur. Johannes' Wunsch aus der Inbox.
 - Sync-Status-Dashboard auf eigene admin_externalpage ausgelagert. Die
   Einstellungs-Seite enthält jetzt nur noch Konfiguration; der Save-
   Changes-Button sitzt direkt unter dem letzten Feld. „Sync-Status" ist

@@ -76,9 +76,7 @@ if ($ADMIN->fulltree) {
     $sourceoptions = [
         'bundled'        => get_string('contentsource_bundled', 'elediacheckin'),
         'git'            => get_string('contentsource_git', 'elediacheckin'),
-        // Phase-2 placeholder — listed but disabled until the premium backend is live.
-        // The sync service falls back to 'bundled' if this value is ever picked.
-        'eledia_premium' => get_string('contentsource_eledia', 'elediacheckin') . ' (Phase 2)',
+        'eledia_premium' => get_string('contentsource_eledia', 'elediacheckin'),
     ];
     $settings->add(new admin_setting_configselect(
         'mod_elediacheckin/contentsource',
@@ -137,6 +135,41 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('mod_elediacheckin/repourl',   'mod_elediacheckin/contentsource', 'neq', 'git');
     $settings->hide_if('mod_elediacheckin/reporef',   'mod_elediacheckin/contentsource', 'neq', 'git');
     $settings->hide_if('mod_elediacheckin/repotoken', 'mod_elediacheckin/contentsource', 'neq', 'git');
+
+    // ---------------------------------------------------------------------
+    // 3b. eLeDia Premium source configuration — only relevant when
+    // source = eledia_premium. License-Key lives on the license server,
+    // server URL can point at the local MVP in /license_server/ for
+    // in-house tests or at licenses.eledia.de in production.
+    // ---------------------------------------------------------------------
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/premiumheading',
+        get_string('premiumheading', 'elediacheckin'),
+        get_string('premiumheading_desc', 'elediacheckin')
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'mod_elediacheckin/licenseserverurl',
+        get_string('licenseserverurl', 'elediacheckin'),
+        get_string('licenseserverurl_desc', 'elediacheckin'),
+        'https://licenses.eledia.de',
+        PARAM_URL
+    ));
+
+    // License-Key als verdecktes Passwort-Feld — es ist zwar nur eine UUID
+    // und kein echtes Secret, aber so wird es nicht versehentlich per
+    // Screen-Share geteilt.
+    $settings->add(new admin_setting_configpasswordunmask(
+        'mod_elediacheckin/licensekey',
+        get_string('licensekey', 'elediacheckin'),
+        get_string('licensekey_desc', 'elediacheckin'),
+        ''
+    ));
+
+    $settings->hide_if('mod_elediacheckin/licenseserverurl',
+        'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
+    $settings->hide_if('mod_elediacheckin/licensekey',
+        'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
 
     // ---------------------------------------------------------------------
     // 4. Language fallbacks (apply to all sources).

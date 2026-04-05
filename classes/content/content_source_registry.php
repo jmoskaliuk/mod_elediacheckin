@@ -29,9 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Maps source IDs to content_source_interface implementations.
  *
- * Phase 1 ships bundled + git. Phase 2 will register eledia_premium here.
- * Third parties could in theory add their own implementations via a Moodle
- * hook, but that is explicitly out of scope for the first release.
+ * Ships with bundled + git + eledia_premium. Third parties could in theory
+ * add their own implementations via a Moodle hook, but that is explicitly
+ * out of scope for the first release.
  */
 final class content_source_registry {
 
@@ -93,7 +93,7 @@ final class content_source_registry {
         return [
             new bundled_content_source(),
             new git_content_source(),
-            // Phase 2: eledia_premium_content_source.
+            new eledia_premium_content_source(),
         ];
     }
 }

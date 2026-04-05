@@ -192,10 +192,26 @@ $string['contentsource_bundled']   = 'Mitgelieferte Standardfragen';
 $string['contentsource_git']       = 'Eigenes Git-Repository';
 $string['contentsource_eledia']    = 'eLeDia Premium-Fragen';
 
+// eLeDia-Premium-Settings.
+$string['premiumheading']      = 'eLeDia Premium (Lizenzserver)';
+$string['premiumheading_desc'] = 'Kuratierte, signierte Premium-Fragen, die regelmäßig über den eLeDia-Lizenzserver ausgeliefert werden. Jedes Bundle wird vor dem Import gegen einen fest im Plugin hinterlegten ED25519-Public-Key verifiziert — auch ein kompromittierter Server kann keine gefälschten Fragen einspielen.';
+$string['licenseserverurl']      = 'Lizenzserver-URL';
+$string['licenseserverurl_desc'] = 'Basis-URL des eLeDia-Lizenzservers, ohne abschließenden Slash. Produktiv: <code>https://licenses.eledia.de</code>. Für lokale Tests zeigt der MVP-Server im Workspace unter <code>/license_server/</code> auf z. B. <code>http://host.docker.internal:8787</code>.';
+$string['licensekey']            = 'Lizenzschlüssel';
+$string['licensekey_desc']       = 'UUID, die Sie beim Kauf erhalten haben. Wird bei jeder Synchronisation an den Lizenzserver gesendet; der Server prüft Gültigkeit, Ablauf und <code>max_installs</code>-Limit.';
+
 // Content-source error messages.
 $string['contenterror_bundlemissing'] = 'Das mitgelieferte Standard-Bundle wurde nicht gefunden. Bitte Plugin-Installation prüfen.';
 $string['contenterror_bundleread']    = 'Das mitgelieferte Standard-Bundle konnte nicht gelesen werden.';
 $string['contenterror_bundleparse']   = 'Das mitgelieferte Standard-Bundle enthält ungültiges JSON.';
 $string['contenterror_bundleinvalid'] = 'Das mitgelieferte Standard-Bundle entspricht nicht dem erwarteten Schema.';
+$string['contenterror_eledia_nourl']     = 'Für eLeDia Premium ist keine Lizenzserver-URL konfiguriert.';
+$string['contenterror_eledia_nokey']     = 'Für eLeDia Premium ist kein Lizenzschlüssel konfiguriert.';
+$string['contenterror_eledia_http']      = 'Der Lizenzserver ist nicht erreichbar oder liefert einen Fehler zurück.';
+$string['contenterror_eledia_rejected']  = 'Der Lizenzserver hat den angegebenen Schlüssel abgelehnt (ungültig, abgelaufen oder max_installs erreicht).';
+$string['contenterror_eledia_parse']     = 'Die Antwort des Lizenzservers enthält kein gültiges JSON.';
+$string['contenterror_eledia_sigmalformed'] = 'Die Signatur des Premium-Bundles ist formal ungültig.';
+$string['contenterror_eledia_sigfailed']    = 'Die ED25519-Signatur des Premium-Bundles stimmt nicht mit dem hinterlegten Public-Key überein. Import abgebrochen.';
+$string['contenterror_eledia_schema']       = 'Das Premium-Bundle entspricht nicht dem erwarteten Schema.';
 
 $string['privacy:metadata']   = 'Die Aktivität "Check-in" speichert keine personenbezogenen Daten. Fragen werden nur angezeigt, Antworten werden nicht erfasst.';
