@@ -828,6 +828,26 @@ Nach dem ersten Live-Test von v2026040537 hat Johannes eine zusammenhängende UX
 
 **Zusammenfassung v2026040538:** Block bleibt auf Aktivitätsseiten, Block-Karte zeigt wieder Text, Button-Labels sind kürzer und ziel-agnostisch, der Back-Button verhält sich endlich wie erwartet, Lehrkräfte können pro Aktivität entscheiden, was bei leerem Pool passiert, Dashboard-Save-Button hat die richtige Größe, und die dritte User-Tour taucht nach dem Upgrade-Step auch bei bestehenden Installationen auf.
 
+### §10.31 Save-Bar-Position als eigene admin_setting_heading (v2026040539, 2026-04-05)
+
+Folgefix zu §10.30.7. Der Dashboard-Save-Button hatte zwar die richtige Größe, saß aber innerhalb des `dashboard_renderer::render()`-Outputs und damit unterhalb des `admin_setting_heading`-Titels „Sync status"/„Sync-Status". Johannes wollte den Button explizit ÜBER dem Heading haben.
+
+Lösung ohne JS, ohne DOM-Reorder: die Save-Bar aus `dashboard_renderer::render()` in eine eigene `public static function render_save_bar()` extrahiert und in `settings.php` als eigene headingless `admin_setting_heading` VOR dem `dashboardpanel` registriert. Moodle-Admin-Settings rendert `admin_setting_heading`-Einträge in der Reihenfolge, in der sie per `$settings->add()` angehängt wurden — damit genügt die reine Definition-Order für das gewünschte Layout. Reihenfolge auf der Seite ist jetzt: Save-Changes-Alert-Strip → h3 „Sync status" → Companion-Block-Health → Current-state-Card → Recent-log-Table.
+
+Lehre: Die Reorder-Hickel aus §10.25–§10.27 kamen alle daher, dass wir versucht haben, Moodle-Core-Layout mit JS nachträglich zu verbiegen. Die richtige Lösung war immer, Moodle's eigene Settings-Reihenfolge zu nutzen — zwei `admin_setting_heading`-Einträge statt eines, einer für den Button-Strip, einer für das Panel. Muster vormerkbar für alle eLeDia-Admin-Settings-Seiten, die eine UI-Komponente vor einer sonst unveränderten Setting-Liste brauchen.
+
+### §10.32 Vollbild-Navigation-Fix + DE-Sie-Audit (v2026040540, 2026-04-05)
+
+Zwei kleine Folgefixes vom Abend des v2026040538-Deploy-Tests.
+
+**1 — Vollbild-Overlay bleibt beim Weiter-Klick offen.** Die Prev/Next/Ziel-Picker-Links im Vollbild-Overlay (`templates/view.mustache`, Block `.elediacheckin-fs-footer` und `.elediacheckin-fs-ziel-picker`) sind plain `<a href>`-Navigationen, keine AJAX-Updates. Klickt der Nutzer darauf, lädt `view.php` neu — und die neue Render-Instanz startet im Default-State (`.is-open` fehlt auf dem Overlay-Div, `aria-hidden="true"`). Das wirkte für Johannes wie ein Bug: „Vollbild schließt sich beim Weiter".
+
+Fix-Ansatz ohne Server-Roundtrip: `amd/src/view.js` hängt per Click-Handler am Fullscreen-Container. Jeder Click auf einen `<a href>` innerhalb des Overlays wird abgefangen, die Ziel-URL per `URL`-Konstruktor geparst, `fs=1` als Query-Param gesetzt, `nav.href = url.toString()`. Der Click läuft dann normal weiter — der Browser navigiert zur modifizierten URL. Beim Laden der neuen Seite liest `view.js` `window.location.search` aus, und wenn `fs=1` drinsteht, ruft es sofort `openFullscreen()`. Das Overlay ist damit beim Seiten-Rerender direkt wieder sichtbar, bevor der Nutzer einen Zwischenzustand bemerken könnte. Esc und der ×-Close-Button verhalten sich unverändert. Ein `dataset.fsStamped`-Guard verhindert, dass ein einzelner Link bei mehreren Klicks doppelt gestempelt wird.
+
+Lehre: Wenn ein JS-Overlay kein State-Survival über Page-Reloads hat, ist der URL-Query-Param der einfachste „Pseudo-Session"-Kanal. Kein `$SESSION`-Roundtrip, kein localStorage (wäre hier eh über mehrere Tabs problematisch), kein SPA-Umbau nötig. Muster „Overlay-State via URL-Flag + auto-open on load" ist für andere eLeDia-Plugins vormerkbar, sobald sie ähnliche Vollbild/Präsentations-Overlays bauen.
+
+**2 — DE-Lang durchgängig Sie.** Audit auf `lang/de/elediacheckin.php` und `lang/de/block_elediacheckin.php`: gemischte „du"/„Sie"-Formen gefunden. Entscheidung mit Johannes: durchgängig Sie (Corporate/B2B-Zielgruppe eLeDia), EN bleibt bei neutralem „you". Betroffene Strings: `exhaustedmessage`, `contentlang_help`, alle `checkintour_step{1,2,3,4}_content`, alle `settingstour_step{1,2,3,5}_content`, alle `activitytour_step{1..7}_content`, `linkedactivity_help` im Block. Gesamt ~15 String-Edits. Als Feedback-Memory festgehalten (`feedback_eledia_german_siezen.md`), damit zukünftige Sessions die Konvention beim Anlegen neuer Strings nicht wieder aufweichen — auch in anderen eLeDia-Plugins.
+
 ---
 
 ## Zusammenfassung in einem Satz
