@@ -59,7 +59,7 @@ final class feature_flags {
      * admin settings are visible. Flipped to false in release builds until
      * the premium backend is productised.
      */
-    public const PREMIUM_ENABLED = true;
+    public const PREMIUM_ENABLED = false;
 
     /**
      * Convenience wrapper — kept as a method so call sites can be found
