@@ -27,9 +27,11 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- Wenn der Block auf der Startseite ist, welche Checkin Aktivität wird an ausgeählt? Wa brauchte s noch ein Konzept.
+Run sync now gibt diesen Fehler:  Sync failed: The repository bundle does not conform to the expected schema. (Missing or non-string bundle field: schema_version. | Missing or non-string bundle field: bundle_id. | Missing or non-string bundle field: bundle_version. | Missing or non-string bundle field: language. | Missing or invalid "questions" array.) :: Missing or non-string bundle field: schema_version. | Missing or non-string bundle field: bundle_id. | Missing or non-string bundle field: bundle_version. | Missing or non-string bundle field: language. | Missing or invalid "questions" array. 
 
-_(offene Punkte — siehe oben)_
+_(leer — bitte nach dem nächsten Deploy `~/moodle-update.sh checkin` testen,
+ob die drei unten aufgeführten Punkte vom 2026-04-05 tatsächlich wie
+erwartet wirken.)_
 
 ## ❓ Klärung notwendig
   
@@ -37,10 +39,23 @@ _(offene Punkte — siehe oben)_
 
 ## 🔧 In Arbeit
 
-_(leer)_
+_(er)_
 
 ## ✅ Erledigt
 
+- **Frontpage-Block: welche Aktivität wird ausgewählt?** Design-Entscheidung
+  dokumentiert (Konzept-Doc §10.21): Dropdown zeigt auf der Startseite
+  exakt die Check-in-Aktivitäten, die **auf der Startseite selbst**
+  angelegt sind — dieselbe Logik wie im Kurs, nur mit SITEID als „Kurs".
+  Cross-Course-Linking bewusst verworfen (Enrolment/Capability-Mismatch,
+  Sichtbarkeits-Leak, Backup-Brüche). UX-Verbesserung: wenn der Dropdown
+  leer ist und der Nutzer `moodle/course:manageactivities` hat, rendert
+  das Block-Edit-Form eine alert-warning mit Direktlink auf
+  `course/modedit.php?add=elediacheckin&course=<SITEID>` — also „Jetzt
+  eine Check-in-Aktivität anlegen"-Button statt ratlosem leeren Dropdown.
+  Hilfetext des `linkedactivity`-Feldes (DE + EN) erklärt den Frontpage-
+  Spezialfall und dass mehrere Aktivitäten parallel betrieben werden
+  können (Team-Check-in + Zitat-des-Tages in je einem eigenen Block).
 - **Barrierefreiheits-Pass.** View-Seite gegen WAI-ARIA-Checkliste gezogen:
   Ziel-Picker ist jetzt `<nav aria-label>` mit `aria-current="page"` statt
   rollenlosem `<div>`; die Fullscreen-Overlay ist ein echtes Modal

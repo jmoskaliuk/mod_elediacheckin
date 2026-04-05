@@ -621,6 +621,34 @@ Mit dem ersten Release im Blick wurde die View-Seite einmal gegen die WAI-ARIA-A
 
 **Save-Changes-Button oberhalb des Sync-Panels.** Core-Moodle hängt den Submit-Button einer `admin_settingpage` immer an das Form-Ende, d.h. nach dem letzten Setting — und der `dashboard_renderer`-Output ist technisch das letzte Setting (ein `admin_setting_heading`). Das Ergebnis war Panel → Save-Button, Johannes wollte Save-Button → Panel. Lösung ohne Umbau auf `admin_externalpage`: der `dashboard_renderer::render()`-String enthält am Ende einen kleinen `<script>`-Block, der `#admin-dashboardpanel` im DOM hinter den `<form>`-direkten-Child des Submit-Inputs verschiebt. Graceful Degradation: ohne JS steht das Panel oberhalb — weiterhin vollständig nutzbar, nur nicht in der bevorzugten Reihenfolge. Das ist weniger sauber als eine echte Struktur-Änderung, aber admin_externalpage hätte bedeutet, die gesamte Konfig-Seite mit MoodleQuickForm neu zu schreiben — zu viel Aufwand für eine Reihenfolgefrage.
 
+### 10.21 Frontpage-Block — welche Check-in-Aktivität wird ausgewählt? (April 2026, block-version 2026040504)
+
+**Die Frage.** Seit `applicable_formats()` neben `course-view` auch `site`/`site-index` erlaubt (§10.19), kann `block_elediacheckin` direkt auf die Moodle-Startseite gezogen werden. Johannes' Inbox-Frage: *„Welche Check-in-Aktivität wird da ausgewählt? Braucht es noch ein Konzept?"*
+
+**Mechanik, die wir heute haben.** Das Edit-Form baut die Dropdown-Liste aus `get_fast_modinfo($COURSE)->get_instances_of('elediacheckin')`. Moodle behandelt die Startseite als regulären Kurs mit der ID `SITEID` (meist `1`); `$COURSE` ist auf der Startseite dieser SITEID-Kurs. Das heißt konkret: **das Dropdown listet auf der Startseite exakt die Check-in-Aktivitäten, die auf der Startseite selbst angelegt wurden** — dieselbe Logik wie in jedem anderen Kurs, nur mit `SITEID` als Kurs. Es gibt keinen impliziten „Such eine beliebige Aktivität aus dem ganzen Moodle"-Modus.
+
+**Warum keine kursübergreifende Verknüpfung.** Die intuitive Alternative wäre: *„Auf der Startseite soll das Dropdown alle Check-in-Aktivitäten aus allen Kursen anzeigen."* Dagegen sprechen drei harte Gründe:
+
+1. **Enrolment/Capability-Mismatch.** `mod/elediacheckin:view` wird per Default an Rollen innerhalb eines Kurses gebunden (student, teacher, …). Ein Besucher der Startseite ist im Zielkurs nicht eingeschrieben — `has_capability()` liefert `false`, der Block würde leer bleiben. Workaround wäre eine `can_access_course`-Emulation, die aber konsequent über sämtliche `require_login()`-Aufrufe in `view.php`/`present.php` ausgehebelt werden müsste. Das ist ein Security-Minenfeld.
+2. **Sichtbarkeits-Annahmen.** Kursmodule dürfen verborgen, terminiert, zielgruppen-restriktiert sein (`availability_*`). Ein Launcher auf der Startseite, der an eine Aktivität in einem hidden course gekoppelt ist, wäre eine Leak-Oberfläche: der Block-Preview würde die Frage zeigen, der Klick führt zu „Access denied".
+3. **Backup-/Kurslöschung.** Wird der Zielkurs gelöscht oder migriert, zeigt der Startseiten-Block ins Leere. Der heutige Modus (Block + Aktivität im selben Kurs bzw. auf derselben Startseite) ist gegen Kurslöschung implizit robust, weil Moodle beides zusammen löscht.
+
+**Was also tun, wenn jemand auf der Startseite einen Check-in-Block möchte?** Die korrekte Vorgehensweise ist: **Zuerst eine Check-in-Aktivität auf der Startseite anlegen** (*Site administration → Front page → Front page settings → Turn editing on → Add activity*), dann den Block auf der Startseite platzieren und im Dropdown diese Aktivität wählen. Das ist exakt dasselbe Muster wie in einem Kurs — nur der „Kurs" ist eben die Frontpage selbst. Moodle unterstützt das seit jeher, es ist nur vielen Admins nicht bewusst.
+
+**Mehrere Aktivitäten nebeneinander.** Weil sowohl `instance_allow_multiple()` als auch jede zusätzliche Check-in-Aktivität auf der Startseite unabhängig konfiguriert wird, lassen sich sinnvolle Kombinationen bauen:
+- Eine Aktivität mit `ziele = ['checkin']` + `zielgruppen = ['team']` für die Team-Kachel, eine zweite mit `['zitat']` für eine „Zitat des Tages"-Spalte. Beide liegen auf der Frontpage, jeder Block verlinkt auf eine eigene.
+- Unterschiedliche Sprachfallbacks (DE vs. EN) pro Block — praktisch für mehrsprachige Portale.
+- Unterschiedliche „eigene Fragen"-Pools (§10.15-Tri-state), die Startseiten-Admin kann also ein Set kuratieren, ohne dass irgendein Kurskonstrukt aufgemacht werden muss.
+
+**UX-Folge für das Edit-Form: Empty-State-Hinweis.** Solange auf der Startseite keine Aktivität existiert, sah das Dropdown bisher nur wie ein trauriges „Choose…" aus, ohne Hinweis warum es leer ist. Das war vermutlich der Kern von Johannes' „braucht es ein Konzept?". Fix: wenn `$activities` leer ist **und** der aktuelle Nutzer `moodle/course:manageactivities` im aktuellen Kurs hat, rendert das Edit-Form eine `alert-warning`-Zeile mit Direkt-Link auf `course/modedit.php?add=elediacheckin&course=<SITEID>`. Einmal geklickt, Aktivität angelegt, zurück zum Block, Dropdown ist nicht mehr leer. Der Hilfetext des `linkedactivity`-Feldes (DE + EN) erklärt zusätzlich, dass auf der Startseite nur dort angelegte Aktivitäten erscheinen, und dass mehrere Check-in-Aktivitäten parallel betrieben werden können.
+
+**Backend-Code bleibt unverändert.** `get_content()`, `activity_pool::pick_random()`, Capability-Check — alles funktioniert auf der Startseite genauso wie in einem Kurs, weil Moodle die Frontpage intern als Kurs führt. Es musste also außer dem `applicable_formats()`-Eintrag und dem Empty-State-Hint im Edit-Form nichts angefasst werden.
+
+**Nicht-Ziele.** Was wir bewusst **nicht** bauen:
+- Kein „site-weites" Check-in, das ohne zugrundeliegende Aktivität rendert (würde `activity_pool`-Interface zerbrechen).
+- Kein Auto-Create-Trick, der beim ersten Block-Placement magisch eine Hidden-Aktivität anlegt (erklärt sich dem Admin nicht und ist undebuggbar, wenn später etwas schiefläuft).
+- Kein Cross-Course-Picker (siehe oben, drei Gründe gegen).
+
 ---
 
 ## Zusammenfassung in einem Satz
