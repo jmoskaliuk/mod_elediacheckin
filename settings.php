@@ -17,16 +17,22 @@
 /**
  * Site-wide admin settings for mod_elediacheckin.
  *
- * Single entry point for all plugin administration. Layout follows the
- * "configure first, inspect later" principle:
+ * Layout follows the "configure first, inspect later" principle, split
+ * across two admin nodes so the form's Save-Changes button sits directly
+ * under the last config field (Johannes' feedback, testing-inbox April
+ * 2026 — previously the Sync-Status was squeezed between the last field
+ * and the save button):
  *
- *   1. Intro mini-guide  (what to do, in order)
- *   2. Content source    (the first decision the admin has to make)
- *   3. Git repo config   (conditionally shown only if source = git)
- *   4. Language fallbacks
- *   5. Sync status panel (dashboard — checked AFTER the config is saved)
+ *   Node 1 — Einstellungen (this settingpage):
+ *     1. Intro mini-guide  (what to do, in order)
+ *     2. Content source    (the first decision the admin has to make)
+ *     3. Git repo config   (conditionally shown only if source = git)
+ *     4. Language fallbacks
+ *     → [Save Changes]
+ *     5. Link zum Sync-Status-Dashboard
  *
- * There is intentionally no separate admin_externalpage anymore.
+ *   Node 2 — Sync-Status (admin/dashboard.php, admin_externalpage):
+ *     Aktive Quelle, Run-Sync-Button, Connection-Test, Log-Tabelle.
  *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
@@ -34,6 +40,18 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+
+// Second admin node: Sync-Status-Dashboard. Registered alongside the
+// auto-created settingpage under the same modsettings category so admins
+// see both „Einstellungen" and „Sync-Status" in the left nav.
+if ($hassiteconfig) {
+    $ADMIN->add('modsettings', new admin_externalpage(
+        'mod_elediacheckin_dashboard',
+        get_string('dashboard_heading', 'elediacheckin'),
+        new moodle_url('/mod/elediacheckin/admin/dashboard.php'),
+        'moodle/site:config'
+    ));
+}
 
 if ($ADMIN->fulltree) {
 
@@ -82,15 +100,17 @@ if ($ADMIN->fulltree) {
     );
     $settings->add($repoheading);
 
-    // Default auf das oeffentliche Beispiel-Repo von eLeDia. Admins, die
-    // ihren eigenen Content betreuen wollen, koennen den Wert einfach
-    // ueberschreiben — aber „leer lassen und direkt ausprobieren" ist ein
-    // valider Pfad. Siehe Konzept §10.16.
+    // Default auf die RAW-URL der bundle.json im oeffentlichen Beispiel-Repo.
+    // WICHTIG: Der git_content_source fetcht diese URL direkt via curl — ein
+    // ".git"-Clone-Link (wie github.com/.../content_elediacheckin.git) wuerde
+    // HTML zurueckliefern und schema_validator mit „Top-level JSON must be an
+    // object" scheitern. Admins koennen den Wert fuer ihren eigenen Fork
+    // einfach ueberschreiben (selbe URL-Struktur mit ihrem User/Org-Namen).
     $settings->add(new admin_setting_configtext(
         'mod_elediacheckin/repourl',
         get_string('repourl', 'elediacheckin'),
         get_string('repourl_desc', 'elediacheckin'),
-        'https://github.com/jmoskaliuk/content_elediacheckin.git',
+        'https://raw.githubusercontent.com/jmoskaliuk/content_elediacheckin/main/bundle.json',
         PARAM_URL
     ));
 
@@ -143,20 +163,8 @@ if ($ADMIN->fulltree) {
         PARAM_LANG
     ));
 
-    // ---------------------------------------------------------------------
-    // 5. Embedded dashboard: active source, manual sync, connection test,
-    // recent sync log. Intentionally at the BOTTOM: the logical flow is
-    // "set the configuration first, then verify the sync status".
-    // ---------------------------------------------------------------------
-    $settings->add(new admin_setting_heading(
-        'mod_elediacheckin/dashboard_heading',
-        get_string('dashboard_heading', 'elediacheckin'),
-        get_string('dashboard_heading_desc', 'elediacheckin')
-    ));
-
-    $settings->add(new admin_setting_description(
-        'mod_elediacheckin/dashboard_panel',
-        '',
-        \mod_elediacheckin\local\admin\dashboard_renderer::render()
-    ));
+    // Hinweis: Das frühere eingebettete Sync-Status-Panel lebt jetzt unter
+    // einem eigenen Nav-Eintrag „Sync-Status" (siehe admin_externalpage
+    // weiter oben). Damit sitzt der Save-Button direkt unter dem letzten
+    // Feld — keine Tabelle mehr dazwischen.
 }

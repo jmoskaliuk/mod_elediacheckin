@@ -38,8 +38,18 @@ require_sesskey();
 
 $action = required_param('action', PARAM_ALPHA);
 
-$returnurl = new moodle_url('/admin/settings.php',
-    ['section' => 'modsettingelediacheckin']);
+// Moodle 5.x warns (debug) when redirect() renders a notification page
+// without a prior $PAGE->set_url() — the header renderer can't build the
+// edited-page hash without it. Set URL + context up front so the flash-
+// redirect chrome renders cleanly.
+$PAGE->set_url('/mod/elediacheckin/admin/actions.php', ['action' => $action]);
+$PAGE->set_context(context_system::instance());
+$PAGE->set_pagelayout('admin');
+
+// Zurück zum Dashboard — dort werden die Run-Sync- und Test-Connection-
+// Buttons gerendert, und dort will der Admin unmittelbar das Ergebnis
+// (Success/Error Notification + neue Log-Zeile) sehen.
+$returnurl = new moodle_url('/mod/elediacheckin/admin/dashboard.php');
 
 switch ($action) {
     case 'runsync':

@@ -138,7 +138,7 @@ $string['elediacheckin:manage']        = 'Check-in-Aktivität verwalten';
 $string['elediacheckin:synccontent']   = 'Inhalt synchronisieren';
 
 $string['adminintro_heading'] = 'Erste Schritte';
-$string['adminintro_desc']    = '<div class="alert alert-info mb-3"><strong>Kurzanleitung für Administrator:innen</strong><ol class="mb-0"><li>Wählen Sie unten eine <em>Inhaltsquelle</em>. Die mitgelieferten Standardfragen funktionieren ohne weitere Konfiguration.</li><li>Für eigene Fragen wählen Sie <em>Eigenes Git-Repository</em> und hinterlegen die Raw-JSON-URL Ihres Bundles. Als Vorlage dient <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — forken, editieren und die Raw-URL der eigenen Kopie eintragen.</li><li>Hinterlegen Sie die <em>Sprach-Fallbacks</em> für Aktivitäten, die keine eigene Sprache vorgeben.</li><li>Änderungen speichern und anschließend im Panel <em>Sync-Status</em> unten auf <em>Sync jetzt ausführen</em> klicken, um das erste Bundle zu laden.</li></ol></div>';
+$string['adminintro_desc']    = '<div class="alert alert-info mb-3"><strong>Kurzanleitung für Administrator:innen</strong><ol class="mb-0"><li>Wählen Sie unten eine <em>Inhaltsquelle</em>. Die mitgelieferten Standardfragen funktionieren ohne weitere Konfiguration.</li><li>Für eigene Fragen wählen Sie <em>Eigenes Git-Repository</em>. Als Vorlage dient <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — Repository forken, <code>bundle.json</code> an die eigenen Bedürfnisse anpassen und unten die <em>Raw-URL</em> der eigenen Kopie eintragen (Format: <code>https://raw.githubusercontent.com/&lt;user&gt;/content_elediacheckin/main/bundle.json</code>).</li><li>Hinterlegen Sie die <em>Sprach-Fallbacks</em> für Aktivitäten, die keine eigene Sprache vorgeben.</li><li>Änderungen speichern. Danach im Nav-Eintrag <em>Sync-Status</em> auf <em>Sync jetzt ausführen</em> klicken, um das Bundle zu laden.</li></ol></div>';
 $string['sourceheading']      = 'Inhaltsquelle';
 $string['sourceheading_desc'] = 'Legt fest, woher die Check-in-Fragen kommen. Die mitgelieferten Standardfragen stehen immer als Fallback zur Verfügung.';
 $string['contentsource']      = 'Aktive Inhaltsquelle';
@@ -170,9 +170,10 @@ $string['contenterror_gitempty']   = 'Das Repository lieferte eine leere Antwort
 $string['contenterror_gitparse']   = 'Die Antwort des Repositories enthält ungültiges JSON.';
 $string['contenterror_gitinvalid'] = 'Das Bundle im Repository entspricht nicht dem erwarteten Schema.';
 $string['repoheading']        = 'Inhalts-Repository';
-$string['repoheading_desc']   = 'Konfiguration der externen Git-basierten Inhaltsquelle. Fragen werden regelmäßig abgerufen und lokal zwischengespeichert. Als Vorlage steht <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> bereit — forken, <code>content/default.json</code> anpassen und die Raw-URL Ihrer Kopie unten eintragen.';
+$string['repoheading_desc']   = 'Konfiguration der externen Git-basierten Inhaltsquelle. Das Bundle-JSON wird regelmäßig abgerufen und lokal zwischengespeichert. Als Vorlage steht <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> bereit — Repository forken, <code>bundle.json</code> im Wurzelverzeichnis anpassen und unten die Raw-URL Ihrer Kopie eintragen.';
+$string['repourl_example']    = 'Beispiel: <code>https://raw.githubusercontent.com/jmoskaliuk/content_elediacheckin/main/bundle.json</code>';
 $string['repourl']            = 'Repository-URL';
-$string['repourl_desc']       = 'HTTPS-URL des Raw-JSON-Artefakts oder Release-Assets.';
+$string['repourl_desc']       = 'HTTPS-URL des Raw-JSON-Bundles (z. B. <code>https://raw.githubusercontent.com/&lt;user&gt;/content_elediacheckin/main/bundle.json</code>). <strong>Keine</strong> <code>.git</code>-Clone-URL — die Datei wird direkt über HTTPS geladen.';
 $string['reporef']            = 'Branch, Tag oder Commit';
 $string['reporef_desc']       = 'Git-Ref, auf die der Inhalt festgepinnt wird. Standard: "main".';
 $string['repotoken']          = 'Zugriffstoken';

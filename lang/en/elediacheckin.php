@@ -143,7 +143,7 @@ $string['elediacheckin:synccontent']   = 'Trigger content synchronisation';
 
 // Admin settings.
 $string['adminintro_heading'] = 'Getting started';
-$string['adminintro_desc']    = '<div class="alert alert-info mb-3"><strong>Quick guide for administrators</strong><ol class="mb-0"><li>Choose a <em>content source</em> below. The bundled default works out of the box — no configuration needed.</li><li>To use your own questions, pick <em>Custom git repository</em> and paste the raw-JSON URL of your bundle. A ready-to-fork example lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — clone it and point the URL at your own copy.</li><li>Set the <em>language fallbacks</em> that apply when an activity does not pin a specific language.</li><li>Save changes, then scroll to the <em>Sync status</em> panel at the bottom and click <em>Run sync now</em> to load the first bundle.</li></ol></div>';
+$string['adminintro_desc']    = '<div class="alert alert-info mb-3"><strong>Quick guide for administrators</strong><ol class="mb-0"><li>Choose a <em>content source</em> below. The bundled default works out of the box — no configuration needed.</li><li>To use your own questions, pick <em>Custom git repository</em>. A ready-to-fork example lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — fork the repo, adjust <code>bundle.json</code> in the root, and paste the <em>raw URL</em> of your copy into the field below (format: <code>https://raw.githubusercontent.com/&lt;user&gt;/content_elediacheckin/main/bundle.json</code>).</li><li>Set the <em>language fallbacks</em> that apply when an activity does not pin a specific language.</li><li>Save changes. Then open the <em>Sync status</em> nav entry and click <em>Run sync now</em> to load the bundle.</li></ol></div>';
 $string['sourceheading']      = 'Content source';
 $string['sourceheading_desc'] = 'Choose where the check-in questions come from. The bundled default is always available as a fallback.';
 $string['contentsource']      = 'Active content source';
@@ -170,9 +170,10 @@ $string['synclog_result']     = 'Result';
 $string['synclog_count']      = 'Questions';
 $string['synclog_message']    = 'Message';
 $string['repoheading']        = 'Content repository';
-$string['repoheading_desc']   = 'Configure the external Git-based content source. Questions are pulled on a schedule and cached locally. A ready-to-use example bundle lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — fork it, edit <code>content/default.json</code>, and paste the raw URL into the field below.';
+$string['repoheading_desc']   = 'Configure the external Git-based content source. The bundle JSON is pulled on a schedule and cached locally. A ready-to-use example lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — fork the repo, adjust <code>bundle.json</code> in the root, and paste the raw URL of your copy below.';
 $string['repourl']            = 'Repository URL';
-$string['repourl_desc']       = 'HTTPS URL of the raw JSON artefact or release asset to pull.';
+$string['repourl_desc']       = 'HTTPS URL of the raw JSON bundle (e.g. <code>https://raw.githubusercontent.com/&lt;user&gt;/content_elediacheckin/main/bundle.json</code>). <strong>Not</strong> a <code>.git</code> clone URL — the file is fetched directly over HTTPS.';
+$string['repourl_example']    = 'Example: <code>https://raw.githubusercontent.com/jmoskaliuk/content_elediacheckin/main/bundle.json</code>';
 $string['reporef']            = 'Branch, tag or commit';
 $string['reporef_desc']       = 'Git ref to pin the content to. Defaults to "main".';
 $string['repotoken']          = 'Access token';
