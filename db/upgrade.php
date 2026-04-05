@@ -418,5 +418,52 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040531, 'elediacheckin');
     }
 
+    // 2026040534 — Neue Admin-Settings-User-Tour importieren.
+    //
+    // Mit dieser Version wird eine zweite User-Tour ausgeliefert, die den
+    // Admin durch die Plugin-Einstellungsseite führt (Inhaltsquelle wählen,
+    // Speichern, Sync-Status, Log). Sie liegt in
+    // db/tours/settings_checkin_tour.json und matcht
+    // /admin/settings.php?section=modsettingelediacheckin%.
+    //
+    // Vorgehen: ALLE von diesem Plugin ausgelieferten Tours löschen (Teacher
+    // *und* Settings), danach reimportieren. Grund: `mod_elediacheckin_
+    // install_bundled_tours()` iteriert über alle JSONs im db/tours/-Ordner
+    // und ruft `tool_usertours\manager::import_tour_from_json()` für jede
+    // — das legt stets einen neuen Record an, niemals update. Würden wir
+    // nur die Settings-Tour löschen, entstünde eine doppelte Teacher-Tour.
+    if ($oldversion < 2026040534) {
+        if (class_exists('\\tool_usertours\\tour')) {
+            $patterns = [
+                '/mod/elediacheckin/%',
+                '/admin/settings.php?section=modsettingelediacheckin%',
+            ];
+            foreach ($patterns as $pattern) {
+                $oldtours = $DB->get_records_select(
+                    'tool_usertours_tours',
+                    $DB->sql_like('pathmatch', ':path'),
+                    ['path' => $pattern]
+                );
+                foreach ($oldtours as $record) {
+                    try {
+                        $tour = \tool_usertours\tour::load_from_record($record);
+                        $tour->remove();
+                    } catch (\Throwable $e) {
+                        debugging(
+                            'mod_elediacheckin upgrade: could not remove old tour '
+                                . $record->id . ': ' . $e->getMessage(),
+                            DEBUG_DEVELOPER
+                        );
+                    }
+                }
+            }
+        }
+        require_once(__DIR__ . '/install.php');
+        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
+            mod_elediacheckin_install_bundled_tours();
+        }
+        upgrade_mod_savepoint(true, 2026040534, 'elediacheckin');
+    }
+
     return true;
 }

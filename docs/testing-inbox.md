@@ -31,7 +31,7 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- Kannst Du auch noch eine User-Tour für die Settings erstellen des Plugins?
+_(leer)_
 
 ## ❓ Klärung notwendig
 
@@ -53,6 +53,25 @@ Mit `~/moodle-update.sh checkin` deployen, dann der Reihe nach durchgehen.
 Häkchen oder Fehlermeldung unter den jeweiligen Punkt schreiben — Claude
 räumt dann ggf. nach.
 
+- **v2026040534 — Admin-Settings-User-Tour.** Zweite Tour, parallel zur
+  Lehrkräfte-Tour, führt Admins durch die Plugin-Einstellungsseite.
+  Fünf Schritte: Welcome → Inhaltsquelle → Save → Sync-State-Card →
+  Log-Tabelle. Pathmatch
+  `/admin/settings.php?section=modsettingelediacheckin%`, Rollen
+  `-1` + `manager`, alle Texte als Lang-String-Refs, 13 neue Strings
+  in `lang/de` + `lang/en`. Upgrade-Step 2026040534 löscht beide
+  bundled Tours und importiert neu. Nach Deploy in Site admin →
+  Appearance → Tours muss „Check-In Einstellungen" mit 5 Schritten
+  erscheinen. Auf der Settings-Seite selbst (als Site-Admin) unten
+  rechts „Reset user tour on this page" → Tour durchlaufen. Mit
+  `?lang=en` muss sie englisch sein. Konzept §10.26.
+- **v2026040533 — Save-Button-Reorder-Regression gefixt.** Mein
+  v2026040532-Walk-Up lief zu weit (beide Walks landeten beim
+  `<fieldset>`, `insertBefore` war No-op, Save rutschte unter die
+  Log-Tabelle). Jetzt läuft Submit hoch, bis sein Parent das Panel
+  enthält; dieser gemeinsame Container ist die Basis für den Reorder.
+  Nach Deploy: Save-Button oben, darunter `<h3>Sync status</h3>` mit
+  sichtbarem Abstand, dann Panel-Card, dann Log-Tabelle.
 - **v2026040532 — Sync-Status-Heading wandert mit + Abstand über Panel.**
   Nach Deploy von v2026040531 war der Save-Button korrekt oben, aber
   die `Sync status`-h3 blieb verwaist darüber liegen und „Current state"

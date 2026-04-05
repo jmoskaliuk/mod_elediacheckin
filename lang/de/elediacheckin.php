@@ -241,3 +241,18 @@ $string['checkintour_step4_title']   = 'Nächste Frage';
 $string['checkintour_step4_content'] = 'Klick hier, um eine neue zufällige Karte aus dem Pool zu ziehen. Keine Karte wird zweimal hintereinander gezogen.';
 $string['checkintour_step5_title']   = 'Vollbild & Popup';
 $string['checkintour_step5_content'] = 'Für Präsentationen per Screen-Share: Vollbild (groß auf dem ganzen Bildschirm) oder Popup (in einem eigenen schlanken Fenster). Beide eignen sich perfekt für Videocalls.';
+
+// User-Tour für Admin-Settings-Seite (tool_usertours, ausgeliefert über db/tours/settings_checkin_tour.json).
+$string['settingstour_name']          = 'Check-In Einstellungen';
+$string['settingstour_description']   = 'Kurze Tour durch die Plugin-Einstellungen: Inhaltsquelle, Speichern, Sync-Status und Log.';
+$string['settingstour_endlabel']      = 'Alles klar';
+$string['settingstour_step1_title']   = 'Plugin-Einstellungen im Überblick';
+$string['settingstour_step1_content'] = 'Diese Seite ist der zentrale Einstiegspunkt für Admins. In fünf Schritten zeige ich dir, wo du die Inhaltsquelle wählst, wie du speicherst und wo du den aktuellen Sync-Status einsehen kannst.';
+$string['settingstour_step2_title']   = 'Inhaltsquelle wählen';
+$string['settingstour_step2_content'] = 'Hier entscheidest du, woher die Fragen kommen: <strong>Bundled default</strong> nutzt die mit dem Plugin ausgelieferten Startfragen — ideal, um sofort loszulegen. <strong>Custom git repository</strong> erlaubt dir, eigene Fragenkataloge aus einem Git-Repository anzubinden.';
+$string['settingstour_step3_title']   = 'Änderungen speichern';
+$string['settingstour_step3_content'] = 'Nach jeder Konfigurationsänderung hier speichern. Wichtig: die Sync-Status-Karte unterhalb aktualisiert sich erst, nachdem du gespeichert hast und ein neuer Sync gelaufen ist.';
+$string['settingstour_step4_title']   = 'Aktueller Sync-Zustand';
+$string['settingstour_step4_content'] = 'Die Karte zeigt die aktive Inhaltsquelle und bietet zwei Quick-Actions: <strong>Sync jetzt ausführen</strong> holt die aktuellen Fragen ins System, <strong>Verbindung testen</strong> (nur bei Git-Quelle) prüft ohne Import, ob das Repository erreichbar ist.';
+$string['settingstour_step5_title']   = 'Letzte Sync-Läufe';
+$string['settingstour_step5_content'] = 'Die Tabelle listet die letzten 15 Sync-Versuche mit Zeitstempel, Quelle, Ergebnis (grün = OK, rot = Fehler) und Anzahl importierter Fragen. Bei Rot bitte die Fehlermeldung in der letzten Spalte lesen. Der stündliche Cron-Task läuft automatisch im Hintergrund, du musst nicht manuell nachsyncen.';

@@ -1,0 +1,58 @@
+{
+    "version": "2026040533",
+    "name": "settingstour_name,mod_elediacheckin",
+    "description": "settingstour_description,mod_elediacheckin",
+    "pathmatch": "/admin/settings.php?section=modsettingelediacheckin%",
+    "enabled": "1",
+    "sortorder": "0",
+    "endtourlabel": "settingstour_endlabel,mod_elediacheckin",
+    "displaystepnumbers": true,
+    "configdata": "{\"placement\":\"bottom\",\"orphan\":\"0\",\"backdrop\":\"1\",\"reflex\":\"0\",\"filtervalues\":{\"accessdate\":{\"filter_accessdate\":\"tool_usertours_accountcreation\",\"filter_accessdate_range\":0,\"filter_accessdate_enabled\":\"0\"},\"category\":[],\"course\":[],\"courseformat\":[],\"role\":[\"-1\",\"manager\"],\"theme\":[],\"cssselector\":[]},\"majorupdatetime\":1767225600,\"shipped_tour\":true,\"shipped_filename\":\"settings_checkin_tour.json\",\"shipped_version\":1}",
+    "steps": [
+        {
+            "title": "settingstour_step1_title,mod_elediacheckin",
+            "content": "settingstour_step1_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "2",
+            "targetvalue": "",
+            "sortorder": "0",
+            "configdata": "{\"placement\":\"top\",\"orphan\":\"1\",\"backdrop\":\"0\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "settingstour_step2_title,mod_elediacheckin",
+            "content": "settingstour_step2_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#admin-contentsource",
+            "sortorder": "1",
+            "configdata": "{\"placement\":\"bottom\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "settingstour_step3_title,mod_elediacheckin",
+            "content": "settingstour_step3_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#adminsettings form input[type=\"submit\"]",
+            "sortorder": "2",
+            "configdata": "{\"placement\":\"top\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "settingstour_step4_title,mod_elediacheckin",
+            "content": "settingstour_step4_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#elediacheckin-dashboardpanel .card",
+            "sortorder": "3",
+            "configdata": "{\"placement\":\"top\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "settingstour_step5_title,mod_elediacheckin",
+            "content": "settingstour_step5_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#elediacheckin-dashboardpanel table",
+            "sortorder": "4",
+            "configdata": "{\"placement\":\"top\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        }
+    ]
+}

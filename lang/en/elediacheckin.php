@@ -249,3 +249,18 @@ $string['checkintour_step4_title']   = 'Next question';
 $string['checkintour_step4_content'] = 'Click here to pull a new random card from the pool. No card is drawn twice in a row.';
 $string['checkintour_step5_title']   = 'Fullscreen & popup';
 $string['checkintour_step5_content'] = 'For presentations via screen share: fullscreen (large on the whole screen) or popup (in its own lean window). Both work perfectly well in video calls.';
+
+// User tour for the admin settings page (tool_usertours, shipped via db/tours/settings_checkin_tour.json).
+$string['settingstour_name']          = 'Check-In settings';
+$string['settingstour_description']   = 'A quick tour of the plugin settings: content source, saving, sync status and log.';
+$string['settingstour_endlabel']      = 'Got it';
+$string['settingstour_step1_title']   = 'Plugin settings at a glance';
+$string['settingstour_step1_content'] = 'This page is the central entry point for admins. In five steps I will show you where to pick the content source, how to save, and where to inspect the current sync status.';
+$string['settingstour_step2_title']   = 'Pick a content source';
+$string['settingstour_step2_content'] = 'This is where you decide where questions come from: <strong>Bundled default</strong> uses the starter questions shipped with the plugin — ideal for getting started immediately. <strong>Custom git repository</strong> lets you plug in your own question catalogues from a Git repository.';
+$string['settingstour_step3_title']   = 'Save your changes';
+$string['settingstour_step3_content'] = 'Save after every configuration change. Note: the Sync-status card below only refreshes once you have saved and a new sync has run.';
+$string['settingstour_step4_title']   = 'Current sync state';
+$string['settingstour_step4_content'] = 'This card shows the active content source and offers two quick actions: <strong>Run sync now</strong> fetches the latest questions into the system, <strong>Test connection</strong> (only when using Git) verifies the repository is reachable without importing.';
+$string['settingstour_step5_title']   = 'Recent sync runs';
+$string['settingstour_step5_content'] = 'The table lists the last 15 sync attempts with timestamp, source, result (green = OK, red = error) and the number of imported questions. On red entries, read the error message in the last column. The hourly cron task runs automatically in the background, so you do not have to sync manually.';
