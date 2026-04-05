@@ -83,9 +83,11 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             'funfact'  => get_string('ziel_funfact', 'elediacheckin'),
             'zitat'    => get_string('ziel_zitat', 'elediacheckin'),
         ];
-        $zielselect = $mform->addElement('select', 'ziele',
-            get_string('ziele', 'elediacheckin'), $zieloptions);
-        $zielselect->setMultiple(true);
+        $mform->addElement('autocomplete', 'ziele',
+            get_string('ziele', 'elediacheckin'), $zieloptions, [
+                'multiple'            => true,
+                'noselectionstring'   => get_string('ziele_all', 'elediacheckin'),
+            ]);
         $mform->setDefault('ziele', ['checkin', 'checkout']);
         $mform->addHelpButton('ziele', 'ziele', 'elediacheckin');
 

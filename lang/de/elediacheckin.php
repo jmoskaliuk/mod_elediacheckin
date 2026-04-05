@@ -46,6 +46,7 @@ $string['showanswer']         = 'Antwort anzeigen';
 $string['categories']         = 'Erlaubte Kategorien';
 $string['categories_help']    = 'Beschränkt diese Aktivität auf die ausgewählten Kategorien. Kategorien sind nach Fragetyp gruppiert — wähle eine oder mehrere aus. Leer lassen, um alle Kategorien der gewählten Fragetypen zuzulassen.';
 $string['categories_all']     = 'Alle Kategorien';
+$string['ziele_all']          = 'Alle Fragetypen';
 $string['contentlang']        = 'Inhaltssprache';
 $string['contentlang_help']   = 'Sprache der Fragen in dieser Aktivität. „Nutzersprache" übernimmt die aktuell eingestellte Moodle-Sprache; „Kurssprache" verwendet die im Kurs hinterlegte Sprache. Wähle eine konkrete Sprache, um die Aktivität an dieses Sprachbundle zu binden.';
 $string['lang_auto']          = 'Nutzersprache (empfohlen)';

@@ -48,6 +48,7 @@ $string['showanswer']         = 'Show answer';
 $string['categories']         = 'Allowed categories';
 $string['categories_help']    = 'Restrict this activity to the selected categories. Categories are listed under the ziel they belong to — pick one or many. Leave empty to allow all categories for the chosen ziele.';
 $string['categories_all']     = 'All categories';
+$string['ziele_all']          = 'All question types';
 $string['contentlang']        = 'Content language';
 $string['contentlang_help']   = 'Language of the questions shown in this activity. "User language" uses the language the learner is currently viewing Moodle in; "Course language" uses the course default. Pick a specific language to pin the activity to that bundle.';
 $string['lang_auto']          = 'User language (recommended)';
