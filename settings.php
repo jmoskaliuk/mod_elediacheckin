@@ -82,11 +82,15 @@ if ($ADMIN->fulltree) {
     );
     $settings->add($repoheading);
 
+    // Default auf das oeffentliche Beispiel-Repo von eLeDia. Admins, die
+    // ihren eigenen Content betreuen wollen, koennen den Wert einfach
+    // ueberschreiben — aber „leer lassen und direkt ausprobieren" ist ein
+    // valider Pfad. Siehe Konzept §10.16.
     $settings->add(new admin_setting_configtext(
         'mod_elediacheckin/repourl',
         get_string('repourl', 'elediacheckin'),
         get_string('repourl_desc', 'elediacheckin'),
-        '',
+        'https://github.com/jmoskaliuk/content_elediacheckin.git',
         PARAM_URL
     ));
 

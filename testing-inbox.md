@@ -27,9 +27,7 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- **[Todo]** Custom-Repo `github.com/jmoskaliuk/content_elediacheckin`
-  direkt einbinden, wenn der Nutzer „Custom Git repo" als Inhaltsquelle
-  wählt — als vorausgefüllter Default im URL-Feld.
+_(leer)_
 
 ## ❓ Klärung notwendig
 
@@ -58,7 +56,10 @@ _(leer — nächste Aufgabe: „Nur eigene Fragen"-Toggle)_
   und present.php teilen sich den State. — Commit `9d483f1`
 - „Nur eigene Fragen verwenden"-Toggle im Abschnitt „Eigene Fragen":
   neues tinyint-Feld `onlyownquestions`, `activity_pool::build_pool()`
-  kürzt Bundle-Query komplett weg wenn aktiv.
+  kürzt Bundle-Query komplett weg wenn aktiv. — Commit `a4c203a`
+- Custom-Repo-URL als Default im Admin-Setting: Bei Inhaltsquelle „Git"
+  ist `https://github.com/jmoskaliuk/content_elediacheckin.git` jetzt
+  vorbelegt (Happy Path: Quelle auswählen, Sync drücken, fertig).
 - Block-Deploy auf Demo-Instanz geklärt: Verzeichnispfad in Moodle 5.x
   public layout ist `public/blocks/elediacheckin/`. `moodle-update.sh`
   Meta-Key `checkin` updated jetzt mod + block atomisch.
