@@ -39,7 +39,14 @@ class dashboard_renderer {
     public static function render(): string {
         global $DB;
 
-        $out = '';
+        // Wrap the entire panel in a div with a stable id so the JS reorder
+        // below can find it. Moodle's setting_heading.mustache emits no
+        // wrapper of its own (unlike setting.mustache, which gets
+        // id="admin-<name>") — so without this wrapper the JS lookup
+        // returned null and the reorder silently never ran. That was the
+        // actual reason the save button kept appearing BELOW the panel
+        // despite the reorder script being shipped.
+        $out = '<div id="elediacheckin-dashboardpanel">';
 
         // ----- Summary card with action buttons. -----
         $activesource = get_config('mod_elediacheckin', 'contentsource') ?: 'bundled';
@@ -92,6 +99,7 @@ class dashboard_renderer {
                 get_string('synclog_empty', 'elediacheckin'),
                 'alert alert-info'
             );
+            $out .= '</div>' . self::reorder_script();
             return $out;
         }
 
@@ -140,46 +148,75 @@ class dashboard_renderer {
         }
 
         $out .= \html_writer::table($table);
+        $out .= '</div>' . self::reorder_script();
 
-        // Johannes' UX-Feedback (April 2026): der Save-Changes-Button der
-        // Einstellungsseite muss VISUELL oberhalb dieses Panels liegen.
-        // Core-Moodle rendert ihn nach der letzten Setting-Zeile, d.h. nach
-        // diesem Heading — wir stupsen das DOM-Element nach dem Laden an die
-        // richtige Stelle. Reiner Reorder, kein Event-Binding, kein AMD
-        // nötig. Fällt JS aus, ist das Panel oberhalb — auch akzeptabel.
-        $out .= <<<'HTML'
+        return $out;
+    }
+
+    /**
+     * Inline JS that moves the dashboard panel below the save-changes button.
+     *
+     * Johannes' UX-Feedback (April 2026): der Save-Changes-Button der
+     * Einstellungsseite muss VISUELL oberhalb dieses Panels liegen. Core-
+     * Moodle rendert den Button nach der letzten Setting-Zeile, d.h. nach
+     * diesem Heading — wir verschieben das Panel-Element nach dem Laden an
+     * die richtige Stelle. Fällt JS aus, bleibt das Panel oberhalb —
+     * weiterhin nutzbar, nur nicht in der bevorzugten Reihenfolge.
+     *
+     * Die Funktion ist idempotent (mehrfaches Aufrufen verschiebt nicht
+     * mehrfach) und nutzt einen MutationObserver als Fallback, falls die
+     * Settings-Seite den Button asynchron rendert (z. B. durch ein
+     * Theme-Override). Der Observer trennt sich selbst nach der ersten
+     * erfolgreichen Umsortierung.
+     */
+    private static function reorder_script(): string {
+        return <<<'HTML'
 <script>
 (function() {
+    var MOVED = false;
     function reorder() {
-        var panel = document.getElementById('admin-dashboardpanel');
-        if (!panel) { return; }
+        if (MOVED) { return true; }
+        var panel = document.getElementById('elediacheckin-dashboardpanel');
+        if (!panel) { return false; }
         var form = panel.closest('form');
-        if (!form) { return; }
-        // The submit row in Moodle 4.5/5.x admin settings is a <fieldset>
-        // with class "collapsible" containing the submit <input>, or falls
-        // back to a plain div.form-buttons. Find the last submit input and
-        // use its own container's parent sibling position.
-        var submit = form.querySelector('input[type="submit"][name^="s__"], input[type="submit"][value], button[type="submit"]');
-        if (!submit) { return; }
-        // The submit button sits inside a wrapping div (e.g. .form-buttons
-        // or .felement). Walk up until we find a direct child of <form>.
+        if (!form) { return false; }
+        // Moodle admin settings save button: <input type="submit"
+        // name="savebutton" value="Save changes"> inside a div. Match any
+        // submit input/button anywhere inside this form.
+        var submit = form.querySelector('input[type="submit"], button[type="submit"]');
+        if (!submit) { return false; }
+        // Walk up until we find the direct child of <form> that contains
+        // the submit button. Insert the panel right after that element so
+        // the rendered order is: config fields → save button → panel.
         var container = submit;
         while (container.parentNode && container.parentNode !== form) {
             container = container.parentNode;
         }
         if (container && container.parentNode === form) {
             form.insertBefore(panel, container.nextSibling);
+            MOVED = true;
+            return true;
         }
+        return false;
+    }
+    function tryReorder() {
+        if (reorder()) { return; }
+        // Fallback: watch the DOM briefly for late-rendered submit rows.
+        var obs = new MutationObserver(function() {
+            if (reorder()) { obs.disconnect(); }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        // Give up after 5 s — keeps us from observing forever on pages
+        // where the panel genuinely has no save button sibling.
+        setTimeout(function() { obs.disconnect(); }, 5000);
     }
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', reorder);
+        document.addEventListener('DOMContentLoaded', tryReorder);
     } else {
-        reorder();
+        tryReorder();
     }
 })();
 </script>
 HTML;
-
-        return $out;
     }
 }

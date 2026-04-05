@@ -226,3 +226,18 @@ $string['contenterror_eledia_sigfailed']    = 'Die ED25519-Signatur des Premium-
 $string['contenterror_eledia_schema']       = 'Das Premium-Bundle entspricht nicht dem erwarteten Schema.';
 
 $string['privacy:metadata']   = 'Die Aktivität "Check-in" speichert keine personenbezogenen Daten. Fragen werden nur angezeigt, Antworten werden nicht erfasst.';
+
+// User-Tour für Lehrkräfte (tool_usertours, ausgeliefert über db/tours/teacher_checkin_tour.json).
+$string['checkintour_name']          = 'Check-In für Lehrkräfte';
+$string['checkintour_description']   = 'Kurze Tour durch die Check-in-Aktivität: Karte, Ziel-Picker, Nächste Frage und Präsentationsmodus.';
+$string['checkintour_endlabel']      = 'Verstanden';
+$string['checkintour_step1_title']   = 'Willkommen beim Check-In';
+$string['checkintour_step1_content'] = 'Diese Aktivität zeigt deinen Teilnehmer:innen kurze Impulse, Reflexionsfragen oder Zitate — ideal zum Start, Ende oder für Retrospektiven einer Sitzung.';
+$string['checkintour_step2_title']   = 'Die Karte';
+$string['checkintour_step2_content'] = 'Jeder Seitenaufruf zeigt eine zufällig passende Frage oder einen Impuls aus dem konfigurierten Pool. Die Inhalte kommen zentral aus dem eLeDia-Content-Repository; du kannst pro Aktivität eigene Fragen ergänzen.';
+$string['checkintour_step3_title']   = 'Ziel wechseln';
+$string['checkintour_step3_content'] = 'Wenn deine Aktivität mehrere Ziele kombiniert (z. B. Check-in und Check-out), kannst du hier zwischen ihnen wechseln.';
+$string['checkintour_step4_title']   = 'Nächste Frage';
+$string['checkintour_step4_content'] = 'Klick hier, um eine neue zufällige Karte aus dem Pool zu ziehen. Keine Karte wird zweimal hintereinander gezogen.';
+$string['checkintour_step5_title']   = 'Vollbild & Popup';
+$string['checkintour_step5_content'] = 'Für Präsentationen per Screen-Share: Vollbild (groß auf dem ganzen Bildschirm) oder Popup (in einem eigenen schlanken Fenster). Beide eignen sich perfekt für Videocalls.';

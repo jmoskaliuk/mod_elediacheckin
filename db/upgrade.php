@@ -382,5 +382,41 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040529, 'elediacheckin');
     }
 
+    // 2026040531 — Tour nochmal neu laden.
+    //
+    // Zwei Gründe: (a) der Rollen-Filter enthielt kein `-1` (Site-Admin-
+    // Sentinel), wodurch Site-Admins die Tour nicht angezeigt bekamen; und
+    // (b) die Texte lagen hartcodiert auf Deutsch im JSON, statt als
+    // lang-string-Referenzen (`stringid,component`), sodass die englische
+    // Oberfläche dieselben deutschen Schritte sah. Beide Änderungen wirken
+    // nur, wenn die Tour vollständig neu importiert wird — `persist()` auf
+    // einer bestehenden Tour würde die Schritte nicht neu anlegen.
+    if ($oldversion < 2026040531) {
+        if (class_exists('\\tool_usertours\\tour')) {
+            $oldtours = $DB->get_records_select(
+                'tool_usertours_tours',
+                $DB->sql_like('pathmatch', ':path'),
+                ['path' => '/mod/elediacheckin/%']
+            );
+            foreach ($oldtours as $record) {
+                try {
+                    $tour = \tool_usertours\tour::load_from_record($record);
+                    $tour->remove();
+                } catch (\Throwable $e) {
+                    debugging(
+                        'mod_elediacheckin upgrade: could not remove old tour '
+                            . $record->id . ': ' . $e->getMessage(),
+                        DEBUG_DEVELOPER
+                    );
+                }
+            }
+        }
+        require_once(__DIR__ . '/install.php');
+        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
+            mod_elediacheckin_install_bundled_tours();
+        }
+        upgrade_mod_savepoint(true, 2026040531, 'elediacheckin');
+    }
+
     return true;
 }

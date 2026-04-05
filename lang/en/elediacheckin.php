@@ -234,3 +234,18 @@ $string['contenterror_gitinvalid'] = 'The repository bundle does not conform to 
 
 // Privacy.
 $string['privacy:metadata']   = 'The Check-in activity does not store any personal data. Questions are displayed read-only and answers are not captured.';
+
+// Teacher user tour (shipped via db/tours/teacher_checkin_tour.json, resolved through tool_usertours lang-string syntax).
+$string['checkintour_name']          = 'Check-in for teachers';
+$string['checkintour_description']   = 'A short tour through the Check-in activity: the card, the aim picker, the next-question button, and presentation mode.';
+$string['checkintour_endlabel']      = 'Got it';
+$string['checkintour_step1_title']   = 'Welcome to Check-in';
+$string['checkintour_step1_content'] = 'This activity shows your learners short prompts, reflection questions, or quotes — perfect for the beginning, the end, or a retrospective of a session.';
+$string['checkintour_step2_title']   = 'The card';
+$string['checkintour_step2_content'] = 'Every page load shows a random card from the configured pool. Content is pulled centrally from the eLeDia content repository, and you can add your own questions per activity.';
+$string['checkintour_step3_title']   = 'Switch aim';
+$string['checkintour_step3_content'] = 'If your activity combines several aims (e.g. check-in and check-out), you can switch between them here.';
+$string['checkintour_step4_title']   = 'Next question';
+$string['checkintour_step4_content'] = 'Click here to pull a new random card from the pool. No card is drawn twice in a row.';
+$string['checkintour_step5_title']   = 'Fullscreen & popup';
+$string['checkintour_step5_content'] = 'For presentations via screen share: fullscreen (large on the whole screen) or popup (in its own lean window). Both work perfectly well in video calls.';

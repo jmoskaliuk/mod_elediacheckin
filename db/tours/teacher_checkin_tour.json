@@ -1,17 +1,17 @@
 {
     "version": "2026040501",
-    "name": "Check-In für Lehrkräfte",
-    "description": "Kurze Tour durch die Check-in-Aktivität: Karte, Ziel-Picker, Nächste Frage und Präsentationsmodus.",
+    "name": "checkintour_name,mod_elediacheckin",
+    "description": "checkintour_description,mod_elediacheckin",
     "pathmatch": "/mod/elediacheckin/view.php%",
     "enabled": "1",
     "sortorder": "0",
-    "endtourlabel": "Verstanden",
+    "endtourlabel": "checkintour_endlabel,mod_elediacheckin",
     "displaystepnumbers": true,
-    "configdata": "{\"placement\":\"bottom\",\"orphan\":\"0\",\"backdrop\":\"1\",\"reflex\":\"0\",\"filtervalues\":{\"accessdate\":{\"filter_accessdate\":\"tool_usertours_accountcreation\",\"filter_accessdate_range\":0,\"filter_accessdate_enabled\":\"0\"},\"category\":[],\"course\":[],\"courseformat\":[],\"role\":[\"editingteacher\",\"teacher\",\"manager\"],\"theme\":[],\"cssselector\":[]},\"majorupdatetime\":1767225600,\"shipped_tour\":true,\"shipped_filename\":\"teacher_checkin_tour.json\",\"shipped_version\":1}",
+    "configdata": "{\"placement\":\"bottom\",\"orphan\":\"0\",\"backdrop\":\"1\",\"reflex\":\"0\",\"filtervalues\":{\"accessdate\":{\"filter_accessdate\":\"tool_usertours_accountcreation\",\"filter_accessdate_range\":0,\"filter_accessdate_enabled\":\"0\"},\"category\":[],\"course\":[],\"courseformat\":[],\"role\":[\"-1\",\"coursecreator\",\"manager\",\"teacher\",\"editingteacher\"],\"theme\":[],\"cssselector\":[]},\"majorupdatetime\":1767225600,\"shipped_tour\":true,\"shipped_filename\":\"teacher_checkin_tour.json\",\"shipped_version\":2}",
     "steps": [
         {
-            "title": "Willkommen beim Check-In",
-            "content": "Diese Aktivität zeigt deinen Teilnehmer:innen kurze Impulse, Reflexionsfragen oder Zitate — ideal zum Start, Ende oder für Retrospektiven einer Sitzung.",
+            "title": "checkintour_step1_title,mod_elediacheckin",
+            "content": "checkintour_step1_content,mod_elediacheckin",
             "contentformat": "1",
             "targettype": "2",
             "targetvalue": "",
@@ -19,8 +19,8 @@
             "configdata": "{\"placement\":\"top\",\"orphan\":\"1\",\"backdrop\":\"0\",\"reflex\":\"0\"}"
         },
         {
-            "title": "Die Karte",
-            "content": "Jeder Seitenaufruf zeigt eine zufällig passende Frage oder einen Impuls aus dem konfigurierten Pool. Die Inhalte kommen zentral aus dem eLeDia-Content-Repository; du kannst pro Aktivität eigene Fragen ergänzen.",
+            "title": "checkintour_step2_title,mod_elediacheckin",
+            "content": "checkintour_step2_content,mod_elediacheckin",
             "contentformat": "1",
             "targettype": "0",
             "targetvalue": ".elediacheckin-card",
@@ -28,8 +28,8 @@
             "configdata": "{\"placement\":\"bottom\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
         },
         {
-            "title": "Ziel wechseln",
-            "content": "Wenn deine Aktivität mehrere Ziele kombiniert (z. B. Check-in und Check-out), kannst du hier zwischen ihnen wechseln.",
+            "title": "checkintour_step3_title,mod_elediacheckin",
+            "content": "checkintour_step3_content,mod_elediacheckin",
             "contentformat": "1",
             "targettype": "0",
             "targetvalue": ".elediacheckin-ziel-picker",
@@ -37,8 +37,8 @@
             "configdata": "{\"placement\":\"bottom\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
         },
         {
-            "title": "Nächste Frage",
-            "content": "Klick hier, um eine neue zufällige Karte aus dem Pool zu ziehen. Keine Karte wird zweimal hintereinander gezogen.",
+            "title": "checkintour_step4_title,mod_elediacheckin",
+            "content": "checkintour_step4_content,mod_elediacheckin",
             "contentformat": "1",
             "targettype": "0",
             "targetvalue": ".elediacheckin-next-btn",
@@ -46,8 +46,8 @@
             "configdata": "{\"placement\":\"top\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
         },
         {
-            "title": "Vollbild & Popup",
-            "content": "Für Präsentationen per Screen-Share: Vollbild (groß auf dem ganzen Bildschirm) oder Popup (in einem eigenen schlanken Fenster). Beide eignen sich perfekt für Videocalls.",
+            "title": "checkintour_step5_title,mod_elediacheckin",
+            "content": "checkintour_step5_content,mod_elediacheckin",
             "contentformat": "1",
             "targettype": "0",
             "targetvalue": ".elediacheckin-launchers",
