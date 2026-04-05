@@ -17,6 +17,11 @@
 /**
  * Site-wide admin settings for mod_elediacheckin.
  *
+ * This page is the single entry point for all plugin administration:
+ * content-source configuration, language fallbacks, "Sync jetzt",
+ * "Verbindung testen" and the recent-sync log are all rendered here.
+ * There is intentionally no separate admin_externalpage anymore.
+ *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,15 +29,23 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Hidden admin page for the sync-log report.
-$ADMIN->add('modsettings', new admin_externalpage(
-    'mod_elediacheckin_synclog',
-    get_string('synclog_title', 'elediacheckin'),
-    new moodle_url('/mod/elediacheckin/admin/sync_log.php'),
-    'moodle/site:config'
-));
-
 if ($ADMIN->fulltree) {
+
+    // ---------------------------------------------------------------------
+    // Embedded dashboard: active source, manual sync, connection test,
+    // recent sync log. Lives at the very top so admins see status first.
+    // ---------------------------------------------------------------------
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/dashboard_heading',
+        get_string('dashboard_heading', 'elediacheckin'),
+        get_string('dashboard_heading_desc', 'elediacheckin')
+    ));
+
+    $settings->add(new admin_setting_description(
+        'mod_elediacheckin/dashboard_panel',
+        '',
+        \mod_elediacheckin\local\admin\dashboard_renderer::render()
+    ));
 
     // ---------------------------------------------------------------------
     // Content source selection.
@@ -118,16 +131,5 @@ if ($ADMIN->fulltree) {
         get_string('fallbacklang_desc', 'elediacheckin'),
         'en',
         PARAM_LANG
-    ));
-
-    // ---------------------------------------------------------------------
-    // External link to the sync-log admin report.
-    // ---------------------------------------------------------------------
-    $reporturl = new moodle_url('/mod/elediacheckin/admin/sync_log.php');
-    $settings->add(new admin_setting_description(
-        'mod_elediacheckin/synclogdesc',
-        get_string('synclog_link', 'elediacheckin'),
-        \html_writer::link($reporturl, get_string('synclog_open', 'elediacheckin'),
-            ['class' => 'btn btn-outline-secondary'])
     ));
 }

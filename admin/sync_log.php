@@ -15,11 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin report: synchronisation log for mod_elediacheckin.
+ * Deprecated compatibility redirect.
  *
- * Shows the most recent content sync runs with their source, bundle,
- * result, imported-questions count and a trimmed message column.
- * Supports a manual "run now" button that invokes sync_service::run('manual').
+ * The former stand-alone sync-log admin page has been merged into the
+ * plugin's main admin settings page at
+ * /admin/settings.php?section=modsettingelediacheckin.
+ *
+ * This stub exists only so old bookmarks still resolve. The page itself
+ * no longer renders anything — it just redirects.
  *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
@@ -27,112 +30,9 @@
  */
 
 require(__DIR__ . '/../../../config.php');
-require_once($CFG->libdir . '/adminlib.php');
 
-use mod_elediacheckin\local\service\sync_service;
-
-admin_externalpage_setup('mod_elediacheckin_synclog', '', null,
-    new moodle_url('/mod/elediacheckin/admin/sync_log.php'));
-
+require_login();
 require_capability('moodle/site:config', context_system::instance());
 
-$action  = optional_param('action', '', PARAM_ALPHA);
-$confirm = optional_param('confirm', 0, PARAM_BOOL);
-
-$PAGE->set_title(get_string('synclog_title', 'elediacheckin'));
-$PAGE->set_heading(get_string('synclog_title', 'elediacheckin'));
-
-// Manual sync trigger.
-if ($action === 'runsync' && confirm_sesskey()) {
-    $service = new sync_service();
-    $log = $service->run('manual');
-
-    if ($log->result === 'success') {
-        \core\notification::success(get_string('synclog_runsuccess', 'elediacheckin',
-            (object)['count' => $log->questionsimported, 'bundle' => $log->bundleid]));
-    } else {
-        \core\notification::error(get_string('synclog_runfailed', 'elediacheckin',
-            s($log->message)));
-    }
-
-    redirect(new moodle_url('/mod/elediacheckin/admin/sync_log.php'));
-}
-
-echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('synclog_title', 'elediacheckin'));
-
-// ---------------------------------------------------------------------------
-// Summary + run-now button.
-// ---------------------------------------------------------------------------
-$activesource = get_config('mod_elediacheckin', 'contentsource') ?: 'bundled';
-$activelabel  = get_string('contentsource_' . $activesource, 'elediacheckin');
-
-echo html_writer::start_div('card mb-4');
-echo html_writer::start_div('card-body');
-echo html_writer::tag('h5', get_string('synclog_current', 'elediacheckin'),
-    ['class' => 'card-title']);
-echo html_writer::tag('p', get_string('synclog_activesource', 'elediacheckin', $activelabel));
-
-$runurl = new moodle_url('/mod/elediacheckin/admin/sync_log.php', [
-    'action'  => 'runsync',
-    'sesskey' => sesskey(),
-]);
-echo html_writer::link($runurl, get_string('synclog_runnow', 'elediacheckin'),
-    ['class' => 'btn btn-primary']);
-
-echo html_writer::end_div();
-echo html_writer::end_div();
-
-// ---------------------------------------------------------------------------
-// Log table.
-// ---------------------------------------------------------------------------
-$records = $DB->get_records('elediacheckin_sync_log', null, 'timestarted DESC', '*', 0, 100);
-
-if (empty($records)) {
-    echo html_writer::div(
-        get_string('synclog_empty', 'elediacheckin'),
-        'alert alert-info'
-    );
-} else {
-    $table = new html_table();
-    $table->attributes['class'] = 'table table-sm table-hover generaltable';
-    $table->head = [
-        get_string('date'),
-        get_string('synclog_source', 'elediacheckin'),
-        get_string('synclog_sourceid', 'elediacheckin'),
-        get_string('synclog_bundle', 'elediacheckin'),
-        get_string('synclog_result', 'elediacheckin'),
-        get_string('synclog_count', 'elediacheckin'),
-        get_string('synclog_message', 'elediacheckin'),
-    ];
-
-    foreach ($records as $row) {
-        $resultbadge = $row->result === 'success'
-            ? '<span class="badge bg-success">' . s($row->result) . '</span>'
-            : '<span class="badge bg-danger">' . s($row->result) . '</span>';
-
-        $bundlecell = $row->bundleid
-            ? format_string($row->bundleid) . ' <small class="text-muted">'
-                . s($row->bundleversion) . '</small>'
-            : '<span class="text-muted">–</span>';
-
-        $msg = (string)$row->message;
-        if (core_text::strlen($msg) > 120) {
-            $msg = core_text::substr($msg, 0, 117) . '…';
-        }
-
-        $table->data[] = [
-            userdate($row->timestarted, get_string('strftimedatetimeshort', 'langconfig')),
-            s($row->source),
-            s((string)$row->sourceid),
-            $bundlecell,
-            $resultbadge,
-            (int)$row->questionsimported,
-            s($msg),
-        ];
-    }
-
-    echo html_writer::table($table);
-}
-
-echo $OUTPUT->footer();
+redirect(new moodle_url('/admin/settings.php',
+    ['section' => 'modsettingelediacheckin']));
