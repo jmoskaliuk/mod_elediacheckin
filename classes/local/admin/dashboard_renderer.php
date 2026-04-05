@@ -53,19 +53,6 @@ class dashboard_renderer {
         // who scroll to the bottom still see the familiar Moodle flow.
         $out = '<div id="elediacheckin-dashboardpanel">';
 
-        // Early save button — visually associated with the panel so it is
-        // obvious that "Save changes" applies to everything on the page
-        // (including the settings that render above the panel). A simple
-        // alert strip with a submit button inside keeps the semantics 100%
-        // form-native.
-        $out .= \html_writer::start_div('alert alert-light border d-flex align-items-center justify-content-between mb-3');
-        $out .= \html_writer::tag('span',
-            get_string('dashboard_savehint', 'elediacheckin'),
-            ['class' => 'text-muted me-3']);
-        $out .= '<button type="submit" class="btn btn-primary" name="elediacheckin_earlysave">'
-            . s(get_string('savechanges')) . '</button>';
-        $out .= \html_writer::end_div();
-
         // ----- Companion-plugin health check. -----
         //
         // block_elediacheckin is a separate plugin but tightly coupled to
@@ -199,6 +186,28 @@ class dashboard_renderer {
      *
      * @return string Safe HTML.
      */
+    /**
+     * Early-save strip rendered ABOVE the "Sync status" heading on the
+     * admin settings page. Contains a native <button type="submit"> that
+     * submits the parent admin settings form — no JS, no DOM reorder.
+     *
+     * Lives in its own admin_setting_heading so it appears above the
+     * dashboard panel heading, matching Johannes' April 2026 UX feedback
+     * ("Der Button Save Changes muss über Sync Status").
+     *
+     * @return string Safe HTML.
+     */
+    public static function render_save_bar(): string {
+        $out  = \html_writer::start_div('alert alert-light border d-flex align-items-center justify-content-between mb-3');
+        $out .= \html_writer::tag('span',
+            get_string('dashboard_savehint', 'elediacheckin'),
+            ['class' => 'text-muted me-3']);
+        $out .= '<button type="submit" class="btn btn-primary" name="elediacheckin_earlysave">'
+            . s(get_string('savechanges')) . '</button>';
+        $out .= \html_writer::end_div();
+        return $out;
+    }
+
     private static function render_block_health(): string {
         global $DB;
 

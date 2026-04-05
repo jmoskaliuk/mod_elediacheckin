@@ -226,6 +226,17 @@ if ($ADMIN->fulltree) {
     // dashboard.php (weiterhin als Redirect-Ziel für Altlast-Links
     // vorhanden) und diese Einbettung denselben HTML-Output teilen.
     // ---------------------------------------------------------------------
+    // Early-save strip rendered ABOVE the "Sync status" heading.
+    // Johannes' April 2026 UX feedback: "Der Button Save Changes muss über
+    // Sync Status" — so we split the save bar out of the dashboard panel
+    // into its own headingless admin_setting_heading that renders just
+    // before the panel.
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/dashboardsavebar',
+        '',
+        \mod_elediacheckin\local\admin\dashboard_renderer::render_save_bar()
+    ));
+
     $settings->add(new admin_setting_heading(
         'mod_elediacheckin/dashboardpanel',
         get_string('dashboard_heading', 'elediacheckin'),
