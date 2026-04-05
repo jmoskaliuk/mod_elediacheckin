@@ -106,11 +106,20 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->addHelpButton('categories', 'categories', 'elediacheckin');
 
         // Wire the dynamic filter: hides categories that do not belong to
-        // any of the currently selected ziele.
+        // any of the currently selected ziele. The category→ziel map can be
+        // fairly large (> 1 KB) so we stash it in a hidden JSON <script>
+        // element instead of passing it as js_call_amd argument (Moodle warns
+        // above 1024 chars). The AMD module reads it from the DOM on init.
+        $mapjson = json_encode($this->build_category_ziel_map());
+        $mform->addElement('html',
+            '<script type="application/json" id="elediacheckin_catziel_map">'
+            . $mapjson
+            . '</script>'
+        );
         $PAGE->requires->js_call_amd(
             'mod_elediacheckin/category_filter',
             'init',
-            ['id_ziele', 'id_categories', $this->build_category_ziel_map()]
+            ['id_ziele', 'id_categories', 'elediacheckin_catziel_map']
         );
 
         // Content language: select with sentinels for user/course language

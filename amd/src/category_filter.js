@@ -20,6 +20,10 @@
  * "Kategorien" autocomplete whose category does not belong to any of the
  * currently selected ziele. Empty ziele selection = show all categories.
  *
+ * The category→ziel map is read from a hidden <script type="application/json">
+ * element in the DOM rather than passed as an AMD argument, because Moodle
+ * warns when js_call_amd arguments exceed 1024 characters.
+ *
  * @module     mod_elediacheckin/category_filter
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,14 +33,23 @@ define([], function() {
 
     return {
         /**
-         * @param {String} zieleId      id of the underlying ziele <select>
-         * @param {String} catsId       id of the underlying categories <select>
-         * @param {Object} catZielMap   { categoryId: [ziel1, ziel2, ...], ... }
+         * @param {String} zieleId   id of the underlying ziele <select>
+         * @param {String} catsId    id of the underlying categories <select>
+         * @param {String} mapId     id of the <script type="application/json">
+         *                           element holding the category→ziel map
          */
-        init: function(zieleId, catsId, catZielMap) {
+        init: function(zieleId, catsId, mapId) {
             var ziele = document.getElementById(zieleId);
             var cats = document.getElementById(catsId);
-            if (!ziele || !cats || !catZielMap) {
+            var mapNode = document.getElementById(mapId);
+            if (!ziele || !cats || !mapNode) {
+                return;
+            }
+
+            var catZielMap;
+            try {
+                catZielMap = JSON.parse(mapNode.textContent || '{}');
+            } catch (e) {
                 return;
             }
 
@@ -93,7 +106,6 @@ define([], function() {
             }
 
             ziele.addEventListener('change', apply);
-            // Initial pass, deferred so form-autocomplete has finished enhancing.
             setTimeout(apply, 150);
         }
     };
