@@ -250,6 +250,14 @@ $string['checkintour_step4_content'] = 'Click here to pull a new random card fro
 $string['checkintour_step5_title']   = 'Fullscreen & popup';
 $string['checkintour_step5_content'] = 'For presentations via screen share: fullscreen (large on the whole screen) or popup (in its own lean window). Both work perfectly well in video calls.';
 
+// Companion block health-check strip shown at the top of the dashboard panel.
+$string['blockhealth_title']        = 'Companion plugin "Check-In block":';
+$string['blockhealth_ok']           = 'installed and available.';
+$string['blockhealth_hidden']       = 'is installed but hidden in "Manage blocks" — teachers cannot add it to their pages.';
+$string['blockhealth_hidden_cta']   = 'Make it visible →';
+$string['blockhealth_missing']      = 'is not installed. Without it, course and front pages are missing the Check-in activity launcher.';
+$string['blockhealth_missing_cta']  = 'Go to admin notifications →';
+
 // User tour for the admin settings page (tool_usertours, shipped via db/tours/settings_checkin_tour.json).
 $string['settingstour_name']          = 'Check-In settings';
 $string['settingstour_description']   = 'A quick tour of the plugin settings: content source, saving, sync status and log.';

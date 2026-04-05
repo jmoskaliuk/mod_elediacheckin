@@ -53,6 +53,16 @@ Mit `~/moodle-update.sh checkin` deployen, dann der Reihe nach durchgehen.
 Häkchen oder Fehlermeldung unter den jeweiligen Punkt schreiben — Claude
 räumt dann ggf. nach.
 
+- **v2026040535 — Companion-Block-Health-Check.** Oben im Sync-Status-
+  Panel der Settings-Seite erscheint jetzt eine kleine Alert-Zeile:
+  grün „Begleit-Plugin aktiv v2026040503" wenn alles ok, gelb
+  „installiert aber verborgen → jetzt sichtbar schalten" wenn
+  `mdl_block.visible=0`, rot „nicht installiert → admin/index.php" bei
+  fehlendem Record. Nach Deploy: grüne Zeile muss oben erscheinen.
+  Optional als Test: in Site admin → Plugins → Blöcke → Blöcke
+  verwalten den Check-In-Block auf „verborgen" toggeln, Settings-Seite
+  neu laden → gelber Alert mit funktionierendem CTA-Link. Danach wieder
+  sichtbar schalten. Konzept §10.27.
 - **v2026040534 — Admin-Settings-User-Tour.** Zweite Tour, parallel zur
   Lehrkräfte-Tour, führt Admins durch die Plugin-Einstellungsseite.
   Fünf Schritte: Welcome → Inhaltsquelle → Save → Sync-State-Card →

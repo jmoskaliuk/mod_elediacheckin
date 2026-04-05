@@ -739,6 +739,22 @@ Zweite User-Tour für `mod_elediacheckin`, diesmal für die Plugin-Einstellungss
 
 **Upgrade-Step.** Weil die Einführung einer neuen JSON-Datei im `db/tours/`-Ordner alleine auf bestehenden Installationen nichts auslöst — `install.php` rennt nur beim Fresh-Install, und `tool_usertours` scannt die Ordner ausschließlich auf Core-Upgrades — braucht es Upgrade-Step 2026040534. Der löscht alle Tours mit pathmatch LIKE `/mod/elediacheckin/%` ODER `/admin/settings.php?section=modsettingelediacheckin%` und ruft danach `mod_elediacheckin_install_bundled_tours()`, das beide JSON-Dateien frisch importiert. Wichtig: der Step **muss** auch die Teacher-Tour vorher löschen, weil `import_tour_from_json()` keinen Upsert macht — jeder Call legt einen neuen Record an. Ohne Delete vorher hätten wir nach dem Upgrade eine doppelte Teacher-Tour in der DB.
 
+### 10.27 Companion-Block-Health-Check auf der Settings-Seite (April 2026, Version 2026040535)
+
+Hintergrund: Johannes hat mehrfach gemeldet, dass `block_elediacheckin` im „Block hinzufügen"-Dropdown verschwunden ist — einmal ohne Deploy und ohne nachvollziehbare Ursache (später haben wir bestätigt: `mdl_block.name='elediacheckin'`, `visible=1`, auf Disk und in der DB vorhanden, wahrscheinlich eine Cache-Race-Condition nach einem Upgrade). Das Problem: solange niemand aktiv versucht, den Block hinzuzufügen, fällt so ein Zustand nicht auf. Der Admin glaubt, alles sei okay, bis die erste Lehrkraft sich meldet.
+
+Gegenmaßnahme: eine kleine Health-Strip-Komponente direkt oben im `dashboard_renderer::render()`-Output, vor der Summary-Card. Sie fragt einmal pro Seitenaufruf `mdl_block` ab und schreibt eine Bootstrap-Alert:
+
+- **`alert-success` (grün)** — Block-Record existiert und `visible=1`. Zeigt zusätzlich die installierte Version als `badge bg-success-subtle` aus `core_plugin_manager::get_plugin_info('block_elediacheckin')->versiondb`. Absichtlich eine kurze grüne Zeile statt kompletter Stille, damit der Admin sieht: „Der Check läuft, Alles klar", und nicht befürchtet, die Prüfung sei vielleicht selbst kaputt.
+- **`alert-warning` (gelb)** — Block-Record existiert, aber `visible=0`. Typischer Trigger: jemand hat in Site admin → Plugins → Blöcke → Blöcke verwalten das Auge-Icon deaktiviert. Der Block ist dann installiert, aber aus dem Add-Dropdown ausgefiltert. Alert enthält einen Direktlink auf `/admin/blocks.php` mit „Jetzt sichtbar schalten →".
+- **`alert-danger` (rot)** — kein Block-Record in `mdl_block`. Bedeutet: das Plugin-Verzeichnis fehlt entweder auf Disk, oder es liegt auf Disk aber die Registrierung ist nie gelaufen. Alert verlinkt auf `/admin/index.php`, weil ein Besuch der Admin-Notifications Moodle dazu zwingt, Plugin-Ordner neu zu scannen und nicht registrierte Plugins anzumelden. Wenn die Plugin-Files komplett fehlen, landet der Admin dort an der „plugin missing from disk"-Warnung — auch das ist die richtige nächste Aktion.
+
+Die Prüfung verwendet bewusst kein Caching: `$DB->get_record('block', ['name' => 'elediacheckin'], 'id, name, visible')` kostet im Zweifel einen indexierten Primary-Lookup, vernachlässigbar. Caching wäre kontraproduktiv, weil genau der Moment, in dem der Block-Zustand kippt (Plugin-Manager toggelt Visibility, Upgrade läuft), die interessanteste Sichtbarkeit ist.
+
+Die Version-Badge fängt `core_plugin_manager`-Exceptions mit `try/catch`, damit ein defekter Plugin-Manager-State (kommt bei inkonsistenten Upgrades vor) nicht die Dashboard-Seite selbst tötet. Im Fehlerfall fehlt einfach die Version, der grüne Strip bleibt.
+
+Lang-Strings: sechs neue `blockhealth_*`-Keys in `lang/de` + `lang/en` (Title, Ok, Hidden + CTA, Missing + CTA). Emojis (`✓`, `⚠`) sind inline im Markup, nicht in den Strings — die Strings bleiben Übersetzer-freundlich.
+
 ---
 
 ## Zusammenfassung in einem Satz

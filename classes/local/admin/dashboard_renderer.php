@@ -48,6 +48,19 @@ class dashboard_renderer {
         // despite the reorder script being shipped.
         $out = '<div id="elediacheckin-dashboardpanel">';
 
+        // ----- Companion-plugin health check. -----
+        //
+        // block_elediacheckin is a separate plugin but tightly coupled to
+        // this mod — without it, the frontpage/course-page launcher is
+        // missing. Johannes has twice now reported the block silently
+        // disappearing from the "Add block" dropdown (cache race after
+        // upgrades, or manual "hide" in Site admin → Plugins → Blocks).
+        // The symptom is invisible until someone tries to add the block,
+        // by which point diagnosis is painful. This small health strip
+        // surfaces the companion state on every visit to the settings
+        // page so the admin sees broken state immediately.
+        $out .= self::render_block_health();
+
         // ----- Summary card with action buttons. -----
         $activesource = get_config('mod_elediacheckin', 'contentsource') ?: 'bundled';
         $sourcekey    = 'contentsource_' . $activesource;
@@ -151,6 +164,78 @@ class dashboard_renderer {
         $out .= '</div>' . self::reorder_script();
 
         return $out;
+    }
+
+    /**
+     * Renders a small status strip reporting on block_elediacheckin health.
+     *
+     * Three outcomes:
+     *   - Block installed + visible  → green one-liner with version badge.
+     *   - Block installed but hidden → yellow warning with link to
+     *                                   /admin/blocks.php to unhide.
+     *   - Block not installed        → red warning with instructions to
+     *                                   deploy + install via notifications.
+     *
+     * Kept as a flat one-line string per state to match the Bootstrap-
+     * alert pattern already used elsewhere on the page — no nested cards.
+     *
+     * @return string Safe HTML.
+     */
+    private static function render_block_health(): string {
+        global $DB;
+
+        $blockrec = $DB->get_record('block', ['name' => 'elediacheckin'],
+            'id, name, visible');
+
+        // Block missing from mdl_block entirely.
+        if (!$blockrec) {
+            $msg = get_string('blockhealth_missing', 'elediacheckin');
+            $link = \html_writer::link(
+                new \moodle_url('/admin/index.php'),
+                get_string('blockhealth_missing_cta', 'elediacheckin'),
+                ['class' => 'alert-link']
+            );
+            return \html_writer::div(
+                '<strong>⚠ ' . s(get_string('blockhealth_title', 'elediacheckin'))
+                    . '</strong> ' . s($msg) . ' ' . $link,
+                'alert alert-danger py-2 mb-3'
+            );
+        }
+
+        // Block installed but hidden from the add-block list.
+        if ((int)$blockrec->visible !== 1) {
+            $link = \html_writer::link(
+                new \moodle_url('/admin/blocks.php'),
+                get_string('blockhealth_hidden_cta', 'elediacheckin'),
+                ['class' => 'alert-link']
+            );
+            return \html_writer::div(
+                '<strong>⚠ ' . s(get_string('blockhealth_title', 'elediacheckin'))
+                    . '</strong> ' . s(get_string('blockhealth_hidden', 'elediacheckin'))
+                    . ' ' . $link,
+                'alert alert-warning py-2 mb-3'
+            );
+        }
+
+        // All good — short green confirmation line with version badge.
+        $version = '';
+        try {
+            $pluginman = \core_plugin_manager::instance();
+            $plugininfo = $pluginman->get_plugin_info('block_elediacheckin');
+            if ($plugininfo && $plugininfo->versiondb) {
+                $version = ' <span class="badge bg-success-subtle text-success-emphasis">v'
+                    . s((string)$plugininfo->versiondb) . '</span>';
+            }
+        } catch (\Throwable $e) {
+            // core_plugin_manager should never fail here; if it does, we
+            // just skip the version badge and still show the green strip.
+            $version = '';
+        }
+        return \html_writer::div(
+            '<strong>✓ ' . s(get_string('blockhealth_title', 'elediacheckin'))
+                . '</strong> ' . s(get_string('blockhealth_ok', 'elediacheckin')) . $version,
+            'alert alert-success py-2 mb-3'
+        );
     }
 
     /**

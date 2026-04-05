@@ -242,6 +242,14 @@ $string['checkintour_step4_content'] = 'Klick hier, um eine neue zufällige Kart
 $string['checkintour_step5_title']   = 'Vollbild & Popup';
 $string['checkintour_step5_content'] = 'Für Präsentationen per Screen-Share: Vollbild (groß auf dem ganzen Bildschirm) oder Popup (in einem eigenen schlanken Fenster). Beide eignen sich perfekt für Videocalls.';
 
+// Block-Health-Check im Dashboard-Panel (klein oben in der Settings-Seite).
+$string['blockhealth_title']        = 'Begleit-Plugin „Check-In Block":';
+$string['blockhealth_ok']           = 'installiert und verfügbar.';
+$string['blockhealth_hidden']       = 'ist installiert, aber in „Blöcke verwalten" verborgen — Lehrkräfte können ihn deshalb nicht hinzufügen.';
+$string['blockhealth_hidden_cta']   = 'Jetzt sichtbar schalten →';
+$string['blockhealth_missing']      = 'ist nicht installiert. Ohne diesen Block fehlt auf Kurs- und Startseite der Launcher für die Check-in-Aktivität.';
+$string['blockhealth_missing_cta']  = 'Zu den Admin-Benachrichtigungen →';
+
 // User-Tour für Admin-Settings-Seite (tool_usertours, ausgeliefert über db/tours/settings_checkin_tour.json).
 $string['settingstour_name']          = 'Check-In Einstellungen';
 $string['settingstour_description']   = 'Kurze Tour durch die Plugin-Einstellungen: Inhaltsquelle, Speichern, Sync-Status und Log.';
