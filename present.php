@@ -69,6 +69,8 @@ foreach (array_unique(array_filter($langcandidates, static fn($v) => $v !== ''),
     $question = $provider->get_random_question([
         'ziele'      => [$activeziel],
         'categories' => $instance->categories,
+        'zielgruppe' => $instance->zielgruppe ?? null,
+        'kontext'    => $instance->kontext ?? null,
         'lang'       => $lang,
     ]);
     if ($question) {

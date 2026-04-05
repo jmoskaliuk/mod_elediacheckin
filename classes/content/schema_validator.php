@@ -64,10 +64,49 @@ final class schema_validator {
         return self::ZIEL_ENUM;
     }
 
+    /**
+     * Public accessor for the zielgruppe enum.
+     *
+     * @return string[]
+     */
+    public static function get_zielgruppe_enum(): array {
+        return self::ZIELGRUPPE_ENUM;
+    }
+
+    /**
+     * Public accessor for the kontext enum.
+     *
+     * @return string[]
+     */
+    public static function get_kontext_enum(): array {
+        return self::KONTEXT_ENUM;
+    }
+
     /** Allowed values for the "ziel" field. */
     private const ZIEL_ENUM = [
         'impuls', 'checkin', 'checkout', 'retro',
         'learning', 'funfact', 'zitat',
+    ];
+
+    /**
+     * Allowed values for the optional "zielgruppe" field.
+     *
+     * Tags the audience a question is crafted for. Used by the activity-level
+     * filter with "or untagged" semantics: a question without any zielgruppe
+     * tag always matches, a tagged question must share at least one value.
+     */
+    private const ZIELGRUPPE_ENUM = [
+        'fuehrungskraefte', 'team', 'grundschule',
+    ];
+
+    /**
+     * Allowed values for the optional "kontext" field.
+     *
+     * Tags the setting the question is meant for. Same "or untagged"
+     * semantics as zielgruppe.
+     */
+    private const KONTEXT_ENUM = [
+        'arbeit', 'schule', 'hochschule', 'privat',
     ];
 
     /** Allowed values for the "status" field. */
@@ -227,6 +266,32 @@ final class schema_validator {
 
         if (isset($q['link']) && $q['link'] !== '' && filter_var($q['link'], FILTER_VALIDATE_URL) === false) {
             $this->errors[] = "Question #{$index}: 'link' must be a valid URL when set.";
+        }
+
+        // Optional zielgruppe[] — must be array of enum values when set.
+        if (array_key_exists('zielgruppe', $q)) {
+            if (!is_array($q['zielgruppe'])) {
+                $this->errors[] = "Question #{$index}: 'zielgruppe' must be an array when present.";
+            } else {
+                foreach ($q['zielgruppe'] as $zg) {
+                    if (!in_array($zg, self::ZIELGRUPPE_ENUM, true)) {
+                        $this->errors[] = "Question #{$index}: invalid zielgruppe value '{$zg}'.";
+                    }
+                }
+            }
+        }
+
+        // Optional kontext[] — must be array of enum values when set.
+        if (array_key_exists('kontext', $q)) {
+            if (!is_array($q['kontext'])) {
+                $this->errors[] = "Question #{$index}: 'kontext' must be an array when present.";
+            } else {
+                foreach ($q['kontext'] as $kx) {
+                    if (!in_array($kx, self::KONTEXT_ENUM, true)) {
+                        $this->errors[] = "Question #{$index}: invalid kontext value '{$kx}'.";
+                    }
+                }
+            }
         }
     }
 }

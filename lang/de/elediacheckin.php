@@ -54,6 +54,21 @@ $string['lang_course']        = 'Kurssprache';
 $string['avoidrepeat']        = 'Wiederholung der letzten Frage vermeiden';
 $string['avoidrepeat_help']   = 'Wenn aktiviert, wird innerhalb einer Sitzung nicht zweimal dieselbe Frage gezeigt.';
 
+// Zielgruppe + Kontext (optionale Tag-Dimensionen).
+$string['zielgruppe']         = 'Zielgruppe';
+$string['zielgruppe_help']    = 'Optionaler Filter auf eine Zielgruppe. Fragen ohne Zielgruppen-Tag sind allgemeingültig und werden immer angezeigt. Leer = keine Einschränkung.';
+$string['zielgruppe_all']     = 'Alle Zielgruppen';
+$string['zielgruppe_fuehrungskraefte'] = 'Führungskräfte';
+$string['zielgruppe_team']    = 'Team';
+$string['zielgruppe_grundschule'] = 'Grundschule';
+$string['kontext']            = 'Kontext';
+$string['kontext_help']       = 'Optionaler Filter auf einen Einsatzkontext. Fragen ohne Kontext-Tag sind allgemeingültig und werden immer angezeigt. Leer = keine Einschränkung.';
+$string['kontext_all']        = 'Alle Kontexte';
+$string['kontext_arbeit']     = 'Arbeit';
+$string['kontext_schule']     = 'Schule';
+$string['kontext_hochschule'] = 'Hochschule';
+$string['kontext_privat']     = 'Privat';
+
 // Kategorielabels — passen zu CATEGORIES_BY_ZIEL in schema_validator.php.
 $string['cat_kennenlernen']           = 'Kennenlernen';
 $string['cat_eisbrecher']             = 'Eisbrecher';

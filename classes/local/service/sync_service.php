@@ -175,6 +175,12 @@ class sync_service {
      */
     private function question_to_record(array $q, content_bundle $bundle, int $now): \stdClass {
         $categories = array_values($q['kategorie'] ?? []);
+        $zielgruppe = is_array($q['zielgruppe'] ?? null)
+            ? array_values($q['zielgruppe'])
+            : [];
+        $kontext = is_array($q['kontext'] ?? null)
+            ? array_values($q['kontext'])
+            : [];
 
         $record = new \stdClass();
         $record->stage         = self::STAGE_STAGING;
@@ -183,6 +189,8 @@ class sync_service {
         $record->externalid    = (string) ($q['id'] ?? '');
         $record->ziel          = (string) ($q['ziel'] ?? '');
         $record->categories    = implode(',', $categories);
+        $record->zielgruppe    = implode(',', $zielgruppe);
+        $record->kontext       = implode(',', $kontext);
         $record->frage         = (string) ($q['frage'] ?? '');
         $record->hasanswer     = !empty($q['hat_antwort']) ? 1 : 0;
         $record->antwort       = isset($q['antwort']) ? (string) $q['antwort'] : null;

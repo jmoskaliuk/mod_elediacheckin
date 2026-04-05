@@ -51,6 +51,16 @@
       "default": "published"
     },
 
+    "zielgruppe": {
+      "type": "string",
+      "enum": ["fuehrungskraefte", "team", "grundschule"]
+    },
+
+    "kontext": {
+      "type": "string",
+      "enum": ["arbeit", "schule", "hochschule", "privat"]
+    },
+
     "question": {
       "type": "object",
       "required": ["id", "ziel", "kategorie", "frage", "hat_antwort", "sprache", "lizenz", "version", "status", "created_at", "updated_at"],
@@ -121,6 +131,18 @@
         "media": {
           "description": "Optionales Bild zur Karte (URL oder relativer Pfad innerhalb des Bundles).",
           "type": "string"
+        },
+        "zielgruppe": {
+          "description": "Optionale Zielgruppen-Tags. Leer/fehlend = allgemeingültig. Ein aktivitätsseitiger Zielgruppen-Filter matcht entweder untagged Karten oder Karten, die mindestens einen Wert teilen.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/zielgruppe" },
+          "uniqueItems": true
+        },
+        "kontext": {
+          "description": "Optionale Kontext-Tags (Arbeit, Schule, Hochschule, Privat). Gleiche Or-Untagged-Semantik wie zielgruppe.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/kontext" },
+          "uniqueItems": true
         },
         "created_at": {
           "type": "string",

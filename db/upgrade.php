@@ -197,5 +197,62 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040503, 'elediacheckin');
     }
 
+    // 2026040508 — Zielgruppe + Kontext als optionale Tag-Dimensionen.
+    //
+    // Adds two orthogonal, optional filter dimensions to both the activity
+    // instance row and the question row:
+    //  - zielgruppe (fuehrungskraefte, team, grundschule)
+    //  - kontext    (arbeit, schule, hochschule, privat)
+    //
+    // Semantics: an empty filter means "no restriction". A non-empty filter
+    // matches a question if the question is either untagged for that
+    // dimension OR shares at least one value with the filter. This lets
+    // content authors leave generally applicable questions untagged without
+    // losing them in filtered activities.
+    if ($oldversion < 2026040508) {
+        // Activity instance: optional CSV filter columns.
+        $tableinstance = new xmldb_table('elediacheckin');
+
+        $fieldzg = new xmldb_field('zielgruppe', XMLDB_TYPE_CHAR, '255', null,
+            null, null, null, 'categories');
+        if (!$dbman->field_exists($tableinstance, $fieldzg)) {
+            $dbman->add_field($tableinstance, $fieldzg);
+        }
+
+        $fieldkx = new xmldb_field('kontext', XMLDB_TYPE_CHAR, '255', null,
+            null, null, null, 'zielgruppe');
+        if (!$dbman->field_exists($tableinstance, $fieldkx)) {
+            $dbman->add_field($tableinstance, $fieldkx);
+        }
+
+        // Question table: CSV columns, NOT NULL with empty default so the
+        // provider can treat empty-string as "untagged".
+        $tablequestion = new xmldb_table('elediacheckin_question');
+
+        $qzg = new xmldb_field('zielgruppe', XMLDB_TYPE_CHAR, '255', null,
+            XMLDB_NOTNULL, null, '', 'categories');
+        if (!$dbman->field_exists($tablequestion, $qzg)) {
+            $dbman->add_field($tablequestion, $qzg);
+        }
+
+        $qkx = new xmldb_field('kontext', XMLDB_TYPE_CHAR, '255', null,
+            XMLDB_NOTNULL, null, '', 'zielgruppe');
+        if (!$dbman->field_exists($tablequestion, $qkx)) {
+            $dbman->add_field($tablequestion, $qkx);
+        }
+
+        // Re-sync so the new columns get populated for any existing rows.
+        try {
+            (new \mod_elediacheckin\local\service\sync_service())->run('upgrade');
+        } catch (\Throwable $e) {
+            debugging(
+                'mod_elediacheckin: sync after zielgruppe/kontext upgrade failed: ' . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+        }
+
+        upgrade_mod_savepoint(true, 2026040508, 'elediacheckin');
+    }
+
     return true;
 }

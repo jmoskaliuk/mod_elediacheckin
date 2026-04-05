@@ -81,6 +81,11 @@ class question_provider {
      *               string. Empty/null = all.
      *  - categories (string[]|string|null) Category ids — a question matches
      *               if any of its categories intersect with the filter.
+     *  - zielgruppe (string[]|string|null) Audience tags. "Or untagged"
+     *               semantics: an untagged question always matches, a tagged
+     *               question must share at least one value with the filter.
+     *  - kontext    (string[]|string|null) Setting tags. Same semantics as
+     *               zielgruppe.
      *  - lang       (string|null)          ISO-639-1, null = any language.
      *  - qstatus    (string|null)          Defaults to 'published'.
      *
@@ -126,7 +131,43 @@ class question_provider {
             });
         }
 
+        // Zielgruppe + Kontext: "or untagged" semantics. An empty tag column
+        // on the question means the card is universally applicable and
+        // always matches; a tagged card must share ≥1 value with the filter.
+        $zgfilter = $this->normalise_csv($filter['zielgruppe'] ?? null);
+        if (!empty($zgfilter)) {
+            $records = array_filter($records, function (\stdClass $r) use ($zgfilter): bool {
+                $tags = $this->row_tags($r, 'zielgruppe');
+                return empty($tags) || (bool) array_intersect($zgfilter, $tags);
+            });
+        }
+
+        $kxfilter = $this->normalise_csv($filter['kontext'] ?? null);
+        if (!empty($kxfilter)) {
+            $records = array_filter($records, function (\stdClass $r) use ($kxfilter): bool {
+                $tags = $this->row_tags($r, 'kontext');
+                return empty($tags) || (bool) array_intersect($kxfilter, $tags);
+            });
+        }
+
         return array_values($records);
+    }
+
+    /**
+     * Safe accessor for a CSV tag column on a question row. Older sync runs
+     * (pre-2026040508) may not have populated the column yet, so treat a
+     * missing property the same as an empty string.
+     *
+     * @param \stdClass $row
+     * @param string $column
+     * @return string[]
+     */
+    private function row_tags(\stdClass $row, string $column): array {
+        $raw = (string) ($row->{$column} ?? '');
+        if ($raw === '') {
+            return [];
+        }
+        return array_values(array_filter(array_map('trim', explode(',', $raw)), 'strlen'));
     }
 
     /**

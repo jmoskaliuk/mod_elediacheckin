@@ -56,6 +56,21 @@ $string['lang_course']        = 'Course language';
 $string['avoidrepeat']        = 'Avoid repeating the previous question';
 $string['avoidrepeat_help']   = 'If enabled, the same question will not be shown twice in a row within a single view.';
 
+// Audience + context (optional tag dimensions).
+$string['zielgruppe']         = 'Audience';
+$string['zielgruppe_help']    = 'Optional filter on an audience. Questions without an audience tag are considered general-purpose and always displayed. Empty = no restriction.';
+$string['zielgruppe_all']     = 'All audiences';
+$string['zielgruppe_fuehrungskraefte'] = 'Leaders / managers';
+$string['zielgruppe_team']    = 'Team';
+$string['zielgruppe_grundschule'] = 'Primary school';
+$string['kontext']            = 'Context';
+$string['kontext_help']       = 'Optional filter on a usage context. Questions without a context tag are considered general-purpose and always displayed. Empty = no restriction.';
+$string['kontext_all']        = 'All contexts';
+$string['kontext_arbeit']     = 'Work';
+$string['kontext_schule']     = 'School';
+$string['kontext_hochschule'] = 'Higher education';
+$string['kontext_privat']     = 'Personal';
+
 // Category labels — match CATEGORIES_BY_ZIEL in schema_validator.php.
 $string['cat_kennenlernen']           = 'Getting to know each other';
 $string['cat_eisbrecher']             = 'Icebreaker';

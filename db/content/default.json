@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "bundle_id": "eledia-default",
-  "bundle_version": "2026.04.2",
+  "bundle_version": "2026.04.3",
   "generated_at": "2026-04-05T12:00:00Z",
   "language": "de",
   "questions": [
@@ -20,7 +20,9 @@
       "status": "published",
       "created_at": "2026-04-05T10:00:00Z",
       "updated_at": "2026-04-05T10:00:00Z",
-      "autor": "eLeDia Redaktion"
+      "autor": "eLeDia Redaktion",
+      "zielgruppe": ["team", "fuehrungskraefte"],
+      "kontext": ["arbeit"]
     },
     {
       "id": "checkin-0002",

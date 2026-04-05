@@ -105,6 +105,31 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             ]);
         $mform->addHelpButton('categories', 'categories', 'elediacheckin');
 
+        // Zielgruppe: optional multi-select, "or untagged" semantics at read
+        // time (see question_provider). Empty means "no restriction".
+        $zgoptions = [];
+        foreach (schema_validator::get_zielgruppe_enum() as $zg) {
+            $zgoptions[$zg] = get_string('zielgruppe_' . $zg, 'elediacheckin');
+        }
+        $mform->addElement('autocomplete', 'zielgruppe',
+            get_string('zielgruppe', 'elediacheckin'), $zgoptions, [
+                'multiple' => true,
+                'noselectionstring' => get_string('zielgruppe_all', 'elediacheckin'),
+            ]);
+        $mform->addHelpButton('zielgruppe', 'zielgruppe', 'elediacheckin');
+
+        // Kontext: same pattern as zielgruppe.
+        $kxoptions = [];
+        foreach (schema_validator::get_kontext_enum() as $kx) {
+            $kxoptions[$kx] = get_string('kontext_' . $kx, 'elediacheckin');
+        }
+        $mform->addElement('autocomplete', 'kontext',
+            get_string('kontext', 'elediacheckin'), $kxoptions, [
+                'multiple' => true,
+                'noselectionstring' => get_string('kontext_all', 'elediacheckin'),
+            ]);
+        $mform->addHelpButton('kontext', 'kontext', 'elediacheckin');
+
         // Wire the dynamic filter: hides categories that do not belong to
         // any of the currently selected ziele. The category→ziel map can be
         // fairly large (> 1 KB) so we stash it in a hidden JSON <script>
@@ -213,6 +238,14 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
                 ? []
                 : array_values(array_filter(array_map('trim', explode(',', $defaultvalues['categories'])), 'strlen'));
         }
+
+        foreach (['zielgruppe', 'kontext'] as $tagfield) {
+            if (isset($defaultvalues[$tagfield]) && is_string($defaultvalues[$tagfield])) {
+                $defaultvalues[$tagfield] = $defaultvalues[$tagfield] === ''
+                    ? []
+                    : array_values(array_filter(array_map('trim', explode(',', $defaultvalues[$tagfield])), 'strlen'));
+            }
+        }
     }
 
     /**
@@ -234,6 +267,15 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             $data->categories = implode(',', array_values(array_unique($data->categories)));
         } else if (isset($data->categories) && !is_string($data->categories)) {
             $data->categories = '';
+        }
+
+        foreach (['zielgruppe', 'kontext'] as $tagfield) {
+            if (isset($data->{$tagfield}) && is_array($data->{$tagfield})) {
+                $data->{$tagfield} = implode(',',
+                    array_values(array_unique($data->{$tagfield})));
+            } else if (isset($data->{$tagfield}) && !is_string($data->{$tagfield})) {
+                $data->{$tagfield} = '';
+            }
         }
 
         return $data;
