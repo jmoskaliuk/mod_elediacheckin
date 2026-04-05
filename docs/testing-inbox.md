@@ -39,13 +39,7 @@ _(leer)_
 
 ## 🔧 In Arbeit
 
-- **Prechecks + Unit-Tests + Behat** (aus Inbox 2026-04-05). Scaffold für
-  `mod_elediacheckin` noch nicht da — LeitnerFlow-Tests als Vorlage lesen,
-  Unit-Tests für `activity_pool`, `schema_validator`,
-  `bundle_signature_verifier`, `feature_flags` anlegen, dann Behat-
-  Feature „Teacher legt Aktivität an → view.php → nächste Frage". Commands
-  für Docker-Container mit ausliefern. Eigener Arbeitsblock nach der
-  Verifikation von v2026040530.
+_(leer)_
 
 ## 🔎 Nach Deploy verifizieren
 
@@ -53,6 +47,20 @@ Mit `~/moodle-update.sh checkin` deployen, dann der Reihe nach durchgehen.
 Häkchen oder Fehlermeldung unter den jeweiligen Punkt schreiben — Claude
 räumt dann ggf. nach.
 
+- **v2026040536 — Prechecks + PHPUnit + Behat Scaffold.** Kein Runtime-
+  Change, aber ein ganzer Testblock kommt dazu: `.github/workflows/
+  moodle-ci.yml` mit dem Standard-`moodle-plugin-ci`-Pipeline (phplint,
+  phpcs, phpdoc, validate, savepoints, mustache, grunt, PHPUnit, Behat)
+  gegen Moodle 4.5 (PHP 8.2) + 5.0 (PHP 8.3). Vier Unit-Test-Klassen
+  unter `tests/`: `schema_validator_test`, `bundle_signature_verifier_test`,
+  `feature_flags_test`, `activity_pool_test`. Drei Behat-Features unter
+  `tests/behat/`: `golden_path.feature`, `settings_dashboard.feature`,
+  `block_and_tour.feature`. Verifikation passiert auf GitHub Actions —
+  nach dem nächsten Push solltest du im Tab „Actions" den Run sehen.
+  Lokal optional via Docker:
+    - `docker exec -u www-data -it moodle php admin/tool/phpunit/cli/init.php`
+    - `docker exec -u www-data -it moodle vendor/bin/phpunit --testsuite mod_elediacheckin_testsuite`
+  Wenn PHPUnit-Output grün und der CI-Run grün ist → Haken. Konzept §10.28.
 - **v2026040535 — Companion-Block-Health-Check.** Oben im Sync-Status-
   Panel der Settings-Seite erscheint jetzt eine kleine Alert-Zeile:
   grün „Begleit-Plugin aktiv v2026040503" wenn alles ok, gelb
