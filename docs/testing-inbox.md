@@ -84,6 +84,11 @@ räumt dann ggf. nach.
   (7) **Save-Button-Größe.** Admin → Plugins → Check-in: der obere
   Save-Button im grauen Kasten ist jetzt genauso groß wie der untere
   Moodle-Save-Button. Kein `btn-sm`-Unterschied mehr.
+  (7b) **Save-Bar-Position (v2026040539).** Die Save-Changes-Zeile muss
+  jetzt ÜBER dem Heading „Sync status" / „Sync-Status" erscheinen, nicht
+  darunter. Reihenfolge auf der Settings-Seite von oben nach unten:
+  Save-Changes-Streifen → „Sync status"-Heading → Companion-Plugin-Zeile
+  → „Current state" → Recent log. Ohne JS.
   (8) **Aktivitäts-Settings-Tour.** Neue Check-in-Aktivität im Kurs
   anlegen oder eine bestehende bearbeiten. Auf `/course/modedit.php`
   muss die Tour automatisch starten (7 Schritte: Welcome → Check-in
