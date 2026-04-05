@@ -36,6 +36,7 @@ $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
 // user was looking at in the block preview. See view.php for rationale.
 $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
 $goback     = (bool) optional_param('prev', 0, PARAM_BOOL);
+$isnext     = (bool) optional_param('next', 0, PARAM_BOOL);
 
 $cm       = get_coursemodule_from_id('elediacheckin', $id, 0, false, MUST_EXIST);
 $course   = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -74,7 +75,7 @@ $langcandidates[] = current_language();
 // denselben $SESSION->elediacheckin_history[$cmid]-State, d. h. ein Back-
 // Schritt im Popup wirkt auch zurück auf die embedded View und umgekehrt.
 $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
-    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback
+    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback, $isnext
 );
 $question = $nav['question'];
 $hasprev  = !empty($instance->showprevbutton) && $nav['hasprev'];
@@ -99,6 +100,7 @@ $nexturl = new moodle_url('/mod/elediacheckin/present.php', [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
     'layout'     => 'popup',
+    'next'       => 1,
     'r'          => time(),
 ]);
 $prevurl = new moodle_url('/mod/elediacheckin/present.php', [

@@ -117,13 +117,21 @@ final class activity_pool {
      * Semantics:
      *  - If `$pinnedexternalid` is non-empty, try to lock onto that card
      *    (used by the block launcher via `?q=`). History is reset to just
-     *    that entry so the user has a clean starting point.
+     *    that entry so the user has a clean starting point and the prev
+     *    button stays hidden.
      *  - Else if `$goback` is true AND history has at least 2 entries,
      *    pop the current top and return the previous card. History
      *    shrinks back to size 1 — the button disappears until the user
      *    draws a new card, which avoids ping-pong between two cards.
-     *  - Else draw a new random card and push it on the history stack,
-     *    keeping at most 2 entries (shift the oldest out).
+     *  - Else if `$isnext` is true (explicit „Nächste Frage"-click), draw
+     *    a new random and push it on the history stack, keeping at most
+     *    2 entries (shift the oldest out). This is the only path that
+     *    makes the prev button appear.
+     *  - Else (fresh page load, e.g. direct navigation to the activity),
+     *    draw a new random and *reset* the history to just that entry.
+     *    Per-viewing-session state should not leak across navigations —
+     *    Johannes wanted the button to appear only once the user has
+     *    actively moved forward at least once.
      *
      * @param \stdClass $instance        Row from the {elediacheckin} table.
      * @param int       $cmid            Course module id (session namespace).
@@ -131,6 +139,7 @@ final class activity_pool {
      * @param string[]  $langcandidates  Ordered language fallback chain.
      * @param string    $pinnedexternalid  Externalid to lock onto, or ''.
      * @param bool      $goback          True = handle "back" button click.
+     * @param bool      $isnext          True = handle "next" button click.
      * @return array{question: ?\stdClass, hasprev: bool}
      */
     public static function resolve_navigation(
@@ -139,7 +148,8 @@ final class activity_pool {
         string $activeziel,
         array $langcandidates,
         string $pinnedexternalid,
-        bool $goback
+        bool $goback,
+        bool $isnext = false
     ): array {
         global $SESSION;
 
@@ -174,8 +184,8 @@ final class activity_pool {
                 $question = self::pick_random($instance, $activeziel, $langcandidates);
                 $history = $question ? [(string) $question->externalid] : [];
             }
-        } else {
-            // Normal / "next" path: draw a random, push on top.
+        } else if ($isnext) {
+            // Explicit "Next"-click: draw a random and push on top.
             $question = self::pick_random($instance, $activeziel, $langcandidates);
             if ($question) {
                 $history[] = (string) $question->externalid;
@@ -183,6 +193,13 @@ final class activity_pool {
                     array_shift($history);
                 }
             }
+        } else {
+            // Fresh page load / first entry: draw a random and *reset*
+            // the history stack. Keeps the prev button hidden until the
+            // user has actively clicked "Next" at least once in this
+            // page-viewing session.
+            $question = self::pick_random($instance, $activeziel, $langcandidates);
+            $history = $question ? [(string) $question->externalid] : [];
         }
 
         $all[$cmid] = $history;

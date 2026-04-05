@@ -27,7 +27,36 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-_(leer)_
+- der Block ist wiede weg.
+- schaue das JSON nochmal durch. Ist da jetzt alles drin, was wir brauchen inkl. Kontexten und Zielgruppe?
+- stimmt das bei der Anleitung? „fork it, edit content/default.json"
+- müsst der Save Changes button nicht höher in der Admin ansicht, also über syncstatus?
+- wie genau ist die URL https://github.com/jmoskaliuk/content_elediacheckin.git oder  github.com/jmoskaliuk/content_elediacheckin
+- kannst du den beispiel URL um GIT direkt schon im Feld speichern?
+- FEhler beim Sync mit dem GIT This page did not call $PAGE->set_url(...). Using http://127.0.0.1:9501/mod/elediacheckin/admin/actions.php?action=runsync&sesskey=TB52gls7LW
+
+    line 684 of /public/lib/pagelib.php: call to debugging()
+    line 965 of /public/lib/pagelib.php: call to moodle_page->magic_get_url()
+    line 1691 of /public/lib/pagelib.php: call to moodle_page->__get()
+    line 403 of /public/lib/classes/output/requirements/page_requirements_manager.php: call to moodle_page->get_edited_page_hash()
+    line 1675 of /public/lib/classes/output/requirements/page_requirements_manager.php: call to core\output\requirements\page_requirements_manager->init_requirements_data()
+    line 256 of /public/lib/classes/output/core_renderer.php: call to core\output\requirements\page_requirements_manager->get_head_code()
+    line 219 of /public/lib/mustache/src/Mustache/Context.php: call to core\output\core_renderer->standard_head_html()
+    line 138 of /public/lib/mustache/src/Mustache/Context.php: call to Mustache_Context->findVariableInStack()
+    line 34 of /var/www/dataroot/localcache/mustache/1775401209/boost/__Mustache_1368aaee13500a959bf1f3c79cfda932.php: call to Mustache_Context->findDot()
+    line 66 of /public/lib/mustache/src/Mustache/Template.php: call to __Mustache_1368aaee13500a959bf1f3c79cfda932->renderInternal()
+    line 192 of /public/lib/classes/output/renderer_base.php: call to Mustache_Template->render()
+    line 38 of /public/theme/boost/layout/embedded.php: call to core\output\renderer_base->render_from_template()
+    line 959 of /public/lib/classes/output/core_renderer.php: call to include()
+    line 875 of /public/lib/classes/output/core_renderer.php: call to core\output\core_renderer->render_page_layout()
+    line 805 of /public/lib/classes/output/core_renderer.php: call to core\output\core_renderer->header()
+    line 0 of unknownfile: call to core\output\core_renderer->redirect_message()
+    line 109 of /public/lib/classes/output/bootstrap_renderer.php: call to call_user_func_array()
+    line 2252 of /public/lib/weblib.php: call to core\output\bootstrap_renderer->__call()
+    line 90 of /public/mod/elediacheckin/admin/actions.php: call to redirect()
+    
+    
+
 
 ## ❓ Klärung notwendig
 

@@ -35,6 +35,10 @@ $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
 // „Zur vorherigen Frage"-Button click: show the previously drawn card
 // from the session history stack instead of a fresh random.
 $goback     = (bool) optional_param('prev', 0, PARAM_BOOL);
+// Explicit „Nächste Frage"-click: pushes on the history stack. Fresh
+// page loads (without this flag) reset the stack so the back-button
+// only appears once the user has actively moved forward at least once.
+$isnext     = (bool) optional_param('next', 0, PARAM_BOOL);
 
 $cm       = get_coursemodule_from_id('elediacheckin', $id, 0, false, MUST_EXIST);
 $course   = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -101,7 +105,7 @@ $langcandidates[] = current_language();
 // pool draw with the single-step history stack that powers the „Zur
 // vorherigen Frage"-Button.
 $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
-    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback
+    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback, $isnext
 );
 $question = $nav['question'];
 $hasprev  = !empty($instance->showprevbutton) && $nav['hasprev'];
@@ -126,6 +130,7 @@ foreach ($ziele as $z) {
 $nexturl = new moodle_url('/mod/elediacheckin/view.php', [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
+    'next'       => 1, // marks this as an explicit "next" click → pushes on history.
     'r'          => time(), // cache-buster so the "Nächste Frage" link is always a new request.
 ]);
 $prevurl = new moodle_url('/mod/elediacheckin/view.php', [

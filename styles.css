@@ -179,6 +179,22 @@
     border-color: var(--el-orange-dark);
 }
 
+/* Ghost-Variante fuer den „Zur vorherigen Frage"-Button: gleiche Pill-Form
+   und -Groesse wie der Next-Button, aber in einer helleren Palette, damit
+   der primaere Next-Button optisch dominant bleibt. */
+.path-mod-elediacheckin .elediacheckin-next-btn--ghost,
+.path-mod-elediacheckin .elediacheckin-next-btn--ghost:focus {
+    background: #fff;
+    border-color: var(--el-orange);
+    color: var(--el-orange);
+}
+
+.path-mod-elediacheckin .elediacheckin-next-btn--ghost:hover {
+    background: rgba(249, 128, 18, .08);
+    color: var(--el-orange-dark);
+    border-color: var(--el-orange-dark);
+}
+
 /* ============ Fullscreen overlay ====================================== */
 
 /* Not scoped under .path-mod-elediacheckin because position:fixed elements
