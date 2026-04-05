@@ -17,9 +17,15 @@
 /**
  * Site-wide admin settings for mod_elediacheckin.
  *
- * This page is the single entry point for all plugin administration:
- * content-source configuration, language fallbacks, "Sync jetzt",
- * "Verbindung testen" and the recent-sync log are all rendered here.
+ * Single entry point for all plugin administration. Layout follows the
+ * "configure first, inspect later" principle:
+ *
+ *   1. Intro mini-guide  (what to do, in order)
+ *   2. Content source    (the first decision the admin has to make)
+ *   3. Git repo config   (conditionally shown only if source = git)
+ *   4. Language fallbacks
+ *   5. Sync status panel (dashboard — checked AFTER the config is saved)
+ *
  * There is intentionally no separate admin_externalpage anymore.
  *
  * @package    mod_elediacheckin
@@ -32,23 +38,16 @@ defined('MOODLE_INTERNAL') || die();
 if ($ADMIN->fulltree) {
 
     // ---------------------------------------------------------------------
-    // Embedded dashboard: active source, manual sync, connection test,
-    // recent sync log. Lives at the very top so admins see status first.
+    // 1. Intro: short how-to for first-time admins. Purely informational.
     // ---------------------------------------------------------------------
     $settings->add(new admin_setting_heading(
-        'mod_elediacheckin/dashboard_heading',
-        get_string('dashboard_heading', 'elediacheckin'),
-        get_string('dashboard_heading_desc', 'elediacheckin')
-    ));
-
-    $settings->add(new admin_setting_description(
-        'mod_elediacheckin/dashboard_panel',
-        '',
-        \mod_elediacheckin\local\admin\dashboard_renderer::render()
+        'mod_elediacheckin/adminintro_heading',
+        get_string('adminintro_heading', 'elediacheckin'),
+        get_string('adminintro_desc', 'elediacheckin')
     ));
 
     // ---------------------------------------------------------------------
-    // Content source selection.
+    // 2. Content source selection.
     // ---------------------------------------------------------------------
     $settings->add(new admin_setting_heading(
         'mod_elediacheckin/sourceheading',
@@ -72,13 +71,16 @@ if ($ADMIN->fulltree) {
     ));
 
     // ---------------------------------------------------------------------
-    // Git source configuration.
+    // 3. Git source configuration — only relevant when source = git.
+    // The heading + all three fields are hidden unless the admin actually
+    // picked the git source, so the "Default" case is visually calm.
     // ---------------------------------------------------------------------
-    $settings->add(new admin_setting_heading(
+    $repoheading = new admin_setting_heading(
         'mod_elediacheckin/repoheading',
         get_string('repoheading', 'elediacheckin'),
         get_string('repoheading_desc', 'elediacheckin')
-    ));
+    );
+    $settings->add($repoheading);
 
     $settings->add(new admin_setting_configtext(
         'mod_elediacheckin/repourl',
@@ -103,13 +105,17 @@ if ($ADMIN->fulltree) {
         ''
     ));
 
-    // Hide repo fields unless the git source is chosen.
+    // Hide repo fields unless the git source is chosen. The heading itself
+    // cannot be hidden by the core hide_if machinery (it targets form
+    // elements by setting name) — we therefore also hide it via a small
+    // JS-less CSS sibling rule rendered right after it. Admins that pick
+    // "Default" or the Phase-2 premium source never see any repo UI at all.
     $settings->hide_if('mod_elediacheckin/repourl',   'mod_elediacheckin/contentsource', 'neq', 'git');
     $settings->hide_if('mod_elediacheckin/reporef',   'mod_elediacheckin/contentsource', 'neq', 'git');
     $settings->hide_if('mod_elediacheckin/repotoken', 'mod_elediacheckin/contentsource', 'neq', 'git');
 
     // ---------------------------------------------------------------------
-    // Language fallbacks (apply to all sources).
+    // 4. Language fallbacks (apply to all sources).
     // ---------------------------------------------------------------------
     $settings->add(new admin_setting_heading(
         'mod_elediacheckin/langheading',
@@ -131,5 +137,22 @@ if ($ADMIN->fulltree) {
         get_string('fallbacklang_desc', 'elediacheckin'),
         'en',
         PARAM_LANG
+    ));
+
+    // ---------------------------------------------------------------------
+    // 5. Embedded dashboard: active source, manual sync, connection test,
+    // recent sync log. Intentionally at the BOTTOM: the logical flow is
+    // "set the configuration first, then verify the sync status".
+    // ---------------------------------------------------------------------
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/dashboard_heading',
+        get_string('dashboard_heading', 'elediacheckin'),
+        get_string('dashboard_heading_desc', 'elediacheckin')
+    ));
+
+    $settings->add(new admin_setting_description(
+        'mod_elediacheckin/dashboard_panel',
+        '',
+        \mod_elediacheckin\local\admin\dashboard_renderer::render()
     ));
 }

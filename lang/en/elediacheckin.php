@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname']         = 'Check-in';
-$string['modulename']         = 'Check-in';
-$string['modulenameplural']   = 'Check-ins';
+$string['pluginname']         = 'eLeDia Check-In';
+$string['modulename']         = 'Check-In';
+$string['modulenameplural']   = 'Check-Ins';
 $string['modulename_help']    = 'The "Check-in" activity shows short didactic impulses, questions and cards — for example check-in rounds at the beginning of a session, check-out reflections at the end, retrospective prompts, quotes or fun facts.
 
 For each activity you can select which goals (check-in, check-out, retro, impulse, learning, fun-fact, quote) and which categories are drawn from. Optionally, you can narrow down by audience (e.g. team, leaders) and context (work, school, higher education, personal). Participants then see a randomly matching card from the configured pool on every page load.
@@ -137,6 +137,8 @@ $string['elediacheckin:manage']        = 'Manage Check-in activity settings';
 $string['elediacheckin:synccontent']   = 'Trigger content synchronisation';
 
 // Admin settings.
+$string['adminintro_heading'] = 'Getting started';
+$string['adminintro_desc']    = '<div class="alert alert-info mb-3"><strong>Quick guide for administrators</strong><ol class="mb-0"><li>Choose a <em>content source</em> below. The bundled default works out of the box — no configuration needed.</li><li>To use your own questions, pick <em>Custom git repository</em> and paste the raw-JSON URL of your bundle. A ready-to-fork example lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — clone it and point the URL at your own copy.</li><li>Set the <em>language fallbacks</em> that apply when an activity does not pin a specific language.</li><li>Save changes, then scroll to the <em>Sync status</em> panel at the bottom and click <em>Run sync now</em> to load the first bundle.</li></ol></div>';
 $string['sourceheading']      = 'Content source';
 $string['sourceheading_desc'] = 'Choose where the check-in questions come from. The bundled default is always available as a fallback.';
 $string['contentsource']      = 'Active content source';
@@ -163,7 +165,7 @@ $string['synclog_result']     = 'Result';
 $string['synclog_count']      = 'Questions';
 $string['synclog_message']    = 'Message';
 $string['repoheading']        = 'Content repository';
-$string['repoheading_desc']   = 'Configure the external Git-based content source. Questions are pulled on a schedule and cached locally.';
+$string['repoheading_desc']   = 'Configure the external Git-based content source. Questions are pulled on a schedule and cached locally. A ready-to-use example bundle lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — fork it, edit <code>content/default.json</code>, and paste the raw URL into the field below.';
 $string['repourl']            = 'Repository URL';
 $string['repourl_desc']       = 'HTTPS URL of the raw JSON artefact or release asset to pull.';
 $string['reporef']            = 'Branch, tag or commit';

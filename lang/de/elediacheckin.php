@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname']         = 'Check-in';
-$string['modulename']         = 'Check-in';
-$string['modulenameplural']   = 'Check-ins';
+$string['pluginname']         = 'eLeDia Check-In';
+$string['modulename']         = 'Check-In';
+$string['modulenameplural']   = 'Check-Ins';
 $string['modulename_help']    = 'Die Aktivität „Check-in" zeigt kurze didaktische Impulse, Fragen und Karten — zum Beispiel für Check-in-Runden zu Beginn einer Sitzung, Check-out-Reflexionen am Ende, Retro-Fragen, Zitate oder Fun-Facts.
 
 Sie können pro Aktivität auswählen, welche Ziele (Check-in, Check-out, Retro, Impuls, Learning, Fun-Fact, Zitat) und welche Kategorien gezogen werden dürfen. Optional lässt sich zusätzlich auf Zielgruppe (z. B. Team, Führungskräfte) und Kontext (Arbeit, Schule, Hochschule, Privat) einschränken. Teilnehmende sehen dann bei jedem Seitenaufruf eine zufällig passende Karte aus dem konfigurierten Pool.
@@ -132,6 +132,8 @@ $string['elediacheckin:view']          = 'Check-in-Aktivität ansehen';
 $string['elediacheckin:manage']        = 'Check-in-Aktivität verwalten';
 $string['elediacheckin:synccontent']   = 'Inhalt synchronisieren';
 
+$string['adminintro_heading'] = 'Erste Schritte';
+$string['adminintro_desc']    = '<div class="alert alert-info mb-3"><strong>Kurzanleitung für Administrator:innen</strong><ol class="mb-0"><li>Wählen Sie unten eine <em>Inhaltsquelle</em>. Die mitgelieferten Standardfragen funktionieren ohne weitere Konfiguration.</li><li>Für eigene Fragen wählen Sie <em>Eigenes Git-Repository</em> und hinterlegen die Raw-JSON-URL Ihres Bundles. Als Vorlage dient <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — forken, editieren und die Raw-URL der eigenen Kopie eintragen.</li><li>Hinterlegen Sie die <em>Sprach-Fallbacks</em> für Aktivitäten, die keine eigene Sprache vorgeben.</li><li>Änderungen speichern und anschließend im Panel <em>Sync-Status</em> unten auf <em>Sync jetzt ausführen</em> klicken, um das erste Bundle zu laden.</li></ol></div>';
 $string['sourceheading']      = 'Inhaltsquelle';
 $string['sourceheading_desc'] = 'Legt fest, woher die Check-in-Fragen kommen. Die mitgelieferten Standardfragen stehen immer als Fallback zur Verfügung.';
 $string['contentsource']      = 'Aktive Inhaltsquelle';
@@ -163,7 +165,7 @@ $string['contenterror_gitempty']   = 'Das Repository lieferte eine leere Antwort
 $string['contenterror_gitparse']   = 'Die Antwort des Repositories enthält ungültiges JSON.';
 $string['contenterror_gitinvalid'] = 'Das Bundle im Repository entspricht nicht dem erwarteten Schema.';
 $string['repoheading']        = 'Inhalts-Repository';
-$string['repoheading_desc']   = 'Konfiguration der externen Git-basierten Inhaltsquelle. Fragen werden regelmäßig abgerufen und lokal zwischengespeichert.';
+$string['repoheading_desc']   = 'Konfiguration der externen Git-basierten Inhaltsquelle. Fragen werden regelmäßig abgerufen und lokal zwischengespeichert. Als Vorlage steht <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> bereit — forken, <code>content/default.json</code> anpassen und die Raw-URL Ihrer Kopie unten eintragen.';
 $string['repourl']            = 'Repository-URL';
 $string['repourl_desc']       = 'HTTPS-URL des Raw-JSON-Artefakts oder Release-Assets.';
 $string['reporef']            = 'Branch, Tag oder Commit';
