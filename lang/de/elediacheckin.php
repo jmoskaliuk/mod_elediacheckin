@@ -29,9 +29,11 @@ $string['modulename']         = 'Check-In';
 $string['modulenameplural']   = 'Check-Ins';
 $string['modulename_help']    = 'Die Aktivität „Check-in" zeigt kurze didaktische Impulse, Fragen und Karten — zum Beispiel für Check-in-Runden zu Beginn einer Sitzung, Check-out-Reflexionen am Ende, Retro-Fragen, Zitate oder Fun-Facts.
 
-Sie können pro Aktivität auswählen, welche Ziele (Check-in, Check-out, Retro, Impuls, Learning, Fun-Fact, Zitat) und welche Kategorien gezogen werden dürfen. Optional lässt sich zusätzlich auf Zielgruppe (z. B. Team, Führungskräfte) und Kontext (Arbeit, Schule, Hochschule, Privat) einschränken. Teilnehmende sehen dann bei jedem Seitenaufruf eine zufällig passende Karte aus dem konfigurierten Pool.
+Sie können pro Aktivität auswählen, welche Ziele (Check-in, Check-out, Retro, Impuls, Lernreflexion, Fun-Fact, Zitat) und welche Kategorien gezogen werden dürfen. Optional lässt sich zusätzlich auf Zielgruppe (z. B. Team, Führungskräfte) und Kontext (Arbeit, Schule, Hochschule, Privat) einschränken. Teilnehmende sehen dann bei jedem Seitenaufruf eine zufällig passende Karte aus dem konfigurierten Pool.
 
-Die Inhalte werden zentral von der Site-Administration aus einem Content-Repository synchronisiert. Lehrkräfte entscheiden nur, wie die Karten in ihrer Aktivität eingesetzt werden; sie können zusätzlich eigene Fragen pro Aktivität hinzufügen.';
+Die Inhalte werden zentral von der Site-Administration aus einem Content-Repository synchronisiert. Lehrkräfte entscheiden nur, wie die Karten in ihrer Aktivität eingesetzt werden; sie können zusätzlich eigene Fragen pro Aktivität hinzufügen.
+
+<a href="https://www.eledia.de/mod_elediacheckin" target="_blank" rel="noopener">Mehr erfahren auf eledia.de</a>';
 $string['pluginadministration'] = 'Check-in-Verwaltung';
 
 $string['checkinsettings']    = 'Check-in-Einstellungen';
@@ -43,7 +45,8 @@ $string['ziel_impuls']        = 'Impuls';
 $string['ziel_checkin']       = 'Check-in';
 $string['ziel_checkout']      = 'Check-out';
 $string['ziel_retro']         = 'Retro';
-$string['ziel_learning']      = 'Lerninhalt';
+$string['ziel_learning']      = 'Lernreflexion';
+$string['ziel_learning_help'] = 'Kurze, offene Fragen, die zum Nachdenken über das eigene Lernen anregen — z. B. „Was ist das Wichtigste, was ich heute gelernt habe?" oder „Welches Aha-Erlebnis hatte ich diese Woche?". Es sind bewusst KEINE Wissensfragen mit richtig/falsch, sondern persönliche Reflexionsimpulse ohne Rückseite.';
 $string['ziel_funfact']       = 'Funfact';
 $string['ziel_zitat']         = 'Zitat';
 $string['showanswer']         = 'Antwort anzeigen';
@@ -60,8 +63,11 @@ $string['avoidrepeat_help']   = 'Wenn aktiviert, wird innerhalb einer Sitzung ni
 $string['showprevbutton']     = 'Button „Zur vorherigen Frage" anzeigen';
 $string['showprevbutton_help'] = 'Wenn aktiviert, erscheint neben „Nächste Frage" ein zweiter Button, mit dem Lernende einen Schritt zurückspringen können — zur zuletzt gezogenen Karte. Nur ein Schritt zurück, kein vollständiger Verlauf.';
 $string['prevquestion']       = 'Zur vorherigen Frage';
-$string['onlyownquestions']   = 'Nur eigene Fragen verwenden';
-$string['onlyownquestions_help'] = 'Wenn aktiviert, zieht diese Aktivität ausschließlich aus den oben eingegebenen eigenen Fragen. Die Bundle-Fragen der Site-Inhaltsquelle werden ignoriert. Ist das Feld „Eigene Fragen" leer, zeigt die Aktivität keine Karten an.';
+$string['ownquestionsmode']   = 'Quelle für diese Aktivität';
+$string['ownquestionsmode_help'] = 'Legt fest, welche Fragen in dieser Aktivität gezogen werden. „Gemischt" mischt die unten eingetragenen eigenen Fragen additiv zu den Bundle-Fragen der Site-Inhaltsquelle (Default). „Nur eigene Fragen" ignoriert das Site-Bundle komplett — ist das Textfeld leer, werden keine Karten angezeigt. „Keine eigenen Fragen" ignoriert das Textfeld, auch wenn es gefüllt ist — nützlich, um eine Aktivität temporär aus dem eigenen Pool zu nehmen, ohne die Einträge zu löschen.';
+$string['ownquestionsmode_mixed']   = 'Gemischt: eigene Fragen zusätzlich zu Bundle-Fragen';
+$string['ownquestionsmode_onlyown'] = 'Nur eigene Fragen (Bundle wird ignoriert)';
+$string['ownquestionsmode_none']    = 'Keine eigenen Fragen (nur Bundle)';
 
 // Zielgruppe + Kontext (optionale Tag-Dimensionen).
 $string['zielgruppe']         = 'Zielgruppe';
@@ -106,12 +112,15 @@ $string['cat_perspektivwechsel']      = 'Perspektivwechsel';
 $string['cat_reflexion']              = 'Reflexion';
 $string['cat_entscheidung']           = 'Entscheidung';
 $string['cat_werte']                  = 'Werte';
-$string['cat_methode']                = 'Methode';
-$string['cat_theorie']                = 'Theorie';
-$string['cat_praxis']                 = 'Praxis';
-$string['cat_transfer']               = 'Transfer';
-$string['cat_tool']                   = 'Tool';
-$string['cat_modell']                 = 'Modell';
+// Kategorien für Lernreflexion (ziel: learning) — offene Reflexionsimpulse,
+// keine Wissenskategorien. Die alten fachdidaktischen Labels (methode,
+// theorie, modell, tool) sind bewusst entfernt, damit das Ziel
+// „Lernreflexion" nicht mit einer Vorlesung verwechselt wird.
+$string['cat_tagesreflexion']         = 'Tagesreflexion';
+$string['cat_transfer']               = 'Transfer in die Praxis';
+$string['cat_aha']                    = 'Aha-Erlebnis';
+$string['cat_hindernis']              = 'Hürde & Missverständnis';
+$string['cat_meta']                   = 'Lernen über Lernen';
 $string['cat_wissenschaft']           = 'Wissenschaft';
 $string['cat_geschichte']             = 'Geschichte';
 $string['cat_sprache']                = 'Sprache';

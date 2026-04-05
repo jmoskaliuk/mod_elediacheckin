@@ -157,6 +157,14 @@ $templatecontext = [
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
         'lang'      => $question->lang,
+        // Ziel-abhängige Metadaten für das Template: nur Zitate bekommen
+        // die Autor-Attribution unter dem Text. Für andere Ziele ist das
+        // Feld zwar möglicherweise gesetzt (z. B. "eLeDia Redaktion" bei
+        // learning-Fragen), gehört aber didaktisch NICHT auf die Karte.
+        'isquote'   => !empty($question->ziel) && $question->ziel === 'zitat',
+        'hasauthor' => !empty($question->ziel) && $question->ziel === 'zitat'
+                        && !empty($question->author),
+        'author'    => !empty($question->author) ? s($question->author) : '',
     ] : null,
     'multiziel'       => $multiziel,
     'zielbuttons'     => $zielbuttons,
@@ -176,10 +184,9 @@ $templatecontext = [
 
 echo $OUTPUT->header();
 
-if (!empty($instance->intro)) {
-    echo $OUTPUT->box(format_module_intro('elediacheckin', $instance, $cm->id),
-        'generalbox mod_introbox', 'elediacheckinintro');
-}
+// NOTE: In Moodle 4.x+ the activity header ($PAGE->activityheader) auto-
+// renders the module intro, so an explicit generalbox here would duplicate
+// the description. We intentionally do NOT echo a second intro box.
 
 echo $OUTPUT->render_from_template('mod_elediacheckin/view', $templatecontext);
 

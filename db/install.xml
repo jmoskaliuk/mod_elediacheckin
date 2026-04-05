@@ -25,8 +25,8 @@
                COMMENT="If set, the provider avoids repeating the previous question within a session."/>
         <FIELD NAME="ownquestions" TYPE="text" NOTNULL="false" SEQUENCE="false"
                COMMENT="Optional teacher-authored extra questions, one per line. Merged additively into the random draw pool for this activity. Virtual category 'eigene'."/>
-        <FIELD NAME="onlyownquestions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
-               COMMENT="If set, the activity only draws from the teacher's own questions and skips the bundle pool entirely."/>
+        <FIELD NAME="ownquestionsmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               COMMENT="Tri-state selector for the own-questions pool. 0 = mixed (own + bundle, equal weight, default), 1 = only_own (skip bundle pool entirely), 2 = none (ignore own-questions field even if filled). Replaces the earlier yes/no toggle 'onlyownquestions' so teachers can cleanly pick between all three behaviours."/>
         <FIELD NAME="showprevbutton" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
                COMMENT="If set, view.php/present.php render a 'Zur vorherigen Frage'-Button that re-shows the last-drawn question from the session state."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

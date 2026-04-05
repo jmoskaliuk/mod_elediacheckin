@@ -225,16 +225,23 @@ final class activity_pool {
         string $activeziel,
         array $langcandidates
     ): array {
-        $own = self::parse_own_questions($instance);
+        // „Eigene Fragen"-Modus (Konzept §10.15 + §10.19). Tri-state:
+        //   0 = mixed     — Bundle + eigene additiv (Default).
+        //   1 = only_own  — NUR eigene Fragen, Bundle komplett ueberspringen.
+        //   2 = none      — eigene Fragen komplett ignorieren, auch wenn das
+        //                   Textfeld gefuellt ist (nuetzlich, wenn Teacher
+        //                   eine Aktivitaet temporaer „aus dem Mix" nehmen
+        //                   moechte, ohne die eingetragenen Fragen zu loeschen).
+        // Fallback auf 0, falls das alte Feld `onlyownquestions` noch in
+        // der DB steckt (wird durch Upgrade-Step 2026040524 umbenannt, aber
+        // defensive Programmierung schadet nicht).
+        $mode = isset($instance->ownquestionsmode)
+            ? (int) $instance->ownquestionsmode
+            : (isset($instance->onlyownquestions) ? (int) $instance->onlyownquestions : 0);
 
-        // "Nur eigene Fragen verwenden"-Toggle (Konzept §10.15): wenn
-        // aktiv, wird die Bundle-Query komplett uebersprungen. Damit kann
-        // eine Lehrkraft eine Aktivitaet aufsetzen, die ausschliesslich aus
-        // ihren eigenen Karten zieht, ohne die Site-Content-Quelle zu
-        // beruehren. Wenn der Teacher den Toggle aktiviert, aber gar keine
-        // eigenen Fragen eintraegt, gibt es konsequent nichts zu zeigen —
-        // die View rendert dann den "noquestions"-Empty-State.
-        if (!empty($instance->onlyownquestions)) {
+        $own = $mode === 2 ? [] : self::parse_own_questions($instance);
+
+        if ($mode === 1) {
             return $own;
         }
 

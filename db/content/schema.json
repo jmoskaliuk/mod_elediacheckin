@@ -247,12 +247,11 @@
               "kategorie": {
                 "items": {
                   "enum": [
-                    "methode",
-                    "theorie",
-                    "praxis",
+                    "tagesreflexion",
                     "transfer",
-                    "tool",
-                    "modell"
+                    "aha",
+                    "hindernis",
+                    "meta"
                   ]
                 }
               }

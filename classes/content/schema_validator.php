@@ -130,8 +130,11 @@ final class schema_validator {
             'kreativitaet', 'perspektivwechsel', 'reflexion', 'fokus',
             'entscheidung', 'werte',
         ],
+        // Lernreflexion: offene Reflexionsfragen zum eigenen Lernen, KEINE
+        // Wissensfragen. Kategorien bilden Reflexionsperspektiven ab (Tag,
+        // Transfer, Aha-Moment, Hürde, Meta) statt fachdidaktischer Formate.
         'learning' => [
-            'methode', 'theorie', 'praxis', 'transfer', 'tool', 'modell',
+            'tagesreflexion', 'transfer', 'aha', 'hindernis', 'meta',
         ],
         'funfact' => [
             'wissenschaft', 'geschichte', 'sprache', 'natur', 'technik', 'alltag',

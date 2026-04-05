@@ -119,6 +119,24 @@
     margin: 6px 0 22px;
 }
 
+/* Quote-Variante: italic serif, etwas größer, zentriert — setzt das
+   Zitat visuell klar von den alltäglichen Check-in-/Learning-Fragen ab. */
+.path-mod-elediacheckin .elediacheckin-question-text--quote {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.path-mod-elediacheckin .elediacheckin-question-author {
+    text-align: center;
+    color: var(--el-muted, #6c757d);
+    font-size: 0.95rem;
+    font-style: normal;
+    margin: 0 0 22px;
+}
+
 /* ----- Answer toggle -------------------------------------------------- */
 
 .path-mod-elediacheckin .elediacheckin-answer {
@@ -293,6 +311,19 @@ body.elediacheckin-fs-locked {
     line-height: 1.15;
     margin: 0 auto;
     text-shadow: 0 4px 40px rgba(0, 0, 0, .3);
+}
+
+.elediacheckin-fs-question--quote {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 500;
+}
+
+.elediacheckin-fs-author {
+    font-size: clamp(1rem, 1.6vw, 1.4rem);
+    margin: 18px auto 0;
+    opacity: .75;
+    font-style: normal;
 }
 
 .elediacheckin-fs-answer {
@@ -472,6 +503,7 @@ body.pagelayout-popup .page-header-headings {
 .elediacheckin-present-middle {
     flex: 1 1 auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -484,6 +516,20 @@ body.pagelayout-popup .page-header-headings {
     line-height: 1.2;
     margin: 0;
     max-width: 1000px;
+}
+
+.elediacheckin-present-question--quote {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 500;
+}
+
+.elediacheckin-present-author {
+    margin: 14px 0 0;
+    color: var(--el-dark-blue);
+    opacity: .7;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    font-style: normal;
 }
 
 .elediacheckin-present-answer {

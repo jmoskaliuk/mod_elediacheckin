@@ -139,6 +139,11 @@ $templatecontext = [
                            !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
+        // Autor-Attribution nur für Zitate (siehe view.php für Begründung).
+        'isquote'   => !empty($question->ziel) && $question->ziel === 'zitat',
+        'hasauthor' => !empty($question->ziel) && $question->ziel === 'zitat'
+                        && !empty($question->author),
+        'author'    => !empty($question->author) ? s($question->author) : '',
     ] : null,
     'multiziel'       => $multiziel,
     'zielbuttons'     => $zielbuttons,

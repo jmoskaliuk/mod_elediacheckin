@@ -96,7 +96,10 @@
         {{/multiziel}}
 
         {{#hasquestion}}
-            <p class="elediacheckin-question-text">{{question.frage}}</p>
+            <p class="elediacheckin-question-text {{#question.isquote}}elediacheckin-question-text--quote{{/question.isquote}}">{{question.frage}}</p>
+            {{#question.hasauthor}}
+                <p class="elediacheckin-question-author">— {{question.author}}</p>
+            {{/question.hasauthor}}
 
             {{#question.hasanswer}}
                 <details class="elediacheckin-answer">
@@ -143,7 +146,10 @@
     </div>
     {{#hasquestion}}
         <div class="elediacheckin-fs-middle">
-            <p class="elediacheckin-fs-question">{{question.frage}}</p>
+            <p class="elediacheckin-fs-question {{#question.isquote}}elediacheckin-fs-question--quote{{/question.isquote}}">{{question.frage}}</p>
+            {{#question.hasauthor}}
+                <p class="elediacheckin-fs-author">— {{question.author}}</p>
+            {{/question.hasauthor}}
             {{#question.hasanswer}}
                 <p class="elediacheckin-fs-answer" data-region="fs-answer-text" hidden>{{question.antwort}}</p>
             {{/question.hasanswer}}

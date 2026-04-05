@@ -164,32 +164,11 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->setDefault('contentlang', self::LANG_AUTO);
         $mform->addHelpButton('contentlang', 'contentlang', 'elediacheckin');
 
-        // Eigene Fragen (per-Aktivität, siehe Konzept §10.13). Additiver
-        // Zusatzpool zu den Bundle-Fragen: eine Zeile = eine Karte. Wird
-        // als TEXT-Spalte persistiert und bei jedem Draw von
-        // activity_pool zusammengemerged. Reine Impulskarten, keine
-        // Rückseite.
-        $mform->addElement('header', 'ownquestionsheader',
-            get_string('ownquestions', 'elediacheckin'));
-
-        $mform->addElement('textarea', 'ownquestions',
-            get_string('ownquestions', 'elediacheckin'), [
-                'rows' => 6,
-                'cols' => 60,
-                'style' => 'font-family: inherit;',
-            ]);
-        $mform->setType('ownquestions', PARAM_TEXT);
-        $mform->addHelpButton('ownquestions', 'ownquestions', 'elediacheckin');
-
-        // „Nur eigene Fragen verwenden"-Toggle (Konzept §10.15).
-        // Wenn aktiv, ueberspringt activity_pool die Bundle-Query komplett
-        // und zieht ausschliesslich aus `ownquestions`. Default: aus.
-        $mform->addElement('selectyesno', 'onlyownquestions',
-            get_string('onlyownquestions', 'elediacheckin'));
-        $mform->setDefault('onlyownquestions', 0);
-        $mform->addHelpButton('onlyownquestions', 'onlyownquestions', 'elediacheckin');
-
         // Anzeigeoptionen.
+        // Kommt VOR dem „Eigene Fragen"-Block, weil Display-Einstellungen
+        // zur Kernkonfiguration gehören, während „Eigene Fragen" ein
+        // optionales Extra sind. Siehe testing-inbox 2026-04-05
+        // („in den einstellungen eigene Fragen nach Display options").
         $mform->addElement('header', 'displaysettings', get_string('displaysettings', 'elediacheckin'));
 
         $mform->addElement('selectyesno', 'avoidrepeat', get_string('avoidrepeat', 'elediacheckin'));
@@ -202,6 +181,42 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             get_string('showprevbutton', 'elediacheckin'));
         $mform->setDefault('showprevbutton', 0);
         $mform->addHelpButton('showprevbutton', 'showprevbutton', 'elediacheckin');
+
+        // Eigene Fragen (per-Aktivität, siehe Konzept §10.13 + §10.19).
+        // Additiver Zusatzpool zu den Bundle-Fragen: eine Zeile = eine
+        // Karte. Wird als TEXT-Spalte persistiert und bei jedem Draw von
+        // activity_pool zusammengemerged. Reine Impulskarten, keine
+        // Rückseite.
+        $mform->addElement('header', 'ownquestionsheader',
+            get_string('ownquestions', 'elediacheckin'));
+
+        // Tri-state-Dropdown statt frueherem Yes/No-Toggle. Die drei
+        // Modi sind bewusst explizit ausformuliert, weil „Nein" fuer
+        // „Nur eigene Fragen" mehrdeutig war (hiess es „eigene Fragen
+        // ignorieren" oder „mit Bundle mischen"?). Default: mixed.
+        $modeoptions = [
+            0 => get_string('ownquestionsmode_mixed', 'elediacheckin'),
+            1 => get_string('ownquestionsmode_onlyown', 'elediacheckin'),
+            2 => get_string('ownquestionsmode_none', 'elediacheckin'),
+        ];
+        $mform->addElement('select', 'ownquestionsmode',
+            get_string('ownquestionsmode', 'elediacheckin'), $modeoptions);
+        $mform->setDefault('ownquestionsmode', 0);
+        $mform->addHelpButton('ownquestionsmode', 'ownquestionsmode', 'elediacheckin');
+
+        $mform->addElement('textarea', 'ownquestions',
+            get_string('ownquestions', 'elediacheckin'), [
+                'rows' => 6,
+                'cols' => 60,
+                'style' => 'font-family: inherit;',
+            ]);
+        $mform->setType('ownquestions', PARAM_TEXT);
+        $mform->addHelpButton('ownquestions', 'ownquestions', 'elediacheckin');
+        // Wenn der Modus auf „Keine eigenen Fragen" steht, ist das Textfeld
+        // nutzlos. Wir blenden es dann aus (ohne es zu loeschen), damit
+        // der Teacher jederzeit zurueck in „mixed" oder „nur eigene"
+        // wechseln kann, ohne die Eintraege neu tippen zu muessen.
+        $mform->hideIf('ownquestions', 'ownquestionsmode', 'eq', 2);
 
         // Standard course module elements.
         $this->standard_coursemodule_elements();

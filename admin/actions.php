@@ -46,10 +46,11 @@ $PAGE->set_url('/mod/elediacheckin/admin/actions.php', ['action' => $action]);
 $PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout('admin');
 
-// Zurück zum Dashboard — dort werden die Run-Sync- und Test-Connection-
-// Buttons gerendert, und dort will der Admin unmittelbar das Ergebnis
-// (Success/Error Notification + neue Log-Zeile) sehen.
-$returnurl = new moodle_url('/mod/elediacheckin/admin/dashboard.php');
+// Zurück zur Einstellungsseite — dort lebt seit April 2026 (UX-Feedback
+// Johannes) auch das Sync-Status-Panel am Ende der Seite, d.h. der Admin
+// sieht sowohl den Success/Error-Toast als auch die aktualisierte Log-
+// Tabelle ohne weiteren Klick.
+$returnurl = new moodle_url('/admin/settings.php', ['section' => 'modsettingelediacheckin']);
 
 switch ($action) {
     case 'runsync':

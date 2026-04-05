@@ -21,7 +21,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-const POPUP_FEATURES = 'width=1100,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+// Firefox ≥ 109 and modern WebKit require the explicit `popup=yes` feature to
+// honour `width`/`height` and actually open a chrome-less popup window instead
+// of a normal tab. Without it, Firefox silently upgrades the request to a new
+// tab, which breaks the "present mode on a second screen" workflow. Chromium
+// tolerates both forms, so we always send `popup=yes`.
+const POPUP_FEATURES = 'popup=yes,width=1100,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
 
 export const init = (rootSelector) => {
     const root = document.querySelector(rootSelector);

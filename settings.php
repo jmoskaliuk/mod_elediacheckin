@@ -41,17 +41,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Second admin node: Sync-Status-Dashboard. Registered alongside the
-// auto-created settingpage under the same modsettings category so admins
-// see both „Einstellungen" and „Sync-Status" in the left nav.
-if ($hassiteconfig) {
-    $ADMIN->add('modsettings', new admin_externalpage(
-        'mod_elediacheckin_dashboard',
-        get_string('dashboard_heading', 'elediacheckin'),
-        new moodle_url('/mod/elediacheckin/admin/dashboard.php'),
-        'moodle/site:config'
-    ));
-}
+// Sync-Status-Dashboard ist seit April 2026 wieder direkt unter den
+// Konfigurations-Feldern auf derselben Seite (Johannes' UX-Feedback: ein
+// Screen statt zwei Nav-Einträge). Die admin_externalpage-Registrierung
+// ist daher entfernt; admin/dashboard.php existiert nur noch als
+// redirect-Ziel für actions.php-Aufrufe aus Legacy-Bookmarks.
 
 if ($ADMIN->fulltree) {
 
@@ -64,56 +58,14 @@ if ($ADMIN->fulltree) {
         get_string('adminintro_desc', 'elediacheckin')
     ));
 
-    // ---------------------------------------------------------------------
-    // 1b. Quick-Actions panel. Shows the currently active source and gives
-    // one-click access to "Run sync now" + the full Sync-Status dashboard,
-    // without forcing the admin to hunt for the second nav entry. Sits at
-    // the top of the page so it's visible without scrolling. Dashboard
-    // (externalpage) still owns the detailed log view.
-    // ---------------------------------------------------------------------
-    $currentsource = get_config('mod_elediacheckin', 'contentsource') ?: 'bundled';
-    $currentkey    = 'contentsource_' . $currentsource;
-    $currentlabel  = get_string_manager()->string_exists($currentkey, 'elediacheckin')
-        ? get_string($currentkey, 'elediacheckin')
-        : $currentsource;
-
-    $runurl = new moodle_url('/mod/elediacheckin/admin/actions.php', [
-        'action'  => 'runsync',
-        'sesskey' => sesskey(),
-    ]);
-    $dashurl = new moodle_url('/mod/elediacheckin/admin/dashboard.php');
-    $testurl = new moodle_url('/mod/elediacheckin/admin/actions.php', [
-        'action'  => 'testconnection',
-        'sesskey' => sesskey(),
-    ]);
-
-    $quickhtml  = html_writer::start_div('alert alert-secondary mb-3');
-    $quickhtml .= html_writer::tag('strong',
-        get_string('dashboard_activesource', 'elediacheckin', $currentlabel));
-    $quickhtml .= html_writer::empty_tag('br');
-    $quickhtml .= html_writer::start_div('mt-2 d-flex gap-2 flex-wrap');
-    $quickhtml .= html_writer::link($runurl,
-        get_string('dashboard_runnow', 'elediacheckin'),
-        ['class' => 'btn btn-primary btn-sm']);
-    if ($currentsource === 'git') {
-        $quickhtml .= html_writer::link($testurl,
-            get_string('dashboard_testconnection', 'elediacheckin'),
-            ['class' => 'btn btn-outline-secondary btn-sm']);
-    }
-    $quickhtml .= html_writer::link($dashurl,
-        get_string('dashboard_viewlog', 'elediacheckin'),
-        ['class' => 'btn btn-outline-secondary btn-sm']);
-    $quickhtml .= html_writer::end_div();
-    $quickhtml .= html_writer::tag('small',
-        get_string('dashboard_saveFirstHint', 'elediacheckin'),
-        ['class' => 'text-muted d-block mt-2']);
-    $quickhtml .= html_writer::end_div();
-
-    $settings->add(new admin_setting_heading(
-        'mod_elediacheckin/quickactions',
-        '',
-        $quickhtml
-    ));
+    // Ein früher „Quick-Actions"-Block (Sync-Jetzt-Button am Seitenanfang)
+    // wurde im April 2026 entfernt: seitdem das volle Sync-Status-Panel
+    // wieder am Ende derselben Seite eingebettet ist (siehe unten,
+    // Abschnitt 5), war der obere Block redundant — **und** der dort
+    // verwendete `.alert-secondary`-Wrapper erzwang im Boost-Theme eine
+    // Textfarbe, die den weißen `.btn-primary`-Label unsichtbar machte.
+    // Statt die Farbe per `!important` zu überschreiben, fliegt der
+    // doppelte Panel-Block einfach raus.
 
     // ---------------------------------------------------------------------
     // 2. Content source selection.
@@ -258,8 +210,24 @@ if ($ADMIN->fulltree) {
         PARAM_LANG
     ));
 
-    // Hinweis: Das frühere eingebettete Sync-Status-Panel lebt jetzt unter
-    // einem eigenen Nav-Eintrag „Sync-Status" (siehe admin_externalpage
-    // weiter oben). Damit sitzt der Save-Button direkt unter dem letzten
-    // Feld — keine Tabelle mehr dazwischen.
+    // ---------------------------------------------------------------------
+    // 5. Sync-Status-Dashboard — visuell unterhalb der Konfig-Felder.
+    //
+    // Core-Moodle platziert den Save-Changes-Button nach dem letzten
+    // admin_setting, nicht nach dem letzten admin_setting_heading, daher
+    // erscheint dieses Panel technisch „über" dem Save-Button. Das ist
+    // die UX, die Johannes im April-2026-Feedback nach Abwägung bevorzugt
+    // hat: ein Screen statt zweier Nav-Einträge. Für echte "nach Save-
+    // Button"-Platzierung müsste die ganze Seite als admin_externalpage
+    // neu gebaut werden — das wäre eine größere Refactoring-Runde.
+    //
+    // Inhalt kommt aus dem vorhandenen dashboard_renderer, so dass
+    // dashboard.php (weiterhin als Redirect-Ziel für Altlast-Links
+    // vorhanden) und diese Einbettung denselben HTML-Output teilen.
+    // ---------------------------------------------------------------------
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/dashboardpanel',
+        get_string('dashboard_heading', 'elediacheckin'),
+        \mod_elediacheckin\local\admin\dashboard_renderer::render()
+    ));
 }

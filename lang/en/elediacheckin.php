@@ -29,9 +29,11 @@ $string['modulename']         = 'Check-In';
 $string['modulenameplural']   = 'Check-Ins';
 $string['modulename_help']    = 'The "Check-in" activity shows short didactic impulses, questions and cards — for example check-in rounds at the beginning of a session, check-out reflections at the end, retrospective prompts, quotes or fun facts.
 
-For each activity you can select which goals (check-in, check-out, retro, impulse, learning, fun-fact, quote) and which categories are drawn from. Optionally, you can narrow down by audience (e.g. team, leaders) and context (work, school, higher education, personal). Participants then see a randomly matching card from the configured pool on every page load.
+For each activity you can select which goals (check-in, check-out, retro, impulse, learning reflection, fun-fact, quote) and which categories are drawn from. Optionally, you can narrow down by audience (e.g. team, leaders) and context (work, school, higher education, personal). Participants then see a randomly matching card from the configured pool on every page load.
 
-Content is synchronised centrally by the site administration from a content repository. Teachers only decide how the cards are used in their activity; they can additionally add their own questions per activity.';
+Content is synchronised centrally by the site administration from a content repository. Teachers only decide how the cards are used in their activity; they can additionally add their own questions per activity.
+
+<a href="https://www.eledia.de/mod_elediacheckin" target="_blank" rel="noopener">Learn more at eledia.de</a>';
 $string['pluginadministration'] = 'Check-in administration';
 
 // Form sections.
@@ -45,7 +47,8 @@ $string['ziel_impuls']        = 'Impulse';
 $string['ziel_checkin']       = 'Check-in';
 $string['ziel_checkout']      = 'Check-out';
 $string['ziel_retro']         = 'Retrospective';
-$string['ziel_learning']      = 'Learning content';
+$string['ziel_learning']      = 'Learning reflection';
+$string['ziel_learning_help'] = 'Short, open prompts that invite learners to reflect on their own learning — e.g. "What is the most important thing I learned today?" or "What surprised me this week?". These are deliberately NOT knowledge questions with right/wrong answers, but personal reflection impulses without a back side.';
 $string['ziel_funfact']       = 'Fun fact';
 $string['ziel_zitat']         = 'Quote';
 $string['showanswer']         = 'Show answer';
@@ -62,8 +65,11 @@ $string['avoidrepeat_help']   = 'If enabled, the same question will not be shown
 $string['showprevbutton']     = 'Show "Previous question" button';
 $string['showprevbutton_help'] = 'If enabled, a second button appears next to "Next question" that lets learners jump back one step — to the card that was shown just before. Only a single step back, not a full history.';
 $string['prevquestion']       = 'Previous question';
-$string['onlyownquestions']   = 'Use own questions only';
-$string['onlyownquestions_help'] = 'If enabled, this activity draws only from the own questions entered above. The bundle questions from the site content source are ignored. If the "Own questions" field is empty, the activity will show no cards.';
+$string['ownquestionsmode']   = 'Question pool for this activity';
+$string['ownquestionsmode_help'] = 'Decides which questions are drawn in this activity. "Mixed" adds the own questions entered below to the bundle questions from the site content source with equal weight (default). "Only own questions" ignores the site bundle entirely — if the textarea is empty, no cards are shown. "No own questions" ignores the textarea even if it is filled — useful to temporarily take an activity out of the own-questions pool without deleting the entries.';
+$string['ownquestionsmode_mixed']   = 'Mixed: own questions in addition to bundle questions';
+$string['ownquestionsmode_onlyown'] = 'Only own questions (bundle is ignored)';
+$string['ownquestionsmode_none']    = 'No own questions (bundle only)';
 
 // Audience + context (optional tag dimensions).
 $string['zielgruppe']         = 'Audience';
@@ -108,12 +114,15 @@ $string['cat_perspektivwechsel']      = 'Change of perspective';
 $string['cat_reflexion']              = 'Reflection';
 $string['cat_entscheidung']           = 'Decision';
 $string['cat_werte']                  = 'Values';
-$string['cat_methode']                = 'Method';
-$string['cat_theorie']                = 'Theory';
-$string['cat_praxis']                 = 'Practice';
-$string['cat_transfer']               = 'Transfer';
-$string['cat_tool']                   = 'Tool';
-$string['cat_modell']                 = 'Model';
+// Categories for learning reflection (ziel: learning) — open reflection
+// prompts, not knowledge categories. The old didactic labels (method,
+// theory, model, tool) are intentionally removed so the goal "learning
+// reflection" can no longer be confused with a lecture.
+$string['cat_tagesreflexion']         = 'Daily reflection';
+$string['cat_transfer']               = 'Transfer to practice';
+$string['cat_aha']                    = 'Aha moment';
+$string['cat_hindernis']              = 'Obstacle & misunderstanding';
+$string['cat_meta']                   = 'Learning about learning';
 $string['cat_wissenschaft']           = 'Science';
 $string['cat_geschichte']             = 'History';
 $string['cat_sprache']                = 'Language';

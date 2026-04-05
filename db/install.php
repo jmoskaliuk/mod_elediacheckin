@@ -42,4 +42,46 @@ function xmldb_elediacheckin_install() {
             DEBUG_DEVELOPER
         );
     }
+
+    // Import bundled user tours (Lehrkräfte-Onboarding). tool_usertours auto-
+    // imports tours from any plugin's db/tours/*.json directory on core
+    // upgrade, but fresh installs skip that window because the plugin is
+    // installed mid-upgrade. So we invoke the importer directly for each
+    // JSON file shipped in db/tours. Failures are non-fatal — an admin can
+    // always import the tour manually via Site admin → Appearance → Tours.
+    mod_elediacheckin_install_bundled_tours();
+}
+
+/**
+ * Imports every JSON tour from db/tours/ via tool_usertours.
+ *
+ * Skipped silently if tool_usertours is disabled or unavailable (e.g. in
+ * minimal test environments).
+ */
+function mod_elediacheckin_install_bundled_tours(): void {
+    global $CFG;
+
+    if (!class_exists('\\tool_usertours\\manager')) {
+        return;
+    }
+
+    $toursdir = $CFG->dirroot . '/mod/elediacheckin/db/tours';
+    if (!is_dir($toursdir)) {
+        return;
+    }
+
+    foreach (glob($toursdir . '/*.json') as $file) {
+        try {
+            $json = file_get_contents($file);
+            if ($json === false) {
+                continue;
+            }
+            \tool_usertours\manager::import_tour_from_json($json);
+        } catch (\Throwable $e) {
+            debugging(
+                'mod_elediacheckin: could not import tour ' . basename($file) . ': ' . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+        }
+    }
 }

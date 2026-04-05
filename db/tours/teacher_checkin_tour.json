@@ -1,0 +1,82 @@
+{
+    "version": "4.5.0",
+    "name": "Check-In für Lehrkräfte",
+    "description": "Kurze Tour durch die Check-in-Aktivität: Karte, Ziel-Picker, Nächste Frage und Präsentationsmodus.",
+    "pathmatch": "/mod/elediacheckin/view.php%",
+    "enabled": true,
+    "sortorder": 0,
+    "endtourlabel": "Verstanden",
+    "displaystepnumbers": true,
+    "showtourwhen": 1,
+    "filtervalues": {
+        "accessdate": [],
+        "accessdaterange": "2",
+        "category": [],
+        "courseformat": [],
+        "role": ["editingteacher", "teacher", "manager"],
+        "theme": []
+    },
+    "steps": [
+        {
+            "title": "Willkommen beim Check-In",
+            "content": "Diese Aktivität zeigt deinen Teilnehmer:innen kurze Impulse, Reflexionsfragen oder Zitate — ideal zum Start, Ende oder für Retrospektiven einer Sitzung.",
+            "targettype": 2,
+            "targetvalue": "",
+            "sortorder": 0,
+            "configdata": {
+                "placement": "top",
+                "orphan": true,
+                "backdrop": false,
+                "reflex": false
+            }
+        },
+        {
+            "title": "Die Karte",
+            "content": "Jeder Seitenaufruf zeigt eine zufällig passende Frage oder einen Impuls aus dem konfigurierten Pool. Die Inhalte kommen zentral aus dem eLeDia-Content-Repository; du kannst pro Aktivität eigene Fragen ergänzen.",
+            "targettype": 0,
+            "targetvalue": ".elediacheckin-card",
+            "sortorder": 1,
+            "configdata": {
+                "placement": "bottom",
+                "backdrop": true,
+                "reflex": false
+            }
+        },
+        {
+            "title": "Ziel wechseln",
+            "content": "Wenn deine Aktivität mehrere Ziele kombiniert (z. B. Check-in und Check-out), kannst du hier zwischen ihnen wechseln.",
+            "targettype": 0,
+            "targetvalue": ".elediacheckin-ziel-picker",
+            "sortorder": 2,
+            "configdata": {
+                "placement": "bottom",
+                "backdrop": true,
+                "reflex": false
+            }
+        },
+        {
+            "title": "Nächste Frage",
+            "content": "Klick hier, um eine neue zufällige Karte aus dem Pool zu ziehen. Keine Karte wird zweimal hintereinander gezogen.",
+            "targettype": 0,
+            "targetvalue": ".elediacheckin-next-btn",
+            "sortorder": 3,
+            "configdata": {
+                "placement": "top",
+                "backdrop": true,
+                "reflex": false
+            }
+        },
+        {
+            "title": "Vollbild & Popup",
+            "content": "Für Präsentationen per Screen-Share: Vollbild (groß auf dem ganzen Bildschirm) oder Popup (in einem eigenen schlanken Fenster). Beide eignen sich perfekt für Videocalls.",
+            "targettype": 0,
+            "targetvalue": ".elediacheckin-launchers",
+            "sortorder": 4,
+            "configdata": {
+                "placement": "left",
+                "backdrop": true,
+                "reflex": false
+            }
+        }
+    ]
+}

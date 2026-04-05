@@ -307,5 +307,41 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040516, 'elediacheckin');
     }
 
+    // 2026040524 — Tri-state „Eigene Fragen": rename onlyownquestions → ownquestionsmode.
+    //
+    // Das Yes/No-Feld war missverständlich: „Nein" heißt NICHT „keine
+    // eigenen Fragen", sondern „gemischt mit Bundle". Die neue Spalte
+    // `ownquestionsmode` hält drei klare Zustände: 0 = mixed (default,
+    // bisheriges „Nein"), 1 = only_own (bisheriges „Ja"), 2 = none
+    // (neu — eigene Fragen werden komplett ignoriert, auch wenn das
+    // Textfeld gefüllt ist). Spalte wird per rename_field umbenannt,
+    // damit bestehende 0/1-Werte erhalten bleiben.
+    if ($oldversion < 2026040524) {
+        $tableinstance = new xmldb_table('elediacheckin');
+        $fieldold = new xmldb_field('onlyownquestions', XMLDB_TYPE_INTEGER, '1', null,
+            XMLDB_NOTNULL, null, '0', 'showprevbutton');
+        if ($dbman->field_exists($tableinstance, $fieldold)) {
+            $dbman->rename_field($tableinstance, $fieldold, 'ownquestionsmode');
+        }
+        upgrade_mod_savepoint(true, 2026040524, 'elediacheckin');
+    }
+
+    // 2026040525 — Teacher user tour + misc UX polish.
+    //
+    // Kein Schema-Change, aber bestehende Installationen sollen die neue
+    // Lehrkräfte-Tour nachträglich importieren. install.php ruft den
+    // Import nur bei fresh installs; für Upgrades wiederholen wir den
+    // Aufruf hier idempotent (manager::import_tour_from_json erlaubt
+    // identisches Mehrfach-Importieren, legt bei Kollision einen neuen
+    // Datensatz an — die Tour ist nur aktiv, wenn enabled=true, und
+    // der Admin kann Duplikate bei Bedarf manuell löschen).
+    if ($oldversion < 2026040525) {
+        require_once(__DIR__ . '/install.php');
+        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
+            mod_elediacheckin_install_bundled_tours();
+        }
+        upgrade_mod_savepoint(true, 2026040525, 'elediacheckin');
+    }
+
     return true;
 }

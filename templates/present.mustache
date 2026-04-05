@@ -30,7 +30,10 @@
 
     {{#hasquestion}}
         <div class="elediacheckin-present-middle">
-            <p class="elediacheckin-present-question">{{question.frage}}</p>
+            <p class="elediacheckin-present-question {{#question.isquote}}elediacheckin-present-question--quote{{/question.isquote}}">{{question.frage}}</p>
+            {{#question.hasauthor}}
+                <p class="elediacheckin-present-author">— {{question.author}}</p>
+            {{/question.hasauthor}}
         </div>
         <div class="elediacheckin-present-footer">
             {{#question.hasanswer}}
