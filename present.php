@@ -101,6 +101,13 @@ $PAGE->set_pagelayout('popup'); // Chrome-less Moodle layout.
 $PAGE->set_title(format_string($instance->name));
 $PAGE->set_heading('');
 $PAGE->set_context($context);
+
+// Suppress the activity header (title + description) that Moodle auto-
+// renders at the top of every module page. Without this, the popup still
+// shows the activity name with ~80 px of padding above the pill bar.
+if (isset($PAGE->activityheader)) {
+    $PAGE->activityheader->disable();
+}
 $PAGE->requires->js_call_amd('mod_elediacheckin/present', 'init', ['#mod-elediacheckin-present']);
 
 $templatecontext = [

@@ -324,20 +324,84 @@ body.elediacheckin-fs-locked {
 
 /* ============ Present (popup window) view ============================= */
 
+/*
+ * Popup-layout chrome elimination.
+ *
+ * Moodle's "popup" page layout still wraps the content in #page,
+ * #page-wrapper, #page-content and #region-main, each of which has
+ * default padding/margin/max-width from the theme. The result is a fat
+ * empty band above the ziel-pills and sidebar remnants leaking in from
+ * the left. We zero all of that out for body.pagelayout-popup so the
+ * .elediacheckin-present flex container can actually fill the viewport.
+ *
+ * Scoped to body.pagelayout-popup so normal module pages are unaffected.
+ */
+body.pagelayout-popup {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+}
+
+body.pagelayout-popup #page,
+body.pagelayout-popup #page-wrapper,
+body.pagelayout-popup #page-content,
+body.pagelayout-popup #region-main-box,
+body.pagelayout-popup #region-main,
+body.pagelayout-popup #region-main > div,
+body.pagelayout-popup .main-inner {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+body.pagelayout-popup #page {
+    min-height: 100vh;
+}
+
+/* Nothing-left-of-content: hide any drawer / side blocks that slipped through. */
+body.pagelayout-popup .drawer,
+body.pagelayout-popup [data-region="drawer"],
+body.pagelayout-popup #nav-drawer,
+body.pagelayout-popup .drawer-toggles,
+body.pagelayout-popup #block-region-side-pre,
+body.pagelayout-popup #block-region-side-post,
+body.pagelayout-popup nav.navbar,
+body.pagelayout-popup #page-footer,
+body.pagelayout-popup footer {
+    display: none !important;
+}
+
+/* Moodle still renders a hidden h1; kill the visual gap it leaves behind. */
+body.pagelayout-popup h1.h2,
+body.pagelayout-popup .page-header-headings {
+    display: none;
+}
+
 .elediacheckin-present {
     --el-orange: #f98012;
     --el-dark-blue: #194866;
     --el-sand: #fff8ee;
     --el-ink: #1b2a36;
 
-    min-height: calc(100vh - 40px);
+    /*
+     * 100vh minus a tiny safety gutter for macOS window chrome. The flex
+     * column below then distributes space: header (ziel-pills) at top,
+     * middle (question) fills and centers, footer (next button) at bottom.
+     */
+    min-height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    padding: 24px 40px 36px;
+    padding: 20px 40px 28px;
     background:
         radial-gradient(600px 300px at 30% 20%, rgba(249, 128, 18, .08), transparent 60%),
         linear-gradient(180deg, #fff 0%, var(--el-sand) 100%);
     color: var(--el-ink);
+    box-sizing: border-box;
 }
 
 .elediacheckin-present-header {
