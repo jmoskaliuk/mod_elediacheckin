@@ -105,29 +105,31 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             ]);
         $mform->addHelpButton('categories', 'categories', 'elediacheckin');
 
-        // Zielgruppe: optional multi-select, "or untagged" semantics at read
-        // time (see question_provider). Empty means "no restriction".
-        $zgoptions = [];
+        // Zielgruppe: Single-Select-Dropdown mit „Alle Zielgruppen" als
+        // erstem, explizit wählbarem Eintrag (leerer Wert = keine
+        // Einschränkung, „oder untagged" in question_provider). War früher
+        // ein Multi-Select-Autocomplete; aus UX-Gründen umgebaut — der
+        // häufige Fall „Alle" soll sofort sichtbar sein, statt durch das
+        // noselectionstring-Label in Autocomplete versteckt zu werden.
+        // Siehe docs/testing-inbox.md Kommentar vom 2026-04-05.
+        $zgoptions = ['' => get_string('zielgruppe_all', 'elediacheckin')];
         foreach (schema_validator::get_zielgruppe_enum() as $zg) {
             $zgoptions[$zg] = get_string('zielgruppe_' . $zg, 'elediacheckin');
         }
-        $mform->addElement('autocomplete', 'zielgruppe',
-            get_string('zielgruppe', 'elediacheckin'), $zgoptions, [
-                'multiple' => true,
-                'noselectionstring' => get_string('zielgruppe_all', 'elediacheckin'),
-            ]);
+        $mform->addElement('select', 'zielgruppe',
+            get_string('zielgruppe', 'elediacheckin'), $zgoptions);
+        $mform->setDefault('zielgruppe', '');
         $mform->addHelpButton('zielgruppe', 'zielgruppe', 'elediacheckin');
 
-        // Kontext: same pattern as zielgruppe.
-        $kxoptions = [];
+        // Kontext: gleiches Pattern wie Zielgruppe — Single-Select mit
+        // „Alle Kontexte" als erstem Eintrag.
+        $kxoptions = ['' => get_string('kontext_all', 'elediacheckin')];
         foreach (schema_validator::get_kontext_enum() as $kx) {
             $kxoptions[$kx] = get_string('kontext_' . $kx, 'elediacheckin');
         }
-        $mform->addElement('autocomplete', 'kontext',
-            get_string('kontext', 'elediacheckin'), $kxoptions, [
-                'multiple' => true,
-                'noselectionstring' => get_string('kontext_all', 'elediacheckin'),
-            ]);
+        $mform->addElement('select', 'kontext',
+            get_string('kontext', 'elediacheckin'), $kxoptions);
+        $mform->setDefault('kontext', '');
         $mform->addHelpButton('kontext', 'kontext', 'elediacheckin');
 
         // Wire the dynamic filter: hides categories that do not belong to
@@ -256,11 +258,17 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
                 : array_values(array_filter(array_map('trim', explode(',', $defaultvalues['categories'])), 'strlen'));
         }
 
+        // Zielgruppe + Kontext sind seit 2026-04 Single-Select. Falls die
+        // DB noch CSV aus der Multi-Select-Ära enthält, nehmen wir den
+        // ersten Eintrag als sinnvollen Default für den Edit-Dialog — der
+        // Teacher kann beim Speichern bewusst auf „Alle" zurückgehen.
         foreach (['zielgruppe', 'kontext'] as $tagfield) {
             if (isset($defaultvalues[$tagfield]) && is_string($defaultvalues[$tagfield])) {
-                $defaultvalues[$tagfield] = $defaultvalues[$tagfield] === ''
-                    ? []
-                    : array_values(array_filter(array_map('trim', explode(',', $defaultvalues[$tagfield])), 'strlen'));
+                $parts = array_values(array_filter(
+                    array_map('trim', explode(',', $defaultvalues[$tagfield])),
+                    'strlen'
+                ));
+                $defaultvalues[$tagfield] = $parts[0] ?? '';
             }
         }
     }
@@ -286,11 +294,17 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             $data->categories = '';
         }
 
+        // Single-Select: Wert kommt bereits als Skalar-String aus dem
+        // Form-Element. Absicherung gegen exotische Fälle (null, Array).
         foreach (['zielgruppe', 'kontext'] as $tagfield) {
-            if (isset($data->{$tagfield}) && is_array($data->{$tagfield})) {
-                $data->{$tagfield} = implode(',',
-                    array_values(array_unique($data->{$tagfield})));
-            } else if (isset($data->{$tagfield}) && !is_string($data->{$tagfield})) {
+            if (!isset($data->{$tagfield})) {
+                continue;
+            }
+            if (is_array($data->{$tagfield})) {
+                // Defensive: falls irgendwo noch ein Array reinkommt.
+                $first = reset($data->{$tagfield});
+                $data->{$tagfield} = $first !== false ? (string) $first : '';
+            } else if (!is_string($data->{$tagfield})) {
                 $data->{$tagfield} = '';
             }
         }
