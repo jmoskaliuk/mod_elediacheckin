@@ -35,12 +35,9 @@ bündelt verwandte Punkte und setzt sie um.
 - Können wir eine Usertour für die Teacher erstellen, wenn die Akbitäten zum ersten Mal genutzt wird?
 - Ich nutze Firefox. Wenn ich im Vollbildmodus des Browers bin öffnet sich das Pop up nicht in einem Popup, sondern in einem neuen Fenster. Ist das gewollt oder ein FEhler?
 - Die Beschreibung der Akvitität wird zweil mal angezeigt im Grauen Kasten und separat. Der Graue kasten kann weg.
-
-- in den einstellungen eigene Fragen nach Display options. 
+  - Bitte keine separate sycn Seite sondern in Admin-Seite einbauen.
+- in den einstellungen eigene Fragen nach Display options.
 - der block ist wieder weg
-- für die erste Version des Plugins würde ich gerne die Option mit dem License server rausnehmen, wir machen wir das technisch, das wir weiter an den Funktionen arbeiten können, aber das im Plugin, das wir ausliefern nicht angezeigt wird?
-
-- Fehler Blocked http://127.0.0.1:8787/verify: The URL is blocked. [user 2]
 
     line 111 of /public/lib/classes/event/url_blocked.php: call to debugging()
     line 785 of /public/lib/classes/event/base.php: call to core\event\url_blocked->validate_before_trigger()
@@ -62,16 +59,9 @@ Script /mod/elediacheckin/admin/actions.php?action=runsync&sesskey=TB52gls7LW mu
 
     line 807 of /public/lib/classes/session/manager.php: call to debugging()
     line 185 of /public/lib/classes/shutdown_manager.php: call to core\session\manager::check_mutated_closed_session()
-    line 0 of unknownfile: call to core_shutdown_manager::shutdown_handler()
 ## ❓ Klärung notwendig
+  
 
-- **Block ist wieder weg**: Vermutung — der letzte `moodle-update.sh`-Lauf
-  hat nur `checkinmod` aktualisiert und den Block-Ordner nicht mehr
-  deployt. Bitte einmal `~/moodle-update.sh checkin` laufen lassen
-  (Meta-Key, deployt mod **und** block atomar). Falls der Block danach
-  noch immer fehlt: `ls ~/demo/site/moodle/public/blocks/ | grep
-  eledia` — Ergebnis hier reinschreiben, dann weiß ich, ob die Dateien
-  nicht ankommen oder Moodle sie nicht registriert.
 
 ## 🔧 In Arbeit
 
@@ -79,6 +69,22 @@ _(leer)_
 
 ## ✅ Erledigt
 
+- **Premium/License-Server-Option per Build-Flag ausblendbar.** Neue
+  `classes/feature_flags.php` mit einer einzigen Konstante
+  `PREMIUM_ENABLED`. Wenn `false`, wird weder der Dropdown-Eintrag
+  „eLeDia Premium" noch der Konfigurationsblock (Server-URL, License-Key)
+  in den Admin-Settings gerendert, und `content_source_registry` hängt
+  `eledia_premium_content_source` gar nicht erst ein. Die Klassen selbst
+  bleiben ladbar, damit PHPUnit sie weiterhin ausführen kann. Release-
+  Build-Workflow: ein `sed`-Einzeiler vor dem `git archive`. Konzept-
+  Doc §10.18 erklärt Motivation + Mechanik. Johannes' Wunsch aus der
+  Inbox („für die erste Version rausnehmen, aber intern weiterbauen").
+- **Sync-Status-Curl-Block auf 127.0.0.1:8787 entfernt.** Moodles
+  `curl_security_helper` blockt per Default `127.0.0.1` als SSRF-Schutz.
+  Für den lokalen License-Server-Test via Docker-Compose wurde
+  `curlsecurityblockedhosts` geleert und `8787` zu
+  `curlsecurityallowedport` hinzugefügt. Produktiv ist das egal, weil
+  `licenses.eledia.de` sowieso auf 443 läuft.
 - **Sync-Now-Button wieder auf der Settings-Seite sichtbar.** Nach dem
   Dashboard-Split war der Button nur noch auf der Sync-Status-Externalpage
   erreichbar, die man im Site-Admin-Nav aber leicht übersieht. Fix: ein

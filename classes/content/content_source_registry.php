@@ -24,6 +24,8 @@
 
 namespace mod_elediacheckin\content;
 
+use mod_elediacheckin\feature_flags;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -90,10 +92,17 @@ final class content_source_registry {
      * @return array<int, content_source_interface>
      */
     private static function build_default_sources(): array {
-        return [
+        $sources = [
             new bundled_content_source(),
             new git_content_source(),
-            new eledia_premium_content_source(),
         ];
+        // Premium source is gated behind a build-time feature flag. In the
+        // first Plugins-Directory release we ship with the flag OFF so users
+        // don't see a half-finished license-server option; the classes stay
+        // loadable so unit tests keep working regardless of the flag state.
+        if (feature_flags::premium_enabled()) {
+            $sources[] = new eledia_premium_content_source();
+        }
+        return $sources;
     }
 }

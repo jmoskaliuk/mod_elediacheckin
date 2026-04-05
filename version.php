@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_elediacheckin';
-$plugin->version   = 2026040522;
+$plugin->version   = 2026040523;
 $plugin->requires  = 2024100700; // Moodle 4.5.
 $plugin->maturity  = MATURITY_ALPHA;
 $plugin->release   = '0.2.0';

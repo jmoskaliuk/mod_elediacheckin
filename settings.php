@@ -125,10 +125,14 @@ if ($ADMIN->fulltree) {
     ));
 
     $sourceoptions = [
-        'bundled'        => get_string('contentsource_bundled', 'elediacheckin'),
-        'git'            => get_string('contentsource_git', 'elediacheckin'),
-        'eledia_premium' => get_string('contentsource_eledia', 'elediacheckin'),
+        'bundled' => get_string('contentsource_bundled', 'elediacheckin'),
+        'git'     => get_string('contentsource_git', 'elediacheckin'),
     ];
+    // Premium dropdown entry only appears when the build-time flag is on.
+    // See classes/feature_flags.php — release builds ship with it OFF.
+    if (\mod_elediacheckin\feature_flags::premium_enabled()) {
+        $sourceoptions['eledia_premium'] = get_string('contentsource_eledia', 'elediacheckin');
+    }
     $settings->add(new admin_setting_configselect(
         'mod_elediacheckin/contentsource',
         get_string('contentsource', 'elediacheckin'),
@@ -192,35 +196,42 @@ if ($ADMIN->fulltree) {
     // source = eledia_premium. License-Key lives on the license server,
     // server URL can point at the local MVP in /license_server/ for
     // in-house tests or at licenses.eledia.de in production.
+    //
+    // The entire block is wrapped in the build-time feature flag so the
+    // first Plugins-Directory release ships without any premium UI. The
+    // underlying classes (verifier, eledia_premium_content_source) stay
+    // loadable regardless so unit tests keep exercising them.
     // ---------------------------------------------------------------------
-    $settings->add(new admin_setting_heading(
-        'mod_elediacheckin/premiumheading',
-        get_string('premiumheading', 'elediacheckin'),
-        get_string('premiumheading_desc', 'elediacheckin')
-    ));
+    if (\mod_elediacheckin\feature_flags::premium_enabled()) {
+        $settings->add(new admin_setting_heading(
+            'mod_elediacheckin/premiumheading',
+            get_string('premiumheading', 'elediacheckin'),
+            get_string('premiumheading_desc', 'elediacheckin')
+        ));
 
-    $settings->add(new admin_setting_configtext(
-        'mod_elediacheckin/licenseserverurl',
-        get_string('licenseserverurl', 'elediacheckin'),
-        get_string('licenseserverurl_desc', 'elediacheckin'),
-        'https://licenses.eledia.de',
-        PARAM_URL
-    ));
+        $settings->add(new admin_setting_configtext(
+            'mod_elediacheckin/licenseserverurl',
+            get_string('licenseserverurl', 'elediacheckin'),
+            get_string('licenseserverurl_desc', 'elediacheckin'),
+            'https://licenses.eledia.de',
+            PARAM_URL
+        ));
 
-    // License-Key als verdecktes Passwort-Feld — es ist zwar nur eine UUID
-    // und kein echtes Secret, aber so wird es nicht versehentlich per
-    // Screen-Share geteilt.
-    $settings->add(new admin_setting_configpasswordunmask(
-        'mod_elediacheckin/licensekey',
-        get_string('licensekey', 'elediacheckin'),
-        get_string('licensekey_desc', 'elediacheckin'),
-        ''
-    ));
+        // License-Key als verdecktes Passwort-Feld — es ist zwar nur eine UUID
+        // und kein echtes Secret, aber so wird es nicht versehentlich per
+        // Screen-Share geteilt.
+        $settings->add(new admin_setting_configpasswordunmask(
+            'mod_elediacheckin/licensekey',
+            get_string('licensekey', 'elediacheckin'),
+            get_string('licensekey_desc', 'elediacheckin'),
+            ''
+        ));
 
-    $settings->hide_if('mod_elediacheckin/licenseserverurl',
-        'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
-    $settings->hide_if('mod_elediacheckin/licensekey',
-        'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
+        $settings->hide_if('mod_elediacheckin/licenseserverurl',
+            'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
+        $settings->hide_if('mod_elediacheckin/licensekey',
+            'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
+    }
 
     // ---------------------------------------------------------------------
     // 4. Language fallbacks (apply to all sources).
