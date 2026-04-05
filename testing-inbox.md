@@ -29,15 +29,40 @@ bündelt verwandte Punkte und setzt sie um.
 
 - Kategorie Learning Content ist anders gemeint. Es geht um Fragen, die Lernen anregen also z.B. "Was ist das wichtigeste, was ich heute gelernt habe". Bitte Wording überlegen und anpassen. 
 - Use own questions only ist missverständlich. Was passeirt werden Fragen drin stehen, aber nein ausgewählt ist. Es gibt denke ich drei Optionen: Eigene Fragen gemeinsam mit den fertigen Nutzen. Nur eigene Fragen. Keine eigene Fragen. Kannst Du das nochmal überdenken und dann anpassen. 
-- jetzt ist der Sycn-Status weg bei eLeDia Check-In Admin settings. Save button passt aber. 
--  Run sync now butteon fehlt auch in Admin Settings. 
 - könnten wir den Block so anpassen, dass es auch auf der Startseite funktioniert?
 - Bei Quote wollten wir noch den Autor haben. Bitte LAyout überlegen und Json anpassen. 
 - im Aktivity chooser kannst Du a einen Info link einbauen, wie auch die anderen Akvititäten haben. Sollte sein eledia.de/mod_elediacheckin
 - Können wir eine Usertour für die Teacher erstellen, wenn die Akbitäten zum ersten Mal genutzt wird?
 - Ich nutze Firefox. Wenn ich im Vollbildmodus des Browers bin öffnet sich das Pop up nicht in einem Popup, sondern in einem neuen Fenster. Ist das gewollt oder ein FEhler?
+- Die Beschreibung der Akvitität wird zweil mal angezeigt im Grauen Kasten und separat. Der Graue kasten kann weg.
 
+- in den einstellungen eigene Fragen nach Display options. 
+- der block ist wieder weg
+- für die erste Version des Plugins würde ich gerne die Option mit dem License server rausnehmen, wir machen wir das technisch, das wir weiter an den Funktionen arbeiten können, aber das im Plugin, das wir ausliefern nicht angezeigt wird?
 
+- Fehler Blocked http://127.0.0.1:8787/verify: The URL is blocked. [user 2]
+
+    line 111 of /public/lib/classes/event/url_blocked.php: call to debugging()
+    line 785 of /public/lib/classes/event/base.php: call to core\event\url_blocked->validate_before_trigger()
+    line 3984 of /public/lib/filelib.php: call to core\event\base->trigger()
+    line 3779 of /public/lib/filelib.php: call to curl->trigger_url_blocked_event()
+    line 4056 of /public/lib/filelib.php: call to curl->request()
+    line 213 of /public/mod/elediacheckin/classes/content/eledia_premium_content_source.php: call to curl->post()
+    line 111 of /public/mod/elediacheckin/classes/content/eledia_premium_content_source.php: call to mod_elediacheckin\content\eledia_premium_content_source->verify_license()
+    line 92 of /public/mod/elediacheckin/classes/local/service/sync_service.php: call to mod_elediacheckin\content\eledia_premium_content_source->fetch_bundle()
+    line 57 of /public/mod/elediacheckin/admin/actions.php: call to mod_elediacheckin\local\service\sync_service->run()
+
+Skip to main content
+Sync failed: The license server is unreachable or returned an error. (HTTP 0 from /verify: The URL is blocked.) :: HTTP 0 from /verify: The URL is blocked.
+This page should automatically redirect. If nothing is happening please use the continue link below.
+(Continue)
+
+Error output, so disabling automatic redirect.
+Script /mod/elediacheckin/admin/actions.php?action=runsync&sesskey=TB52gls7LW mutated the session after it was closed: $SESSION->cachestore_session: default_session-core/navigation_cache,default_session-core/coursecat,default_session-core/calendar_categories,default_session-core/navigation_expandcourse,default_session-core/userselections,default_session-core/courseeditorstate $SESSION->editedpages $SESSION->notifications
+
+    line 807 of /public/lib/classes/session/manager.php: call to debugging()
+    line 185 of /public/lib/classes/shutdown_manager.php: call to core\session\manager::check_mutated_closed_session()
+    line 0 of unknownfile: call to core_shutdown_manager::shutdown_handler()
 ## ❓ Klärung notwendig
 
 - **Block ist wieder weg**: Vermutung — der letzte `moodle-update.sh`-Lauf
@@ -54,6 +79,13 @@ _(leer)_
 
 ## ✅ Erledigt
 
+- **Sync-Now-Button wieder auf der Settings-Seite sichtbar.** Nach dem
+  Dashboard-Split war der Button nur noch auf der Sync-Status-Externalpage
+  erreichbar, die man im Site-Admin-Nav aber leicht übersieht. Fix: ein
+  Quick-Actions-Panel oben auf der Settings-Seite zeigt die aktive
+  Inhaltsquelle + „Sync jetzt ausführen" + „Sync-Log & Verlauf ansehen"
+  (Deep-Link ins Dashboard) + bei Git-Quelle zusätzlich „Verbindung testen".
+  Save-Changes-Button bleibt weiterhin direkt unter den Config-Feldern.
 - **Phase 2 License-Server-MVP komplett gebaut** — plugin-seitig:
   `bundle_signature_verifier` (ED25519 via libsodium), `eledia_premium_content_source`
   (verify → bundle + sig download → verify → schema-check), Registry-Eintrag,

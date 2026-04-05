@@ -65,6 +65,57 @@ if ($ADMIN->fulltree) {
     ));
 
     // ---------------------------------------------------------------------
+    // 1b. Quick-Actions panel. Shows the currently active source and gives
+    // one-click access to "Run sync now" + the full Sync-Status dashboard,
+    // without forcing the admin to hunt for the second nav entry. Sits at
+    // the top of the page so it's visible without scrolling. Dashboard
+    // (externalpage) still owns the detailed log view.
+    // ---------------------------------------------------------------------
+    $currentsource = get_config('mod_elediacheckin', 'contentsource') ?: 'bundled';
+    $currentkey    = 'contentsource_' . $currentsource;
+    $currentlabel  = get_string_manager()->string_exists($currentkey, 'elediacheckin')
+        ? get_string($currentkey, 'elediacheckin')
+        : $currentsource;
+
+    $runurl = new moodle_url('/mod/elediacheckin/admin/actions.php', [
+        'action'  => 'runsync',
+        'sesskey' => sesskey(),
+    ]);
+    $dashurl = new moodle_url('/mod/elediacheckin/admin/dashboard.php');
+    $testurl = new moodle_url('/mod/elediacheckin/admin/actions.php', [
+        'action'  => 'testconnection',
+        'sesskey' => sesskey(),
+    ]);
+
+    $quickhtml  = html_writer::start_div('alert alert-secondary mb-3');
+    $quickhtml .= html_writer::tag('strong',
+        get_string('dashboard_activesource', 'elediacheckin', $currentlabel));
+    $quickhtml .= html_writer::empty_tag('br');
+    $quickhtml .= html_writer::start_div('mt-2 d-flex gap-2 flex-wrap');
+    $quickhtml .= html_writer::link($runurl,
+        get_string('dashboard_runnow', 'elediacheckin'),
+        ['class' => 'btn btn-primary btn-sm']);
+    if ($currentsource === 'git') {
+        $quickhtml .= html_writer::link($testurl,
+            get_string('dashboard_testconnection', 'elediacheckin'),
+            ['class' => 'btn btn-outline-secondary btn-sm']);
+    }
+    $quickhtml .= html_writer::link($dashurl,
+        get_string('dashboard_viewlog', 'elediacheckin'),
+        ['class' => 'btn btn-outline-secondary btn-sm']);
+    $quickhtml .= html_writer::end_div();
+    $quickhtml .= html_writer::tag('small',
+        get_string('dashboard_saveFirstHint', 'elediacheckin'),
+        ['class' => 'text-muted d-block mt-2']);
+    $quickhtml .= html_writer::end_div();
+
+    $settings->add(new admin_setting_heading(
+        'mod_elediacheckin/quickactions',
+        '',
+        $quickhtml
+    ));
+
+    // ---------------------------------------------------------------------
     // 2. Content source selection.
     // ---------------------------------------------------------------------
     $settings->add(new admin_setting_heading(
