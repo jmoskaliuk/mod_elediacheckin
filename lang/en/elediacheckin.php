@@ -140,7 +140,7 @@ $string['newquestion']        = 'Another question';
 $string['nextquestion']       = 'Next question';
 $string['openpopup']          = 'Open as popup';
 $string['openfullscreen']     = 'Fullscreen';
-$string['close']              = 'Close';
+// NOTE: "Close" label reuses the core string `closebuttontitle` (moodle).
 $string['noquestions']        = 'No questions are currently available for this filter.';
 $string['noinstances']        = 'There are no Check-in activities in this course.';
 
@@ -159,6 +159,7 @@ $string['contentsource']      = 'Active content source';
 $string['contentsource_desc'] = 'Which source the scheduled synchronisation task uses. Change this and run the sync task to load a new bundle.';
 $string['langheading']        = 'Language fallbacks';
 $string['langheading_desc']   = 'Used when an activity does not pin a specific content language.';
+$string['dashboard_savehint']    = 'Click to save all settings on this page.';
 $string['dashboard_heading']     = 'Sync status';
 $string['dashboard_heading_desc'] = 'Current state of the active content source, manual actions and most recent sync runs at a glance.';
 $string['dashboard_current']     = 'Current state';
@@ -257,6 +258,27 @@ $string['blockhealth_hidden']       = 'is installed but hidden in "Manage blocks
 $string['blockhealth_hidden_cta']   = 'Make it visible →';
 $string['blockhealth_missing']      = 'is not installed. Without it, course and front pages are missing the Check-in activity launcher.';
 $string['blockhealth_missing_cta']  = 'Go to admin notifications →';
+
+// User tour for the activity settings form (tool_usertours, shipped via db/tours/activity_settings_tour.json).
+// Shown on /course/modedit.php when the teacher is editing an eLeDia Check-in instance — guides through the
+// Check-in–specific fieldset (ziele, categories, zielgruppe, own questions) and finishes on the submit button.
+$string['activitytour_name']          = 'Check-In activity settings';
+$string['activitytour_description']   = 'Guide for teachers through the Check-in-specific settings of a course activity.';
+$string['activitytour_endlabel']      = 'Got it';
+$string['activitytour_step1_title']   = 'Configure a Check-in activity';
+$string['activitytour_step1_content'] = 'Welcome! I\'ll walk you through the Check-in–specific fields you are about to configure. Everything else on this page (name, intro text, course module availability) works like any other Moodle activity.';
+$string['activitytour_step2_title']   = 'Check-in settings';
+$string['activitytour_step2_content'] = 'All fields that decide which cards your learners will see live in this section. Everything above is standard Moodle activity metadata.';
+$string['activitytour_step3_title']   = 'Goals (ziele)';
+$string['activitytour_step3_content'] = 'Pick one or more goals the activity should draw from — e.g. check-in at the start of a session, retrospective at the end, or a learning-reflection prompt. You can combine several goals; your learners will then see a mix.';
+$string['activitytour_step4_title']   = 'Categories';
+$string['activitytour_step4_content'] = 'Narrow down the pool further by picking categories (e.g. mood, energy, focus). The list updates automatically based on the goals you selected above. Leave empty to allow all categories of the chosen goals.';
+$string['activitytour_step5_title']   = 'Audience (optional)';
+$string['activitytour_step5_content'] = 'Optionally restrict the activity to a specific audience — e.g. leaders, primary school. Cards without an audience tag are general-purpose and always drawn. Leave as "All audiences" if the activity should work for everybody.';
+$string['activitytour_step6_title']   = 'Own questions';
+$string['activitytour_step6_content'] = 'Pick how your personal prompts interact with the site bundle: <strong>Mixed</strong> merges your prompts into the pool (default), <strong>Only own</strong> ignores the bundle completely, <strong>No own</strong> temporarily sets your textarea aside. The textarea appears just below once you have chosen a mode that uses it.';
+$string['activitytour_step7_title']   = 'Save and go';
+$string['activitytour_step7_content'] = 'Save to create the activity. You can always come back and tweak the settings — learners will pick up the new configuration on their next visit.';
 
 // User tour for the admin settings page (tool_usertours, shipped via db/tours/settings_checkin_tour.json).
 $string['settingstour_name']          = 'Check-In settings';

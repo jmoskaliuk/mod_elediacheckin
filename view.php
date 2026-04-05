@@ -179,7 +179,7 @@ $templatecontext = [
     'strnone'         => get_string('noquestions', 'elediacheckin'),
     'strpopup'        => get_string('openpopup', 'elediacheckin'),
     'strfullscreen'   => get_string('openfullscreen', 'elediacheckin'),
-    'strclose'        => get_string('close', 'elediacheckin'),
+    'strclose'        => get_string('closebuttontitle'),
 ];
 
 echo $OUTPUT->header();

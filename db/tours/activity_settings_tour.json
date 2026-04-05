@@ -1,0 +1,76 @@
+{
+    "version": "2026040537",
+    "name": "activitytour_name,mod_elediacheckin",
+    "description": "activitytour_description,mod_elediacheckin",
+    "pathmatch": "/course/modedit.php%",
+    "enabled": "1",
+    "sortorder": "0",
+    "endtourlabel": "activitytour_endlabel,mod_elediacheckin",
+    "displaystepnumbers": true,
+    "configdata": "{\"placement\":\"bottom\",\"orphan\":\"0\",\"backdrop\":\"1\",\"reflex\":\"0\",\"filtervalues\":{\"accessdate\":{\"filter_accessdate\":\"tool_usertours_accountcreation\",\"filter_accessdate_range\":0,\"filter_accessdate_enabled\":\"0\"},\"category\":[],\"course\":[],\"courseformat\":[],\"cssselector\":[\"#id_checkinsettings\"],\"role\":[\"-1\",\"coursecreator\",\"manager\",\"editingteacher\"],\"theme\":[]},\"majorupdatetime\":1767225600,\"shipped_tour\":true,\"shipped_filename\":\"activity_settings_tour.json\",\"shipped_version\":1}",
+    "steps": [
+        {
+            "title": "activitytour_step1_title,mod_elediacheckin",
+            "content": "activitytour_step1_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "2",
+            "targetvalue": "",
+            "sortorder": "0",
+            "configdata": "{\"placement\":\"top\",\"orphan\":\"1\",\"backdrop\":\"0\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "activitytour_step2_title,mod_elediacheckin",
+            "content": "activitytour_step2_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#id_checkinsettings",
+            "sortorder": "1",
+            "configdata": "{\"placement\":\"bottom\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "activitytour_step3_title,mod_elediacheckin",
+            "content": "activitytour_step3_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#fitem_id_ziele",
+            "sortorder": "2",
+            "configdata": "{\"placement\":\"right\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "activitytour_step4_title,mod_elediacheckin",
+            "content": "activitytour_step4_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#fitem_id_categories",
+            "sortorder": "3",
+            "configdata": "{\"placement\":\"right\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "activitytour_step5_title,mod_elediacheckin",
+            "content": "activitytour_step5_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#fitem_id_zielgruppe",
+            "sortorder": "4",
+            "configdata": "{\"placement\":\"right\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "activitytour_step6_title,mod_elediacheckin",
+            "content": "activitytour_step6_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#fitem_id_ownquestionsmode",
+            "sortorder": "5",
+            "configdata": "{\"placement\":\"right\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        },
+        {
+            "title": "activitytour_step7_title,mod_elediacheckin",
+            "content": "activitytour_step7_content,mod_elediacheckin",
+            "contentformat": "1",
+            "targettype": "0",
+            "targetvalue": "#id_submitbutton2",
+            "sortorder": "6",
+            "configdata": "{\"placement\":\"top\",\"backdrop\":\"1\",\"reflex\":\"0\"}"
+        }
+    ]
+}

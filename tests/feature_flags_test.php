@@ -25,9 +25,9 @@
 
 namespace mod_elediacheckin;
 
-/**
- * @covers \mod_elediacheckin\feature_flags
- */
+use PHPUnit\Framework\Attributes\CoversClass;
+
+#[CoversClass(feature_flags::class)]
 final class feature_flags_test extends \basic_testcase {
 
     public function test_premium_enabled_matches_constant(): void {

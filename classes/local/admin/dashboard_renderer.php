@@ -39,14 +39,32 @@ class dashboard_renderer {
     public static function render(): string {
         global $DB;
 
-        // Wrap the entire panel in a div with a stable id so the JS reorder
-        // below can find it. Moodle's setting_heading.mustache emits no
-        // wrapper of its own (unlike setting.mustache, which gets
-        // id="admin-<name>") — so without this wrapper the JS lookup
-        // returned null and the reorder silently never ran. That was the
-        // actual reason the save button kept appearing BELOW the panel
-        // despite the reorder script being shipped.
+        // Wrap the entire panel in a div with a stable id. Previous versions
+        // used this as an anchor for a DOM-reorder script that tried to move
+        // the Moodle save button above the panel, but that was fragile and
+        // produced visible layout glitches (v2026040532—v2026040536).
+        //
+        // New approach (v2026040537): keep the panel in its natural position
+        // at the bottom of the settings form, but inject a secondary
+        // <button type="submit"> at the TOP of the panel. Because this
+        // button lives inside the same admin settings <form>, clicking it
+        // submits the form — no JS, no reorder, no race conditions. The
+        // original bottom save button stays where Moodle puts it, so users
+        // who scroll to the bottom still see the familiar Moodle flow.
         $out = '<div id="elediacheckin-dashboardpanel">';
+
+        // Early save button — visually associated with the panel so it is
+        // obvious that "Save changes" applies to everything on the page
+        // (including the settings that render above the panel). A simple
+        // alert strip with a submit button inside keeps the semantics 100%
+        // form-native.
+        $out .= \html_writer::start_div('alert alert-light border d-flex align-items-center justify-content-between mb-3');
+        $out .= \html_writer::tag('span',
+            get_string('dashboard_savehint', 'elediacheckin'),
+            ['class' => 'text-muted me-3']);
+        $out .= '<button type="submit" class="btn btn-primary btn-sm" name="elediacheckin_earlysave">'
+            . s(get_string('savechanges')) . '</button>';
+        $out .= \html_writer::end_div();
 
         // ----- Companion-plugin health check. -----
         //
@@ -112,7 +130,7 @@ class dashboard_renderer {
                 get_string('synclog_empty', 'elediacheckin'),
                 'alert alert-info'
             );
-            $out .= '</div>' . self::reorder_script();
+            $out .= '</div>';
             return $out;
         }
 
@@ -161,7 +179,7 @@ class dashboard_renderer {
         }
 
         $out .= \html_writer::table($table);
-        $out .= '</div>' . self::reorder_script();
+        $out .= '</div>';
 
         return $out;
     }
@@ -238,92 +256,4 @@ class dashboard_renderer {
         );
     }
 
-    /**
-     * Inline JS that moves the dashboard panel below the save-changes button.
-     *
-     * Johannes' UX-Feedback (April 2026): der Save-Changes-Button der
-     * Einstellungsseite muss VISUELL oberhalb dieses Panels liegen. Core-
-     * Moodle rendert den Button nach der letzten Setting-Zeile, d.h. nach
-     * diesem Heading — wir verschieben das Panel-Element nach dem Laden an
-     * die richtige Stelle. Fällt JS aus, bleibt das Panel oberhalb —
-     * weiterhin nutzbar, nur nicht in der bevorzugten Reihenfolge.
-     *
-     * Die Funktion ist idempotent (mehrfaches Aufrufen verschiebt nicht
-     * mehrfach) und nutzt einen MutationObserver als Fallback, falls die
-     * Settings-Seite den Button asynchron rendert (z. B. durch ein
-     * Theme-Override). Der Observer trennt sich selbst nach der ersten
-     * erfolgreichen Umsortierung.
-     */
-    private static function reorder_script(): string {
-        return <<<'HTML'
-<script>
-(function() {
-    var MOVED = false;
-    function reorder() {
-        if (MOVED) { return true; }
-        var panel = document.getElementById('elediacheckin-dashboardpanel');
-        if (!panel) { return false; }
-        var form = panel.closest('form');
-        if (!form) { return false; }
-        var submit = form.querySelector('input[type="submit"], button[type="submit"]');
-        if (!submit) { return false; }
-        // Find the submit button's immediate wrapper that is a direct
-        // child of some shared parent with the panel. Strategy: walk
-        // submit up until its parentNode is an ancestor of the panel.
-        // Then walk panel up until its parentNode matches that shared
-        // ancestor — so both containers are siblings in the same box.
-        var sharedParent = null;
-        var submitContainer = submit;
-        while (submitContainer.parentNode) {
-            if (submitContainer.parentNode.contains(panel) && submitContainer.parentNode !== submitContainer) {
-                sharedParent = submitContainer.parentNode;
-                break;
-            }
-            submitContainer = submitContainer.parentNode;
-            if (submitContainer === form.parentNode) { return false; }
-        }
-        if (!sharedParent) { return false; }
-        var panelContainer = panel;
-        while (panelContainer.parentNode && panelContainer.parentNode !== sharedParent) {
-            panelContainer = panelContainer.parentNode;
-        }
-        if (!panelContainer || panelContainer.parentNode !== sharedParent) { return false; }
-        if (panelContainer === submitContainer) { return false; }
-        // admin_setting_heading renders an <h3 class="main"> as a flat
-        // sibling *before* the description box that wraps our panel. Move
-        // it together with the panelContainer so "Sync status" doesn't
-        // stay orphaned above the save button.
-        var heading = panelContainer.previousElementSibling;
-        var movedHeading = !!(heading && heading.tagName === 'H3');
-        // Insert: ... submitContainer, [heading], panelContainer, ...
-        sharedParent.insertBefore(panelContainer, submitContainer.nextSibling);
-        if (movedHeading) {
-            sharedParent.insertBefore(heading, panelContainer);
-            heading.style.marginTop = '2.5rem';
-        } else {
-            panelContainer.style.marginTop = '2.5rem';
-        }
-        MOVED = true;
-        return true;
-    }
-    function tryReorder() {
-        if (reorder()) { return; }
-        // Fallback: watch the DOM briefly for late-rendered submit rows.
-        var obs = new MutationObserver(function() {
-            if (reorder()) { obs.disconnect(); }
-        });
-        obs.observe(document.body, { childList: true, subtree: true });
-        // Give up after 5 s — keeps us from observing forever on pages
-        // where the panel genuinely has no save button sibling.
-        setTimeout(function() { obs.disconnect(); }, 5000);
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', tryReorder);
-    } else {
-        tryReorder();
-    }
-})();
-</script>
-HTML;
-    }
 }

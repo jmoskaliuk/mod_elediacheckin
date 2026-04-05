@@ -47,6 +47,43 @@ Mit `~/moodle-update.sh checkin` deployen, dann der Reihe nach durchgehen.
 Häkchen oder Fehlermeldung unter den jeweiligen Punkt schreiben — Claude
 räumt dann ggf. nach.
 
+- **v2026040537 — Bundled Fixes aus dem ersten PHPUnit-Run.** Sechs
+  Themen in einem Commit:
+  (1) `@covers`-Docblocks in allen 4 Testklassen → `#[CoversClass]`-
+  Attribute (PHPUnit 11 deprecated Docblock-Metadata). Nach Deploy
+  einmal `docker compose -f ~/demo/compose.yml exec -T -w
+  /var/www/site/moodle webserver vendor/bin/phpunit -c phpunit.xml
+  --testsuite mod_elediacheckin_testsuite` laufen lassen — 38 Tests
+  müssen grün sein OHNE „PHPUnit Deprecations"-Zeile am Ende.
+  (2) XMLDB: 4 Spalten in `elediacheckin_question` (categories,
+  zielgruppe, kontext, license) von NOTNULL=true/DEFAULT="" auf
+  NOTNULL=false umgestellt. Nach Deploy `php admin/tool/phpunit/cli/
+  init.php` neu laufen lassen → keine debugging-Warnings mehr über
+  „Invalid default value for …".
+  (3) `db/install.php`: Tour-Import guard mit `table_exists
+  ('tool_usertours_tours')`. Phpunit init-Output darf keine
+  „relation phpu_tool_usertours_tours does not exist" mehr zeigen.
+  (4) Save-Button der Settings-Seite: kein DOM-Reorder mehr. Oben im
+  Dashboard-Panel erscheint eine `alert alert-light`-Zeile mit
+  „Save changes"-Button. Nach Deploy → Site admin → Plugins → Check-in
+  öffnen: Du musst oben im grauen Kasten einen Save-Changes-Button
+  sehen, der genau wie der untere Button speichert. Kein Layout-
+  Glitch, keine leere Fläche mehr. ⚠ der alte Reorder ist komplett
+  raus — falls der Button oben NICHT erscheint, purge_caches + Hard
+  Reload, dann testen.
+  (5) Dritte User-Tour: `activity_settings_tour.json`. Zum Testen
+  eine NEUE Check-in-Aktivität im Kurs anlegen (oder eine bestehende
+  editieren). Tour muss auf `/course/modedit.php?add=elediacheckin…`
+  bzw. `?update=…` automatisch starten und 7 Schritte zeigen
+  (Welcome → Check-in-settings-Header → Ziele → Kategorien →
+  Zielgruppe → Eigene Fragen → Save-Button). Mit `?lang=en` muss sie
+  englisch sein. In Site admin → Appearance → Tours taucht sie als
+  „Check-In Aktivitäts-Einstellungen" mit 7 Schritten auf.
+  (6) Lang-String-Audit: `close` aus eigenem Sprachfile entfernt,
+  `view.php`/`present.php` nutzen jetzt `get_string('closebuttontitle')`
+  aus Core. Nach Deploy einmal die View-Seite öffnen → „Schließen"-
+  Button muss weiterhin lesbar sein.
+  Konzept §10.29.
 - **v2026040536 — Prechecks + PHPUnit + Behat Scaffold.** Kein Runtime-
   Change, aber ein ganzer Testblock kommt dazu: `.github/workflows/
   moodle-ci.yml` mit dem Standard-`moodle-plugin-ci`-Pipeline (phplint,

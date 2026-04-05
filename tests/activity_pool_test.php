@@ -29,9 +29,9 @@
 
 namespace mod_elediacheckin\local\service;
 
-/**
- * @covers \mod_elediacheckin\local\service\activity_pool
- */
+use PHPUnit\Framework\Attributes\CoversClass;
+
+#[CoversClass(activity_pool::class)]
 final class activity_pool_test extends \advanced_testcase {
 
     /**

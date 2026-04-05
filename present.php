@@ -154,7 +154,7 @@ $templatecontext = [
     'strprev'         => get_string('prevquestion', 'elediacheckin'),
     'strshowanswer'   => get_string('showanswer', 'elediacheckin'),
     'strnone'         => get_string('noquestions', 'elediacheckin'),
-    'strclose'        => get_string('close', 'elediacheckin'),
+    'strclose'        => get_string('closebuttontitle'),
 ];
 
 echo $OUTPUT->header();

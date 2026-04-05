@@ -137,7 +137,7 @@ $string['newquestion']        = 'Andere Frage';
 $string['nextquestion']       = 'Nächste Frage';
 $string['openpopup']          = 'Als Popup öffnen';
 $string['openfullscreen']     = 'Vollbild';
-$string['close']              = 'Schließen';
+// HINWEIS: "Schließen" nutzt den Core-String `closebuttontitle` (moodle).
 $string['noquestions']        = 'Für diesen Filter sind aktuell keine Fragen verfügbar.';
 $string['noinstances']        = 'In diesem Kurs gibt es keine Check-in-Aktivitäten.';
 
@@ -154,6 +154,7 @@ $string['contentsource']      = 'Aktive Inhaltsquelle';
 $string['contentsource_desc'] = 'Welche Quelle der geplante Synchronisationstask verwendet. Nach einer Änderung muss der Sync erneut laufen, um das neue Bundle zu laden.';
 $string['langheading']        = 'Sprach-Fallbacks';
 $string['langheading_desc']   = 'Greift, wenn eine Aktivität keine eigene Inhaltssprache vorgibt.';
+$string['dashboard_savehint']    = 'Klicken, um alle Einstellungen auf dieser Seite zu speichern.';
 $string['dashboard_heading']     = 'Sync-Status';
 $string['dashboard_heading_desc'] = 'Aktueller Zustand der aktiven Inhaltsquelle, manuelle Aktionen und letzte Sync-Läufe auf einen Blick.';
 $string['dashboard_current']     = 'Aktueller Zustand';
@@ -264,3 +265,24 @@ $string['settingstour_step4_title']   = 'Aktueller Sync-Zustand';
 $string['settingstour_step4_content'] = 'Die Karte zeigt die aktive Inhaltsquelle und bietet zwei Quick-Actions: <strong>Sync jetzt ausführen</strong> holt die aktuellen Fragen ins System, <strong>Verbindung testen</strong> (nur bei Git-Quelle) prüft ohne Import, ob das Repository erreichbar ist.';
 $string['settingstour_step5_title']   = 'Letzte Sync-Läufe';
 $string['settingstour_step5_content'] = 'Die Tabelle listet die letzten 15 Sync-Versuche mit Zeitstempel, Quelle, Ergebnis (grün = OK, rot = Fehler) und Anzahl importierter Fragen. Bei Rot bitte die Fehlermeldung in der letzten Spalte lesen. Der stündliche Cron-Task läuft automatisch im Hintergrund, du musst nicht manuell nachsyncen.';
+
+// User-Tour für das Aktivitäts-Formular von Lehrkräften (tool_usertours, ausgeliefert über db/tours/activity_settings_tour.json).
+// Wird auf /course/modedit.php gezeigt, wenn eine eLeDia-Check-in-Aktivität bearbeitet wird — führt durch die
+// Check-in-spezifischen Felder (Ziele, Kategorien, Zielgruppe, eigene Fragen) und endet am Speichern-Button.
+$string['activitytour_name']          = 'Check-In Aktivitäts-Einstellungen';
+$string['activitytour_description']   = 'Tour durch die Check-in-spezifischen Einstellungen einer Kursaktivität für Lehrkräfte.';
+$string['activitytour_endlabel']      = 'Alles klar';
+$string['activitytour_step1_title']   = 'Check-in-Aktivität konfigurieren';
+$string['activitytour_step1_content'] = 'Willkommen! Ich zeige dir die Check-in-spezifischen Felder, die du gleich konfigurieren wirst. Alles andere auf dieser Seite (Name, Beschreibung, Verfügbarkeit) funktioniert wie bei jeder anderen Moodle-Aktivität.';
+$string['activitytour_step2_title']   = 'Check-in-Einstellungen';
+$string['activitytour_step2_content'] = 'Alle Felder, die steuern, welche Karten deine Teilnehmer:innen sehen, stehen in diesem Abschnitt. Alles oberhalb ist Standard-Moodle-Metadatei der Aktivität.';
+$string['activitytour_step3_title']   = 'Ziele';
+$string['activitytour_step3_content'] = 'Wähle ein oder mehrere Ziele, aus denen die Aktivität ziehen soll — z. B. Check-in am Sitzungsstart, Retrospektive am Ende oder Lern-Reflexion. Du kannst mehrere Ziele kombinieren; deine Teilnehmer:innen sehen dann einen Mix.';
+$string['activitytour_step4_title']   = 'Kategorien';
+$string['activitytour_step4_content'] = 'Schränke den Pool weiter ein, indem du Kategorien wählst (z. B. Stimmung, Energie, Fokus). Die Liste aktualisiert sich automatisch anhand der oben gewählten Ziele. Leer lassen, um alle Kategorien der gewählten Ziele zuzulassen.';
+$string['activitytour_step5_title']   = 'Zielgruppe (optional)';
+$string['activitytour_step5_content'] = 'Optional kannst du die Aktivität auf eine bestimmte Zielgruppe einschränken — z. B. Führungskräfte, Grundschule. Karten ohne Zielgruppen-Tag gelten als allgemein und werden immer gezogen. Auf „Alle Zielgruppen" lassen, wenn die Aktivität für alle passen soll.';
+$string['activitytour_step6_title']   = 'Eigene Fragen';
+$string['activitytour_step6_content'] = 'Entscheide, wie deine persönlichen Impulse mit dem Site-Bundle interagieren: <strong>Mixed</strong> mischt deine Impulse in den Pool (Standard), <strong>Nur eigene</strong> ignoriert das Bundle komplett, <strong>Keine eigenen</strong> legt deinen Textbereich vorübergehend beiseite. Das Textfeld erscheint direkt darunter, sobald ein passender Modus gewählt ist.';
+$string['activitytour_step7_title']   = 'Speichern';
+$string['activitytour_step7_content'] = 'Speichern, um die Aktivität anzulegen. Du kannst jederzeit zurückkommen und die Einstellungen anpassen — Teilnehmer:innen übernehmen die neue Konfiguration beim nächsten Besuch.';

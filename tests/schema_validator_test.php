@@ -26,10 +26,9 @@
 namespace mod_elediacheckin;
 
 use mod_elediacheckin\content\schema_validator;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \mod_elediacheckin\content\schema_validator
- */
+#[CoversClass(schema_validator::class)]
 final class schema_validator_test extends \basic_testcase {
 
     /**

@@ -51,12 +51,12 @@
                COMMENT="Stable id from the JSON bundle."/>
         <FIELD NAME="ziel" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"
                COMMENT="impuls|checkin|checkout|retro|learning|funfact|zitat."/>
-        <FIELD NAME="categories" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" SEQUENCE="false"
-               COMMENT="Comma-separated list of category ids (matches the enum for the chosen ziel)."/>
-        <FIELD NAME="zielgruppe" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" SEQUENCE="false"
-               COMMENT="Optional CSV of zielgruppe tags (enum). Empty = untagged (matches any activity-level filter)."/>
-        <FIELD NAME="kontext" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" SEQUENCE="false"
-               COMMENT="Optional CSV of kontext tags (enum). Empty = untagged (matches any activity-level filter)."/>
+        <FIELD NAME="categories" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"
+               COMMENT="Comma-separated list of category ids (matches the enum for the chosen ziel). NULL = untagged."/>
+        <FIELD NAME="zielgruppe" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"
+               COMMENT="Optional CSV of zielgruppe tags (enum). NULL/empty = untagged (matches any activity-level filter)."/>
+        <FIELD NAME="kontext" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"
+               COMMENT="Optional CSV of kontext tags (enum). NULL/empty = untagged (matches any activity-level filter)."/>
         <FIELD NAME="frage" TYPE="text" NOTNULL="true" SEQUENCE="false"
                COMMENT="The card/question text shown to learners."/>
         <FIELD NAME="hasanswer" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -66,7 +66,7 @@
         <FIELD NAME="author" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="quelle" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"
                COMMENT="Citation/source reference (e.g. for quotes)."/>
-        <FIELD NAME="license" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="" SEQUENCE="false"/>
+        <FIELD NAME="license" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="qversion" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="1" SEQUENCE="false"
                COMMENT="Per-question version string from the bundle."/>
         <FIELD NAME="qstatus" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="published" SEQUENCE="false"

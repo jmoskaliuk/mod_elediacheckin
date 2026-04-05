@@ -59,9 +59,23 @@ function xmldb_elediacheckin_install() {
  * minimal test environments).
  */
 function mod_elediacheckin_install_bundled_tours(): void {
-    global $CFG;
+    global $CFG, $DB;
 
     if (!class_exists('\\tool_usertours\\manager')) {
+        return;
+    }
+
+    // Mod plugins install before tool_* plugins, so on a fresh site (and
+    // during `phpunit init`) the tool_usertours tables don't exist yet.
+    // Bail out silently — tool_usertours auto-imports plugin-bundled tours
+    // on its own install later, so the tours still end up in the DB.
+    try {
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists('tool_usertours_tours')
+            || !$dbman->table_exists('tool_usertours_steps')) {
+            return;
+        }
+    } catch (\Throwable $e) {
         return;
     }
 
