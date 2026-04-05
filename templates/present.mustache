@@ -41,6 +41,10 @@
                     {{strshowanswer}}
                 </button>
             {{/question.hasanswer}}
+            {{#hasprev}}
+                <a href="{{prevquestionurl}}"
+                    class="elediacheckin-present-btn">{{strprev}}</a>
+            {{/hasprev}}
             <a href="{{nextquestionurl}}"
                 class="elediacheckin-present-btn is-primary">{{strnext}}</a>
         </div>

@@ -274,5 +274,22 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040509, 'elediacheckin');
     }
 
+    // 2026040515 — Display-Option: „Zur vorherigen Frage"-Button.
+    //
+    // Neue tinyint-Spalte `showprevbutton` auf der Aktivitäts-Instanz.
+    // Default 0 (aus). Wenn aktiv, rendert view.php/present.php einen
+    // zusätzlichen Button „Zur vorherigen Frage", der die im Session-State
+    // gespeicherte vorherige Karte erneut anzeigt (single-step back,
+    // keine Forward-/Backward-Pfeile — siehe Konzept §10.14).
+    if ($oldversion < 2026040515) {
+        $tableinstance = new xmldb_table('elediacheckin');
+        $fieldprev = new xmldb_field('showprevbutton', XMLDB_TYPE_INTEGER, '1', null,
+            XMLDB_NOTNULL, null, '0', 'ownquestions');
+        if (!$dbman->field_exists($tableinstance, $fieldprev)) {
+            $dbman->add_field($tableinstance, $fieldprev);
+        }
+        upgrade_mod_savepoint(true, 2026040515, 'elediacheckin');
+    }
+
     return true;
 }

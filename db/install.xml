@@ -25,6 +25,8 @@
                COMMENT="If set, the provider avoids repeating the previous question within a session."/>
         <FIELD NAME="ownquestions" TYPE="text" NOTNULL="false" SEQUENCE="false"
                COMMENT="Optional teacher-authored extra questions, one per line. Merged additively into the random draw pool for this activity. Virtual category 'eigene'."/>
+        <FIELD NAME="showprevbutton" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               COMMENT="If set, view.php/present.php render a 'Zur vorherigen Frage'-Button that re-shows the last-drawn question from the session state."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

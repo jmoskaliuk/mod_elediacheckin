@@ -27,10 +27,6 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- **[Todo]** „Zur vorherigen Frage"-Button pro Aktivität. Ein einzelner
-  Button (keine Pfeile vor/zurück), Teacher kann ihn pro Aktivität im
-  `mod_form` ein-/ausschalten. Session-State hält die zuletzt gezogene
-  Frage fest, Button lädt sie erneut.
 - **[Todo]** „Nur eigene Fragen verwenden"-Toggle als neue Checkbox im
   Abschnitt „Eigene Fragen". Wenn aktiv, überspringt `activity_pool` die
   Bundle-Query komplett und nutzt nur `parse_own_questions()`.
@@ -44,10 +40,7 @@ _(leer — alle offenen Fragen sind aktuell beantwortet)_
 
 ## 🔧 In Arbeit
 
-- **Single-Select für Zielgruppe + Kontext.** Umbau von Multi-Select-
-  Autocomplete auf Single-Select-Dropdown mit „Alle X" als erstem
-  Eintrag im Dropdown selbst (nicht als separates Label darüber).
-  Ziele + Kategorien bleiben Multi-Select, wie bestätigt.
+_(leer — nächste Aufgabe: „Nur eigene Fragen"-Toggle)_
 
 ## ✅ Erledigt
 
@@ -59,6 +52,13 @@ _(leer — alle offenen Fragen sind aktuell beantwortet)_
 - Popup-Formatierung: Moodle-Wrapper-Padding auf `body.pagelayout-popup`
   genullt, ActivityHeader in `present.php` deaktiviert, Karte nutzt
   volle `100vh`. — Commit `878ae16`
+- Single-Select für Zielgruppe + Kontext: „Alle Zielgruppen" / „Alle
+  Kontexte" als erster Dropdown-Eintrag, Ziele + Kategorien bleiben
+  Multi-Select. — Commit `4f450bc`
+- „Zur vorherigen Frage"-Button pro Aktivität: neues tinyint-Feld
+  `showprevbutton` + `activity_pool::resolve_navigation()` mit 2er-
+  Stack in `$SESSION`. One-step back, kein vor/zurück-Paar, view.php
+  und present.php teilen sich den State.
 - Block-Deploy auf Demo-Instanz geklärt: Verzeichnispfad in Moodle 5.x
   public layout ist `public/blocks/elediacheckin/`. `moodle-update.sh`
   Meta-Key `checkin` updated jetzt mod + block atomisch.

@@ -59,6 +59,9 @@ $string['lang_auto']          = 'User language (recommended)';
 $string['lang_course']        = 'Course language';
 $string['avoidrepeat']        = 'Avoid repeating the previous question';
 $string['avoidrepeat_help']   = 'If enabled, the same question will not be shown twice in a row within a single view.';
+$string['showprevbutton']     = 'Show "Previous question" button';
+$string['showprevbutton_help'] = 'If enabled, a second button appears next to "Next question" that lets learners jump back one step — to the card that was shown just before. Only a single step back, not a full history.';
+$string['prevquestion']       = 'Previous question';
 
 // Audience + context (optional tag dimensions).
 $string['zielgruppe']         = 'Audience';

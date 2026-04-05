@@ -106,6 +106,95 @@ final class activity_pool {
     }
 
     /**
+     * Resolves the next question to display including one-step history
+     * tracking for the "Zur vorherigen Frage"-Button.
+     *
+     * Shared helper for view.php and present.php so the navigation state
+     * machine lives in one place. History is persisted in $SESSION under
+     * `elediacheckin_history[$cmid]` as a bounded list of at most 2
+     * externalids, newest at the tail.
+     *
+     * Semantics:
+     *  - If `$pinnedexternalid` is non-empty, try to lock onto that card
+     *    (used by the block launcher via `?q=`). History is reset to just
+     *    that entry so the user has a clean starting point.
+     *  - Else if `$goback` is true AND history has at least 2 entries,
+     *    pop the current top and return the previous card. History
+     *    shrinks back to size 1 — the button disappears until the user
+     *    draws a new card, which avoids ping-pong between two cards.
+     *  - Else draw a new random card and push it on the history stack,
+     *    keeping at most 2 entries (shift the oldest out).
+     *
+     * @param \stdClass $instance        Row from the {elediacheckin} table.
+     * @param int       $cmid            Course module id (session namespace).
+     * @param string    $activeziel      Active ziel to build the pool for.
+     * @param string[]  $langcandidates  Ordered language fallback chain.
+     * @param string    $pinnedexternalid  Externalid to lock onto, or ''.
+     * @param bool      $goback          True = handle "back" button click.
+     * @return array{question: ?\stdClass, hasprev: bool}
+     */
+    public static function resolve_navigation(
+        \stdClass $instance,
+        int $cmid,
+        string $activeziel,
+        array $langcandidates,
+        string $pinnedexternalid,
+        bool $goback
+    ): array {
+        global $SESSION;
+
+        $prop = 'elediacheckin_history';
+        if (!isset($SESSION->{$prop}) || !is_array($SESSION->{$prop})) {
+            $SESSION->{$prop} = [];
+        }
+        $all = $SESSION->{$prop};
+        $history = isset($all[$cmid]) && is_array($all[$cmid]) ? $all[$cmid] : [];
+
+        $question = null;
+
+        if ($pinnedexternalid !== '') {
+            // Pinned from block launcher: reset the history stack.
+            $question = self::pick_by_externalid(
+                $instance, $pinnedexternalid, $activeziel, $langcandidates
+            );
+            if (!$question) {
+                // Unknown externalid (e.g., bundle resynced). Fall back to random.
+                $question = self::pick_random($instance, $activeziel, $langcandidates);
+            }
+            $history = $question ? [(string) $question->externalid] : [];
+        } else if ($goback && count($history) >= 2) {
+            // Pop current, reveal previous.
+            array_pop($history);
+            $topid = (string) end($history);
+            $question = self::pick_by_externalid(
+                $instance, $topid, $activeziel, $langcandidates
+            );
+            if (!$question) {
+                // Previous card disappeared (bundle resynced?). Draw fresh.
+                $question = self::pick_random($instance, $activeziel, $langcandidates);
+                $history = $question ? [(string) $question->externalid] : [];
+            }
+        } else {
+            // Normal / "next" path: draw a random, push on top.
+            $question = self::pick_random($instance, $activeziel, $langcandidates);
+            if ($question) {
+                $history[] = (string) $question->externalid;
+                while (count($history) > 2) {
+                    array_shift($history);
+                }
+            }
+        }
+
+        $all[$cmid] = $history;
+        $SESSION->{$prop} = $all;
+
+        return [
+            'question' => $question,
+            'hasprev'  => count($history) >= 2,
+        ];
+    }
+
+    /**
      * Builds the merged pool without sampling — exposed for tests and
      * potential future "avoid repeat" logic that needs the full list.
      *

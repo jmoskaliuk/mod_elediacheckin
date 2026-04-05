@@ -35,6 +35,7 @@ $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
 // launcher passes ?q=<externalid> so the popup shows exactly the card the
 // user was looking at in the block preview. See view.php for rationale.
 $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
+$goback     = (bool) optional_param('prev', 0, PARAM_BOOL);
 
 $cm       = get_coursemodule_from_id('elediacheckin', $id, 0, false, MUST_EXIST);
 $course   = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -67,21 +68,16 @@ if ($configured === '_auto_') {
 }
 $langcandidates[] = current_language();
 
-// Bundle-Pool + eigene Fragen werden in activity_pool zusammengeführt
-// (Konzept §10.13). Wenn der Aufrufer ?q=<externalid> mitschickt (Block-
-// Launcher), pinnen wir diese konkrete Karte — damit das Popup aus dem
-// Block heraus dieselbe Frage zeigt wie die Vorschau. Fallback: random.
-$question = null;
-if ($qext !== '') {
-    $question = \mod_elediacheckin\local\service\activity_pool::pick_by_externalid(
-        $instance, $qext, $activeziel, $langcandidates
-    );
-}
-if (!$question) {
-    $question = \mod_elediacheckin\local\service\activity_pool::pick_random(
-        $instance, $activeziel, $langcandidates
-    );
-}
+// Bundle-Pool + eigene Fragen via activity_pool (Konzept §10.13).
+// resolve_navigation() kapselt das Pin-per-?q + One-Step-History für den
+// „Zur vorherigen Frage"-Button. Wichtig: Popup und view.php teilen sich
+// denselben $SESSION->elediacheckin_history[$cmid]-State, d. h. ein Back-
+// Schritt im Popup wirkt auch zurück auf die embedded View und umgekehrt.
+$nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
+    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback
+);
+$question = $nav['question'];
+$hasprev  = !empty($instance->showprevbutton) && $nav['hasprev'];
 
 $zielbuttons = [];
 foreach ($ziele as $z) {
@@ -103,6 +99,13 @@ $nexturl = new moodle_url('/mod/elediacheckin/present.php', [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
     'layout'     => 'popup',
+    'r'          => time(),
+]);
+$prevurl = new moodle_url('/mod/elediacheckin/present.php', [
+    'id'         => $cm->id,
+    'activeziel' => $activeziel,
+    'layout'     => 'popup',
+    'prev'       => 1,
     'r'          => time(),
 ]);
 
@@ -138,7 +141,10 @@ $templatecontext = [
     'multiziel'       => $multiziel,
     'zielbuttons'     => $zielbuttons,
     'nextquestionurl' => $nexturl->out(false),
+    'prevquestionurl' => $prevurl->out(false),
+    'hasprev'         => $hasprev,
     'strnext'         => get_string('nextquestion', 'elediacheckin'),
+    'strprev'         => get_string('prevquestion', 'elediacheckin'),
     'strshowanswer'   => get_string('showanswer', 'elediacheckin'),
     'strnone'         => get_string('noquestions', 'elediacheckin'),
     'strclose'        => get_string('close', 'elediacheckin'),

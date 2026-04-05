@@ -106,6 +106,12 @@
             {{/question.hasanswer}}
 
             <div class="elediacheckin-controls" role="group">
+                {{#hasprev}}
+                    <a href="{{prevquestionurl}}" class="btn btn-outline-secondary elediacheckin-prev-btn"
+                        data-action="prev-question">
+                        {{strprev}}
+                    </a>
+                {{/hasprev}}
                 <a href="{{nextquestionurl}}" class="btn btn-primary elediacheckin-next-btn"
                     data-action="next-question">
                     {{strnext}}
@@ -148,6 +154,9 @@
                     {{strshowanswer}}
                 </button>
             {{/question.hasanswer}}
+            {{#hasprev}}
+                <a href="{{prevquestionurl}}" class="elediacheckin-fs-btn">{{strprev}}</a>
+            {{/hasprev}}
             <a href="{{nextquestionurl}}" class="elediacheckin-fs-btn is-primary">{{strnext}}</a>
         </div>
     {{/hasquestion}}

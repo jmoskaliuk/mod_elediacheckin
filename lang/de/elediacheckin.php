@@ -57,6 +57,9 @@ $string['lang_auto']          = 'Nutzersprache (empfohlen)';
 $string['lang_course']        = 'Kurssprache';
 $string['avoidrepeat']        = 'Wiederholung der letzten Frage vermeiden';
 $string['avoidrepeat_help']   = 'Wenn aktiviert, wird innerhalb einer Sitzung nicht zweimal dieselbe Frage gezeigt.';
+$string['showprevbutton']     = 'Button „Zur vorherigen Frage" anzeigen';
+$string['showprevbutton_help'] = 'Wenn aktiviert, erscheint neben „Nächste Frage" ein zweiter Button, mit dem Lernende einen Schritt zurückspringen können — zur zuletzt gezogenen Karte. Nur ein Schritt zurück, kein vollständiger Verlauf.';
+$string['prevquestion']       = 'Zur vorherigen Frage';
 
 // Zielgruppe + Kontext (optionale Tag-Dimensionen).
 $string['zielgruppe']         = 'Zielgruppe';

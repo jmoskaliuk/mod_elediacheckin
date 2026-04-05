@@ -188,6 +188,13 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->setDefault('avoidrepeat', 1);
         $mform->addHelpButton('avoidrepeat', 'avoidrepeat', 'elediacheckin');
 
+        // „Zur vorherigen Frage"-Button: single-step back, kein vor/zurück-
+        // Paar. Zustand pro cmid im $SESSION, siehe view.php/present.php.
+        $mform->addElement('selectyesno', 'showprevbutton',
+            get_string('showprevbutton', 'elediacheckin'));
+        $mform->setDefault('showprevbutton', 0);
+        $mform->addHelpButton('showprevbutton', 'showprevbutton', 'elediacheckin');
+
         // Standard course module elements.
         $this->standard_coursemodule_elements();
 
