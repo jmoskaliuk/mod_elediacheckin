@@ -27,7 +27,11 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname']         = 'Check-in';
 $string['modulename']         = 'Check-in';
 $string['modulenameplural']   = 'Check-ins';
-$string['modulename_help']    = 'Die Aktivität "Check-in" zeigt didaktische Check-in- und Check-out-Fragen aus einem extern gepflegten Git-Repository an.';
+$string['modulename_help']    = 'Die Aktivität „Check-in" zeigt kurze didaktische Impulse, Fragen und Karten — zum Beispiel für Check-in-Runden zu Beginn einer Sitzung, Check-out-Reflexionen am Ende, Retro-Fragen, Zitate oder Fun-Facts.
+
+Sie können pro Aktivität auswählen, welche Ziele (Check-in, Check-out, Retro, Impuls, Learning, Fun-Fact, Zitat) und welche Kategorien gezogen werden dürfen. Optional lässt sich zusätzlich auf Zielgruppe (z. B. Team, Führungskräfte) und Kontext (Arbeit, Schule, Hochschule, Privat) einschränken. Teilnehmende sehen dann bei jedem Seitenaufruf eine zufällig passende Karte aus dem konfigurierten Pool.
+
+Die Inhalte werden zentral von der Site-Administration aus einem Content-Repository synchronisiert. Lehrkräfte entscheiden nur, wie die Karten in ihrer Aktivität eingesetzt werden; sie können zusätzlich eigene Fragen pro Aktivität hinzufügen.';
 $string['pluginadministration'] = 'Check-in-Verwaltung';
 
 $string['checkinsettings']    = 'Check-in-Einstellungen';
@@ -68,6 +72,10 @@ $string['kontext_arbeit']     = 'Arbeit';
 $string['kontext_schule']     = 'Schule';
 $string['kontext_hochschule'] = 'Hochschule';
 $string['kontext_privat']     = 'Privat';
+
+// Eigene Fragen (§10.13).
+$string['ownquestions']       = 'Eigene Fragen';
+$string['ownquestions_help']  = 'Zusätzliche Fragen, die nur in dieser Aktivität angezeigt werden. Eine Frage pro Zeile. Leere Zeilen werden ignoriert. Diese Fragen werden zu den Bundle-Fragen hinzugemischt (gleiche Ziehwahrscheinlichkeit), nicht ersetzt. Sie gelten für alle Ziele der Aktivität und haben keine Rückseite. Leer lassen = nur Bundle-Inhalte verwenden.';
 
 // Kategorielabels — passen zu CATEGORIES_BY_ZIEL in schema_validator.php.
 $string['cat_kennenlernen']           = 'Kennenlernen';

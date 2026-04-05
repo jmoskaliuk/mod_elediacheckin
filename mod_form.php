@@ -162,6 +162,23 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->setDefault('contentlang', self::LANG_AUTO);
         $mform->addHelpButton('contentlang', 'contentlang', 'elediacheckin');
 
+        // Eigene Fragen (per-Aktivität, siehe Konzept §10.13). Additiver
+        // Zusatzpool zu den Bundle-Fragen: eine Zeile = eine Karte. Wird
+        // als TEXT-Spalte persistiert und bei jedem Draw von
+        // activity_pool zusammengemerged. Reine Impulskarten, keine
+        // Rückseite.
+        $mform->addElement('header', 'ownquestionsheader',
+            get_string('ownquestions', 'elediacheckin'));
+
+        $mform->addElement('textarea', 'ownquestions',
+            get_string('ownquestions', 'elediacheckin'), [
+                'rows' => 6,
+                'cols' => 60,
+                'style' => 'font-family: inherit;',
+            ]);
+        $mform->setType('ownquestions', PARAM_TEXT);
+        $mform->addHelpButton('ownquestions', 'ownquestions', 'elediacheckin');
+
         // Anzeigeoptionen.
         $mform->addElement('header', 'displaysettings', get_string('displaysettings', 'elediacheckin'));
 

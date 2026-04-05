@@ -254,5 +254,25 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040508, 'elediacheckin');
     }
 
+    // 2026040509 — Eigene Fragen pro Aktivität (§10.13 im Konzept).
+    //
+    // Adds an optional TEXT column 'ownquestions' to the activity instance
+    // row. Teachers can fill it via a textarea in mod_form (one question
+    // per line). At draw time, view.php/present.php merge these lines into
+    // the bundle-sourced pool via activity_pool helper. The virtual
+    // category "eigene" lives purely in code; the JSON schema and the
+    // question table are unaffected.
+    if ($oldversion < 2026040509) {
+        $tableinstance = new xmldb_table('elediacheckin');
+
+        $fieldown = new xmldb_field('ownquestions', XMLDB_TYPE_TEXT, null, null,
+            null, null, null, 'avoidrepeat');
+        if (!$dbman->field_exists($tableinstance, $fieldown)) {
+            $dbman->add_field($tableinstance, $fieldown);
+        }
+
+        upgrade_mod_savepoint(true, 2026040509, 'elediacheckin');
+    }
+
     return true;
 }

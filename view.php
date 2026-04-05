@@ -71,12 +71,12 @@ if (!$multiziel || !in_array($activeziel, $ziele, true)) {
 // language; (2) the user's current language; (3) any language. This keeps
 // the UX friendly on dev sites where the bundle language may not match
 // the site language yet.
-$provider = new \mod_elediacheckin\local\service\question_provider();
+// Build language candidate chain. The sentinels '_auto_' → user language
+// and '_course_' → course language are kept as string literals so this
+// hot-path resolves without loading mod_form.php; the canonical
+// definitions live in mod_form::LANG_AUTO / LANG_COURSE and must stay
+// in sync.
 $langcandidates = [];
-// Sentinels: '_auto_' = user language, '_course_' = course language.
-// Kept as string literals so this hot-path resolves without loading
-// mod_form.php; the canonical definitions live in mod_form::LANG_AUTO /
-// LANG_COURSE and must stay in sync.
 $configured = (string) ($instance->contentlang ?? '');
 if ($configured === '_auto_') {
     $langcandidates[] = current_language();
@@ -86,20 +86,13 @@ if ($configured === '_auto_') {
     $langcandidates[] = $configured;
 }
 $langcandidates[] = current_language();
-$langcandidates[] = null; // Final fallback: accept any language.
-$question = null;
-foreach (array_unique(array_filter($langcandidates, static fn($v) => $v !== ''), SORT_REGULAR) as $lang) {
-    $question = $provider->get_random_question([
-        'ziele'      => [$activeziel],
-        'categories' => $instance->categories,
-        'zielgruppe' => $instance->zielgruppe ?? null,
-        'kontext'    => $instance->kontext ?? null,
-        'lang'       => $lang,
-    ]);
-    if ($question) {
-        break;
-    }
-}
+
+// The activity_pool helper merges bundle questions (filtered via
+// question_provider) with the teacher's per-activity own questions
+// additively — see concept doc §10.13.
+$question = \mod_elediacheckin\local\service\activity_pool::pick_random(
+    $instance, $activeziel, $langcandidates
+);
 
 // Build ziel-picker buttons (only used if $multiziel).
 $zielbuttons = [];
@@ -133,7 +126,11 @@ $templatecontext = [
     'cmid'            => $cm->id,
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
-        'frage'     => format_text($question->frage, FORMAT_HTML),
+        // Own questions come from a teacher-filled textarea and are
+        // rendered as plain text; bundle questions come from a trusted
+        // JSON bundle and may contain simple HTML.
+        'frage'     => format_text($question->frage,
+                           !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
         'lang'      => $question->lang,

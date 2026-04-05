@@ -27,7 +27,11 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname']         = 'Check-in';
 $string['modulename']         = 'Check-in';
 $string['modulenameplural']   = 'Check-ins';
-$string['modulename_help']    = 'The Check-in activity displays didactic check-in and check-out questions sourced from an external, Git-managed content repository.';
+$string['modulename_help']    = 'The "Check-in" activity shows short didactic impulses, questions and cards — for example check-in rounds at the beginning of a session, check-out reflections at the end, retrospective prompts, quotes or fun facts.
+
+For each activity you can select which goals (check-in, check-out, retro, impulse, learning, fun-fact, quote) and which categories are drawn from. Optionally, you can narrow down by audience (e.g. team, leaders) and context (work, school, higher education, personal). Participants then see a randomly matching card from the configured pool on every page load.
+
+Content is synchronised centrally by the site administration from a content repository. Teachers only decide how the cards are used in their activity; they can additionally add their own questions per activity.';
 $string['pluginadministration'] = 'Check-in administration';
 
 // Form sections.
@@ -70,6 +74,10 @@ $string['kontext_arbeit']     = 'Work';
 $string['kontext_schule']     = 'School';
 $string['kontext_hochschule'] = 'Higher education';
 $string['kontext_privat']     = 'Personal';
+
+// Own questions (§10.13).
+$string['ownquestions']       = 'Own questions';
+$string['ownquestions_help']  = 'Extra questions that appear only in this activity. One question per line. Empty lines are ignored. These questions are mixed additively into the bundle pool (equal draw probability), not as a replacement. They apply to all goals of the activity and have no back side. Leave empty to use bundle content only.';
 
 // Category labels — match CATEGORIES_BY_ZIEL in schema_validator.php.
 $string['cat_kennenlernen']           = 'Getting to know each other';

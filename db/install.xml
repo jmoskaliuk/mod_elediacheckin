@@ -23,6 +23,8 @@
                COMMENT="Content language override. Empty = resolve from course/user."/>
         <FIELD NAME="avoidrepeat" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"
                COMMENT="If set, the provider avoids repeating the previous question within a session."/>
+        <FIELD NAME="ownquestions" TYPE="text" NOTNULL="false" SEQUENCE="false"
+               COMMENT="Optional teacher-authored extra questions, one per line. Merged additively into the random draw pool for this activity. Virtual category 'eigene'."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

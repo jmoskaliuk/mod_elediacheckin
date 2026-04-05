@@ -52,7 +52,6 @@ if (!$multiziel || !in_array($activeziel, $ziele, true)) {
 
 // Language resolution with graceful fallback (see view.php for rationale).
 // Sentinels: '_auto_' → current user language, '_course_' → course language.
-$provider = new \mod_elediacheckin\local\service\question_provider();
 $langcandidates = [];
 $configured = (string) ($instance->contentlang ?? '');
 if ($configured === '_auto_') {
@@ -63,20 +62,12 @@ if ($configured === '_auto_') {
     $langcandidates[] = $configured;
 }
 $langcandidates[] = current_language();
-$langcandidates[] = null;
-$question = null;
-foreach (array_unique(array_filter($langcandidates, static fn($v) => $v !== ''), SORT_REGULAR) as $lang) {
-    $question = $provider->get_random_question([
-        'ziele'      => [$activeziel],
-        'categories' => $instance->categories,
-        'zielgruppe' => $instance->zielgruppe ?? null,
-        'kontext'    => $instance->kontext ?? null,
-        'lang'       => $lang,
-    ]);
-    if ($question) {
-        break;
-    }
-}
+
+// Bundle-Pool + eigene Fragen werden in activity_pool zusammengeführt
+// (Konzept §10.13).
+$question = \mod_elediacheckin\local\service\activity_pool::pick_random(
+    $instance, $activeziel, $langcandidates
+);
 
 $zielbuttons = [];
 foreach ($ziele as $z) {
@@ -116,7 +107,10 @@ $templatecontext = [
     'cmid'            => $cm->id,
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
-        'frage'     => format_text($question->frage, FORMAT_HTML),
+        // Own questions use FORMAT_PLAIN (teacher textarea input),
+        // bundle questions FORMAT_HTML (trusted JSON content).
+        'frage'     => format_text($question->frage,
+                           !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
     ] : null,
