@@ -35,8 +35,8 @@ $string['checkinsettings']    = 'Check-in settings';
 $string['displaysettings']    = 'Display options';
 
 // Fields.
-$string['ziele']              = 'Card types';
-$string['ziele_help']         = 'Which card types this activity offers. Multiple selection allowed.';
+$string['ziele']              = 'Goal';
+$string['ziele_help']         = 'Which goal this activity serves (Impulse, Check-in, Retro …). Multiple selection allowed. Your choice restricts the categories offered below.';
 $string['ziel_impuls']        = 'Impulse';
 $string['ziel_checkin']       = 'Check-in';
 $string['ziel_checkout']      = 'Check-out';
@@ -45,10 +45,10 @@ $string['ziel_learning']      = 'Learning content';
 $string['ziel_funfact']       = 'Fun fact';
 $string['ziel_zitat']         = 'Quote';
 $string['showanswer']         = 'Show answer';
-$string['categories']         = 'Allowed categories';
-$string['categories_help']    = 'Restrict this activity to the selected categories. Categories are listed under the ziel they belong to — pick one or many. Leave empty to allow all categories for the chosen ziele.';
+$string['categories']         = 'Categories';
+$string['categories_help']    = 'Restrict the activity to specific categories. Only categories that belong to the goals selected above are shown. Leave empty to allow all categories of the selected goals.';
 $string['categories_all']     = 'All categories';
-$string['ziele_all']          = 'All question types';
+$string['ziele_all']          = 'All goals';
 $string['contentlang']        = 'Content language';
 $string['contentlang_help']   = 'Language of the questions shown in this activity. "User language" uses the language the learner is currently viewing Moodle in; "Course language" uses the course default. Pick a specific language to pin the activity to that bundle.';
 $string['lang_auto']          = 'User language (recommended)';
