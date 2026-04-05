@@ -186,18 +186,30 @@ class dashboard_renderer {
         var submit = form.querySelector('input[type="submit"], button[type="submit"]');
         if (!submit) { return false; }
         // Walk up until we find the direct child of <form> that contains
-        // the submit button. Insert the panel right after that element so
-        // the rendered order is: config fields → save button → panel.
-        var container = submit;
-        while (container.parentNode && container.parentNode !== form) {
-            container = container.parentNode;
+        // the submit button.
+        var submitContainer = submit;
+        while (submitContainer.parentNode && submitContainer.parentNode !== form) {
+            submitContainer = submitContainer.parentNode;
         }
-        if (container && container.parentNode === form) {
-            form.insertBefore(panel, container.nextSibling);
-            MOVED = true;
-            return true;
+        if (!submitContainer || submitContainer.parentNode !== form) { return false; }
+        // Walk the panel up to ITS form-level ancestor too — admin_setting_
+        // heading renders an <h3> sibling next to the description div that
+        // contains our wrapper. If we only move the inner wrapper, the
+        // heading ("Sync status") stays behind and orphans itself above the
+        // save button. Moving the whole form-item container keeps heading
+        // + panel together.
+        var panelContainer = panel;
+        while (panelContainer.parentNode && panelContainer.parentNode !== form) {
+            panelContainer = panelContainer.parentNode;
         }
-        return false;
+        if (!panelContainer || panelContainer.parentNode !== form) { return false; }
+        form.insertBefore(panelContainer, submitContainer.nextSibling);
+        // Breathing room between save-changes row and the Sync-status
+        // heading that now sits directly below it. Inline so it only
+        // applies after a successful reorder.
+        panelContainer.style.marginTop = '2.5rem';
+        MOVED = true;
+        return true;
     }
     function tryReorder() {
         if (reorder()) { return; }

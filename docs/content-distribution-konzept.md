@@ -709,6 +709,14 @@ Zweitens, die Tour-Texte lagen hartcodiert auf Deutsch im JSON. Das funktioniert
 
 Weil beide Tour-Fixes nur wirken, wenn die Tour in der DB komplett neu angelegt wird (`persist()` auf einer bestehenden Tour würde die Schritte nicht erneut einfügen), gibt es einen neuen Upgrade-Step 2026040531, der — wie schon 2026040529 — alle Tours mit `pathmatch LIKE '/mod/elediacheckin/%'` löscht und die reparierte JSON neu importiert.
 
+### 10.25 Save-Button-Spacing + Heading-Orphan-Fix (April 2026, Version 2026040532)
+
+Nach Deploy von v2026040531 war der Save-Button endlich oberhalb der Panel-Karte (Reorder griff), aber zwei kosmetische Nebeneffekte wurden sichtbar: (1) die `<h3>Sync status</h3>`-Überschrift aus dem `admin_setting_heading` stand nach wie vor **oberhalb** des Save-Buttons — getrennt vom Panel-Content, der unten auftauchte — weil das Reorder-JS nur das innere `#elediacheckin-dashboardpanel`-Wrapper-Div verschob, nicht aber den gesamten Form-Item-Container, der auch die h3 enthält. (2) der Abstand zwischen dem Save-Button-Row und der „Current state"-Karte war zu eng, die beiden klebten optisch zusammen.
+
+Beides mit einem Patch im selben Reorder-Script gelöst: statt `form.insertBefore(panel, submitContainer.nextSibling)` zu rufen, läuft das Script jetzt auch vom `panel`-Element ausgehend per `while`-Loop hoch bis zum direkten Form-Kind (also dem Form-Item-Wrapper, der `<h3>` + description-div enthält), und verschiebt **diesen Container** statt nur des Panel-Divs. Dadurch wandern h3 + Card-Content gemeinsam an die neue Position. Zusätzlich setzt das Script nach erfolgreichem Reorder ein Inline-`style.marginTop = '2.5rem'` auf den verschobenen Container, damit visuell Luft zwischen Save-Button-Row und der neu angehängten Heading entsteht. Der Inline-Style wird nur angewandt, wenn der Reorder tatsächlich durchläuft — ohne JS (graceful degradation) bleibt der Default-Abstand.
+
+Einziger Nachteil: der Spacing-Fix hängt an der JS-Ausführung. Ein reines CSS-Äquivalent ginge nicht, weil im DOM-Layout ohne JS das Panel oberhalb des Save-Buttons steht und dort kein Top-Margin nötig ist. Den Kompromiss nehme ich, solange der Reorder-Pfad der Primärpfad ist.
+
 ---
 
 ## Zusammenfassung in einem Satz
