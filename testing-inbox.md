@@ -27,38 +27,10 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- Kategorie Learning Content ist anders gemeint. Es geht um Fragen, die Lernen anregen also z.B. "Was ist das wichtigeste, was ich heute gelernt habe". Bitte Wording überlegen und anpassen. 
-- Use own questions only ist missverständlich. Was passeirt werden Fragen drin stehen, aber nein ausgewählt ist. Es gibt denke ich drei Optionen: Eigene Fragen gemeinsam mit den fertigen Nutzen. Nur eigene Fragen. Keine eigene Fragen. Kannst Du das nochmal überdenken und dann anpassen. 
-- könnten wir den Block so anpassen, dass es auch auf der Startseite funktioniert?
-- Bei Quote wollten wir noch den Autor haben. Bitte LAyout überlegen und Json anpassen. 
-- im Aktivity chooser kannst Du a einen Info link einbauen, wie auch die anderen Akvititäten haben. Sollte sein eledia.de/mod_elediacheckin
-- Können wir eine Usertour für die Teacher erstellen, wenn die Akbitäten zum ersten Mal genutzt wird?
-- Ich nutze Firefox. Wenn ich im Vollbildmodus des Browers bin öffnet sich das Pop up nicht in einem Popup, sondern in einem neuen Fenster. Ist das gewollt oder ein FEhler?
-- Die Beschreibung der Akvitität wird zweil mal angezeigt im Grauen Kasten und separat. Der Graue kasten kann weg.
-  - Bitte keine separate sycn Seite sondern in Admin-Seite einbauen.
-- in den einstellungen eigene Fragen nach Display options.
-- der block ist wieder weg
+- Wenn der Block auf der Startseite ist, welche Checkin Aktivität wird an ausgeählt? Wa brauchte s noch ein Konzept.
 
-    line 111 of /public/lib/classes/event/url_blocked.php: call to debugging()
-    line 785 of /public/lib/classes/event/base.php: call to core\event\url_blocked->validate_before_trigger()
-    line 3984 of /public/lib/filelib.php: call to core\event\base->trigger()
-    line 3779 of /public/lib/filelib.php: call to curl->trigger_url_blocked_event()
-    line 4056 of /public/lib/filelib.php: call to curl->request()
-    line 213 of /public/mod/elediacheckin/classes/content/eledia_premium_content_source.php: call to curl->post()
-    line 111 of /public/mod/elediacheckin/classes/content/eledia_premium_content_source.php: call to mod_elediacheckin\content\eledia_premium_content_source->verify_license()
-    line 92 of /public/mod/elediacheckin/classes/local/service/sync_service.php: call to mod_elediacheckin\content\eledia_premium_content_source->fetch_bundle()
-    line 57 of /public/mod/elediacheckin/admin/actions.php: call to mod_elediacheckin\local\service\sync_service->run()
+_(offene Punkte — siehe oben)_
 
-Skip to main content
-Sync failed: The license server is unreachable or returned an error. (HTTP 0 from /verify: The URL is blocked.) :: HTTP 0 from /verify: The URL is blocked.
-This page should automatically redirect. If nothing is happening please use the continue link below.
-(Continue)
-
-Error output, so disabling automatic redirect.
-Script /mod/elediacheckin/admin/actions.php?action=runsync&sesskey=TB52gls7LW mutated the session after it was closed: $SESSION->cachestore_session: default_session-core/navigation_cache,default_session-core/coursecat,default_session-core/calendar_categories,default_session-core/navigation_expandcourse,default_session-core/userselections,default_session-core/courseeditorstate $SESSION->editedpages $SESSION->notifications
-
-    line 807 of /public/lib/classes/session/manager.php: call to debugging()
-    line 185 of /public/lib/classes/shutdown_manager.php: call to core\session\manager::check_mutated_closed_session()
 ## ❓ Klärung notwendig
   
 
@@ -69,6 +41,95 @@ _(leer)_
 
 ## ✅ Erledigt
 
+- **Barrierefreiheits-Pass.** View-Seite gegen WAI-ARIA-Checkliste gezogen:
+  Ziel-Picker ist jetzt `<nav aria-label>` mit `aria-current="page"` statt
+  rollenlosem `<div>`; die Fullscreen-Overlay ist ein echtes Modal
+  (`role="dialog"`, `aria-modal`, `aria-labelledby` auf visuell
+  versteckten h2) mit vollem Focus-Management in `view.js` (previousFocus
+  speichern → Close-Button fokussieren → Tab/Shift-Tab trappen → Fokus
+  restaurieren). `:focus-visible`-Regeln in `styles.css` für alle
+  interaktiven Plugin-Controls (3 px Orange-Outline + 5 px Ring). `lang`-
+  Attribut auf Fragekarte (wichtig für englische Zitate auf DE-Instanz).
+  Konzept-Doc §10.20.
+- **Premium für Release ausgeblendet.** `feature_flags::PREMIUM_ENABLED`
+  auf `false` geflippt. Dropdown-Eintrag + Settings-Block + Registry-
+  Registrierung verschwinden; Klassen bleiben ladbar für PHPUnit.
+- **Save-Changes-Button über Sync-Status-Panel.** Der `dashboard_renderer`-
+  Output enthält am Ende einen kleinen `<script>`-Block, der
+  `#admin-dashboardpanel` per DOM-Reorder hinter den Form-Level-Container
+  des Submit-Buttons verschiebt. Ohne JS steht das Panel oberhalb —
+  graceful degradation. Umbau auf `admin_externalpage` bewusst vermieden.
+- **`$CFG`-Scope-Bug im Verbindungstest.** `git_content_source::fetch_raw()`
+  hatte `require_once($GLOBALS['CFG']->libdir . '/filelib.php')` ohne
+  `global $CFG;` davor. filelib.php's Top-Level ruft selbst
+  `require_once($CFG->libdir . '/…')` — und `$CFG` war im Methoden-Scope
+  nicht deklariert, was die Fehlerkaskade „Undefined variable $CFG →
+  `/filestorage/file_exceptions.php` not found" auslöste. Fix: `global
+  $CFG;` + Kommentar, warum das nicht wieder rausrefactored werden darf.
+- **Sync-Status-Panel wieder auf der Einstellungsseite.** Der zweite Nav-
+  Eintrag „Sync-Status" ist entfernt; der `dashboard_renderer`-Output ist
+  jetzt direkt als letztes Heading der Plugin-Settings-Seite eingebettet,
+  unterhalb der Konfig-Felder. actions.php redirected jetzt zurück auf
+  die Settings-Seite statt ins Dashboard, damit Success/Error-Toast und
+  aktualisierte Log-Tabelle im selben Screen sichtbar werden. Technisch
+  steht das Panel weiterhin *über* dem Save-Changes-Button — core-Moodle
+  rendert den Save-Button immer als letztes Element einer
+  admin_settingpage. Johannes' Wunsch „nach Save-Button" ließe sich nur
+  mit einem kompletten Umbau auf admin_externalpage umsetzen; der
+  Tradeoff wurde im Konzept-Doc §10.19 dokumentiert. admin/dashboard.php
+  bleibt als Redirect-Ziel für Legacy-Bookmarks bestehen.
+- **Learning-Content als Reflexionsfragen reformuliert.** Ziel `learning`
+  ist jetzt „Lernreflexion": offene Reflexionsimpulse ohne Musterantwort
+  (`hat_antwort: false`). Kategorien komplett neu (`tagesreflexion`,
+  `transfer`, `aha`, `hindernis`, `meta`) — die alten Lexikon-Kategorien
+  (methode, theorie, tool, modell) wurden entfernt. Betroffene Dateien:
+  `schema.json`, `schema_validator.php`, `default.json`, `bundle.json`,
+  lang/de + lang/en. Neue `ziel_learning_help`-Erklärung.
+- **Tri-state „Eigene Fragen"-Modus.** Yes/No-Toggle war missverständlich;
+  neue 3-Wege-Auswahl `ownquestionsmode`: 0 = gemischt mit Bundle
+  (Default), 1 = nur eigene Fragen, 2 = Bundle-only (eigene Fragen
+  ignorieren auch wenn Feld gefüllt). Spalte via `rename_field()`
+  umbenannt — existierende 0/1-Werte bleiben erhalten. `hideIf` blendet
+  das Textarea aus wenn `none` gewählt ist. Section „Eigene Fragen"
+  steht jetzt nach „Anzeigeoptionen" in mod_form.
+- **Block auch auf der Startseite.** `applicable_formats()` liefert jetzt
+  `site-index => true` + `site => true` zusätzlich zu `course-view`.
+  Dropdown im Edit-Form zieht Check-in-Activities aus der Frontpage
+  (SITEID) über `get_fast_modinfo($COURSE)`, das auf der Startseite
+  korrekt auflöst.
+- **Zitate mit Autor-Attribution.** Template (view + fullscreen + present)
+  rendert bei `ziel === 'zitat'` einen zusätzlichen Autor-Absatz
+  (`— Name`) unter dem Zitat, und die Fragekarte bekommt eine
+  `--quote`-Klasse (italic serif, zentriert) als visuelle Abgrenzung.
+  Im Bundle ist `autor` für Zitate jetzt der tatsächliche Urheber
+  (Henry Ford, Steve Jobs, …) statt des Platzhalters „eLeDia Redaktion";
+  `quelle` bleibt als Bibliographie-Feld daneben. view.php + present.php
+  füllen `isquote`, `hasauthor` und `author` in den Template-Context.
+- **Info-Link im Activity-Chooser.** `modulename_help` in lang/de + lang/en
+  um einen Absatz mit `<a href="https://www.eledia.de/mod_elediacheckin"
+  target="_blank">` erweitert. Moodle rendert den HTML-Link im Chooser-
+  Info-Panel direkt unter der Beschreibung.
+- **User-Tour für Lehrkräfte beim ersten Nutzen.** Neues
+  `db/tours/teacher_checkin_tour.json` mit 5 Schritten (Welcome →
+  Karte → Ziel-Picker → Nächste-Frage-Button → Popup/Fullscreen-
+  Launchers). Gefiltert auf Rollen `editingteacher`/`teacher`/`manager`,
+  pathmatch `/mod/elediacheckin/view.php%`. Import über
+  `\tool_usertours\manager::import_tour_from_json()` im `install.php`-
+  Hook + idempotenter Upgrade-Pfad (2026040525), so dass sowohl fresh
+  installs als auch bestehende Instanzen die Tour bekommen.
+- **Firefox: Popup öffnete neues Fenster statt chrome-less Popup.**
+  Ursache: `window.open(url, name, features)` ohne explizites
+  `popup=yes` wird von Firefox ≥ 109 (und modernen WebKit-Versionen)
+  silently zu einem neuen Tab „upgraded", auch wenn width/height gesetzt
+  sind. Fix in `amd/src/view.js` + `amd/build/view.min.js`: `popup=yes`
+  als erste Feature-Flag in `POPUP_FEATURES` vorangestellt. Chromium
+  toleriert beide Varianten.
+- **Aktivitätsbeschreibung wurde doppelt angezeigt.** `view.php` rief
+  explizit `$OUTPUT->box(format_module_intro(...))` auf, gleichzeitig
+  rendert Moodles `$PAGE->activityheader` die Intro seit Moodle 4.x
+  schon automatisch. Der zweite (graue) Kasten ist jetzt gelöscht; ein
+  Kommentar in view.php hält fest, warum hier bewusst nichts mehr
+  ausgegeben wird.
 - **Premium/License-Server-Option per Build-Flag ausblendbar.** Neue
   `classes/feature_flags.php` mit einer einzigen Konstante
   `PREMIUM_ENABLED`. Wenn `false`, wird weder der Dropdown-Eintrag

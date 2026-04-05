@@ -130,7 +130,13 @@ final class git_content_source implements content_source_interface {
         }
 
         // Use Moodle's curl wrapper so proxy / cert settings are honoured.
-        require_once($GLOBALS['CFG']->libdir . '/filelib.php');
+        // `global $CFG` is required because filelib.php's top-level code
+        // references bare $CFG (e.g. require_once($CFG->libdir . '/filestorage/…')).
+        // Inside a method scope, $GLOBALS['CFG'] only resolves the first require;
+        // the nested ones in filelib.php fail with "Undefined variable $CFG" and
+        // break the Verbindung-testen admin action.
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
         $curl = new \curl();
         $curl->setopt([
             'CURLOPT_FOLLOWLOCATION'  => true,

@@ -141,6 +141,45 @@ class dashboard_renderer {
 
         $out .= \html_writer::table($table);
 
+        // Johannes' UX-Feedback (April 2026): der Save-Changes-Button der
+        // Einstellungsseite muss VISUELL oberhalb dieses Panels liegen.
+        // Core-Moodle rendert ihn nach der letzten Setting-Zeile, d.h. nach
+        // diesem Heading — wir stupsen das DOM-Element nach dem Laden an die
+        // richtige Stelle. Reiner Reorder, kein Event-Binding, kein AMD
+        // nötig. Fällt JS aus, ist das Panel oberhalb — auch akzeptabel.
+        $out .= <<<'HTML'
+<script>
+(function() {
+    function reorder() {
+        var panel = document.getElementById('admin-dashboardpanel');
+        if (!panel) { return; }
+        var form = panel.closest('form');
+        if (!form) { return; }
+        // The submit row in Moodle 4.5/5.x admin settings is a <fieldset>
+        // with class "collapsible" containing the submit <input>, or falls
+        // back to a plain div.form-buttons. Find the last submit input and
+        // use its own container's parent sibling position.
+        var submit = form.querySelector('input[type="submit"][name^="s__"], input[type="submit"][value], button[type="submit"]');
+        if (!submit) { return; }
+        // The submit button sits inside a wrapping div (e.g. .form-buttons
+        // or .felement). Walk up until we find a direct child of <form>.
+        var container = submit;
+        while (container.parentNode && container.parentNode !== form) {
+            container = container.parentNode;
+        }
+        if (container && container.parentNode === form) {
+            form.insertBefore(panel, container.nextSibling);
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', reorder);
+    } else {
+        reorder();
+    }
+})();
+</script>
+HTML;
+
         return $out;
     }
 }

@@ -1,0 +1,628 @@
+# mod_elediacheckin — Content-Distribution-Konzept
+
+**Stand:** 2026-04-05 (Phase 1 Implementierungs-Update)
+**Autoren:** Johannes Moskaliuk, Claude (Anthropic)
+**Status:** Entwurf, Grundlage für Implementierung
+
+---
+
+## 1. Ausgangslage
+
+Das Plugin `mod_elediacheckin` zieht Fragen/Impulse aus einer externen Content-Quelle und staged sie lokal in der Moodle-DB (siehe Fach- und Technikkonzept §8). Die ursprüngliche Annahme war "eine Git-basierte Content-Quelle pro Installation". Diese Annahme greift für das Geschäftsmodell zu kurz, weil sie drei sehr unterschiedliche Kundenbedürfnisse in einen Topf wirft:
+
+- Der Kunde, der **sofort nach der Installation loslegen** will, ohne sich mit Repos oder Credentials zu beschäftigen.
+- Der Kunde, der **eigene, firmenspezifische Fragen** pflegen möchte (HR-Onboarding, interne Prozesse, Produkt-Quizze) und dafür einen eigenen Redaktions-Workflow hat.
+- Der Kunde, der **von eLeDia kuratierte Premium-Inhalte** beziehen möchte, die regelmäßig aktualisiert werden (Lernkarten, Reflexionsfragen, Assessment-Fragen) — als kostenpflichtiges Abo.
+
+Dieses Konzept beschreibt eine Architektur, die alle drei Bedürfnisse aus einem einheitlichen Plugin-Core bedient.
+
+## 2. Drei-Modi-Architektur
+
+Der `sync_service` im Plugin kennt keine einzelne Content-Quelle mehr, sondern ein **Content-Source-Registry** mit drei austauschbaren Implementierungen. Die Quellen sind nicht exklusiv — ein Kunde kann beliebig viele gleichzeitig aktivieren. Jede Frage in der lokalen Moodle-DB bekommt eine Herkunfts-Kennzeichnung (`source_id`), der `question_provider` kann auf Wunsch aus allen oder nur einer bestimmten Quelle ziehen.
+
+### Modus 1 — Bundled (integriert)
+
+Mit dem Plugin wird eine JSON-Datei mitausgeliefert (z. B. `pix/content/default.json`), die einen kuratierten Starter-Set an Fragen enthält. Beim ersten Install-Durchlauf werden diese Fragen direkt in die `elediacheckin_question`-Tabelle importiert. Keine Netzverbindung nötig, keine Credentials, kein Setup.
+
+Zweck: Sofort nach der Installation funktionsfähig. Demo-Content für Screenshots im Moodle-Plugin-Directory-Review. Kostenlose Basis für jede Installation. Dient gleichzeitig als lebendes Schema-Beispiel.
+
+### Modus 2 — Eigenes Git-Repo
+
+Der Kunde trägt in den Plugin-Settings eine HTTPS-Repo-URL ein, optional einen Personal Access Token (PAT) für private Repos. Der `sync_service` pullt per HTTPS, validiert den Inhalt gegen das eLeDia-JSON-Schema, staged die Daten und führt einen atomischen Swap durch.
+
+Zweck: Kunden mit eigenem Redaktionsteam können firmenspezifische Fragen pflegen, ohne dass eLeDia oder irgendein Dritter Einblick hat. Git-nativer Workflow mit Pull Requests, CI-Validation, Rollbacks. Im Plugin-Admin-UI wird auf eine öffentlich einsehbare Vorlage-Repo-Struktur verlinkt (eLeDia stellt auf GitHub ein Template-Repo bereit, das man forken kann).
+
+**UI-Hinweis:** Im Admin-Bereich wird erklärt, wie man ein eigenes Repo anlegt, welche Datei-Struktur erwartet wird, und wie der PAT erzeugt wird. Ein "Verbindung testen"-Button validiert Repo-URL, Token und Schema-Konformität, bevor der erste Sync läuft.
+
+### Modus 3 — eLeDia Premium (License Server)
+
+Der Kunde trägt einen License-Key in die Plugin-Settings ein. Der `sync_service` spricht mit dem eLeDia-License-Server, bekommt einen kurzlebigen Token, lädt das aktuelle signierte Content-Bundle von einem CDN, verifiziert die Signatur gegen einen fest im Plugin-Code hinterlegten eLeDia-Public-Key, und übergibt die Daten an die Staging-Pipeline.
+
+Zweck: Paid-Feature. eLeDia monetarisiert kuratierte, gepflegte Content-Pakete (z. B. "Führungskräfte-Reflexion", "Onboarding Generation Z", "Resilienz-Training"). Regelmäßige Updates ohne Kundenaufwand. Zentrale License-Verwaltung bei eLeDia.
+
+### Kombination mehrerer Modi
+
+Ein typischer Kunde der zahlenden Kategorie hätte aktiv:
+
+- Modus 1 (Bundled) mit 50 kostenlosen Starter-Fragen
+- Modus 3 (eLeDia Premium) mit 500 regelmäßig aktualisierten Premium-Fragen
+- Modus 2 (eigenes Repo) mit 120 firmenspezifischen Fragen
+
+Im Plugin-Admin sieht man eine Quellenliste mit jeweils Herkunft, Anzahl Fragen, letzter Sync-Zeitpunkt, Status, und An-/Ausschalter. Der Kursleiter kann beim Anlegen einer Check-in-Aktivität optional filtern, aus welchen Quellen gezogen werden soll.
+
+## 3. Content-Source-Abstraktion im Plugin
+
+### Interface
+
+Alle drei Implementierungen implementieren dasselbe Interface:
+
+```php
+namespace mod_elediacheckin\local\content_source;
+
+interface content_source_interface {
+    public function get_id(): string;
+    public function get_display_name(): string;
+    public function test_connection(): connection_result;
+    public function fetch_manifest(): manifest;
+    public function fetch_bundle(string $version): bundle;
+    public function verify(bundle $bundle): bool;
+}
+```
+
+- `get_id()` liefert eine eindeutige Kennung pro Quelle (z. B. `bundled`, `git:<hash-der-url>`, `eledia:<license-key-hash>`).
+- `fetch_manifest()` liefert Metadaten: aktuelle Version, Anzahl Fragen, verfügbare Sprachen, Kategorien — ohne den vollen Bundle-Download.
+- `fetch_bundle()` liefert das eigentliche Content-Paket.
+- `verify()` prüft Signatur, Hashes, Schema-Konformität.
+
+### Gemeinsame Pipeline
+
+Der `sync_service` ruft für jede aktive Quelle `fetch_manifest()` auf, vergleicht die Version mit dem zuletzt gesyncten Stand aus `elediacheckin_sync_log`, lädt bei Bedarf per `fetch_bundle()` nach, validiert, staged in temporäre Tabellen, und tauscht atomisch via Transaktion. Diese Pipeline ist für alle drei Modi identisch — der einzige Unterschied liegt in der Quelle-Implementierung.
+
+Vorteil: Staging, Swap, Cache-Invalidierung, Task-Scheduling, Logging, Admin-UI für Sync-Status — alles existiert einmal und gilt für alle Modi.
+
+### Registry und Erweiterbarkeit
+
+Die Content-Source-Registry ist eine einfache Liste in der Plugin-Konfiguration mit Source-Typ, Konfigurations-Werten und Aktiv-Flag. Neue Source-Typen können in Zukunft hinzugefügt werden (z. B. ein hypothetischer `moodle_dataset_source`, der aus einem zentralen Moodle-Dataset-Plugin zieht), ohne den sync_service oder die Staging-Logik anfassen zu müssen.
+
+## 4. License-Server-Architektur (Modus 3)
+
+### Komponenten
+
+Der License-Server besteht aus einer schlanken Web-API, einer kleinen Datenbank, einem CDN-Bucket für die Content-Bundles, und einer Bezahl-Integration.
+
+**API** — zwei Kern-Endpunkte:
+
+- `POST /verify` — nimmt `{license_key, site_hash, plugin_version}` entgegen, prüft Gültigkeit in der DB, registriert/aktualisiert den Install-Eintrag, gibt `{token, bundle_version, bundle_url}` zurück. Token ist ein HMAC-signierter, kurzlebiger (24-48h) Signed Token.
+- `GET /bundle/{version}` — nimmt den Token als Bearer-Auth, leitet auf eine signierte CDN-URL um oder liefert das Bundle direkt bei kleinen Größen.
+
+Optionale Endpunkte: `/usage` für Telemetrie (anonymisierte Zähler), `/revoke` für manuelles Widerrufen durch eLeDia-Admins, `/health`.
+
+**Datenbank** — drei Tabellen reichen für den MVP:
+
+- `licenses`: key (UUID), customer_id, tier, created_at, expires_at, max_installs, revoked_at, stripe_subscription_id
+- `installs`: license_id, site_hash, site_url, plugin_version, first_seen, last_seen
+- `usage_log`: optional, für Analytics — nur aggregierte Zähler, keine personenbezogenen Daten
+
+SQLite reicht für die ersten hundert Kunden, ab dann Postgres.
+
+**CDN-Bucket** — Empfehlung: **Cloudflare R2**. S3-API-kompatibel, aber **keine Egress-Kosten**. Storage kostet $0,015 pro GB und Monat. Bei JSON-Fragen-Bundles von 1-10 MB pro Version reden wir über ein paar Cent pro Monat, auch bei Tausenden Kunden.
+
+**Signing** — zwei Ebenen:
+- Transport-Signing: HMAC-signed URL mit kurzer TTL für den Download selbst (CDN-native).
+- Content-Signing: Die Bundles werden vor dem Upload mit einem eLeDia-Private-Key (ED25519) signiert. Der Public-Key ist im Plugin-Code hardcoded. Selbst wenn jemand den License-Server oder den CDN-Bucket kompromittiert, kann er den Kunden keine manipulierten Fragen unterschieben, weil die Signatur nicht passt.
+
+**Bezahl-Integration** — Empfehlung: **Lemon Squeezy** statt Stripe direkt. Lemon Squeezy agiert als Merchant of Record und erledigt die EU-VAT-Komplexität komplett für euch. Weniger Buchhaltungsaufwand, etwas höhere Gebühren. Webhook-Handler erzeugt bei erfolgreicher Zahlung automatisch einen License-Key, trägt ihn in die DB ein, schickt ihn per E-Mail an den Kunden.
+
+### Tech-Stack-Empfehlung
+
+Zwei realistische Optionen:
+
+**Option A — klassischer PHP/Laravel-Stack**, gehostet auf einem Hetzner-VPS (€5-10/Monat). Vorteil: passt zum Moodle-Umfeld, ihr kennt PHP, Deployment per Git + `git pull` + Composer. Nachteil: Server-Pflege, Updates, Monitoring.
+
+**Option B — Cloudflare Workers + D1 + R2**, vollständig serverless. Vorteil: null Server-Pflege, weltweit edge-verteilt, praktisch unbegrenzt skalierbar, Gesamtkosten unter €10/Monat bis in die Tausende von Kunden. Nachteil: JavaScript/TypeScript statt PHP, weniger vertraut.
+
+Für einen schlanken Start bei eLeDia würde ich Option A empfehlen, weil der Team-Skill passt. Option B ist die langfristig skalierbarere Wahl, macht aber erst ab mittlerer dreistelliger Kundenzahl echten Unterschied.
+
+### Aufwandsschätzung
+
+**MVP (funktionsfähig, noch kein Dashboard, kein Auto-Billing):**
+- API mit 2 Endpunkten: 1 Tag
+- DB-Schema + Migrationen: halber Tag
+- Bundle-Upload-Skript (manuell ausführbar): halber Tag
+- CDN-Setup (R2, Bucket, Credentials, Domain): halber Tag
+- Content-Signing-Pipeline: halber Tag
+- Plugin-seitige `eledia_content_source`-Klasse: 1 Tag
+- Integration-Test gegen echten License-Server: 1 Tag
+
+**Summe MVP: 4-5 Arbeitstage**
+
+Keys werden in dieser Phase manuell per SQL-Insert angelegt — reicht für die ersten 10 zahlenden Kunden problemlos.
+
+**Production-ready (inkl. Automatisierung):**
+- Lemon-Squeezy-Webhook + Key-Generierung: 1 Tag
+- Admin-Dashboard für eLeDia (Kunden anlegen, widerrufen, verlängern, sehen): 2-3 Tage
+- GitHub Action für automatisches Build + Upload bei Push auf `main`: 1 Tag
+- Monitoring (Sentry + Uptime-Robot): halber Tag
+- Rate-Limiting gegen Brute-Force-Key-Versuche: halber Tag
+- Bundle-Update-Notification an License-Server: halber Tag
+- Security-Hardening (HTTPS, CSP, DB-Backups): 1 Tag
+- Dokumentation (intern + customer-facing): 1 Tag
+
+**Summe Production-ready: zusätzlich 7-9 Arbeitstage.**
+
+**Gesamt: etwa zwei bis zweieinhalb Wochen fokussierter Arbeit für eine wirklich produktionstaugliche Lösung.**
+
+### Betriebskosten (monatlich)
+
+- Hetzner VPS CX11 oder CX22: €5-10
+- Cloudflare R2 Storage (selbst bei 10 GB Bundles): €0,15
+- Cloudflare R2 Egress: €0 (kostenlos)
+- Domain (`licenses.eledia.de` oder `content.eledia.de`): ~€1 (anteilig)
+- Lemon Squeezy: 5% + $0,50 pro Transaktion (keine monatliche Fixgebühr)
+- Monitoring (Sentry Free-Tier, UptimeRobot Free): €0
+
+**Summe fix: <€15/Monat**, unabhängig von der Kundenzahl, bis in den vierstelligen Bereich.
+
+## 5. GitHub-basierter Autoren-Workflow (Hybrid)
+
+Der License-Server verwaltet die Distribution, aber die eigentlichen Fragen werden in einem privaten GitHub-Repo bei eLeDia gepflegt. Damit hat die Redaktion einen git-nativen Workflow mit Pull Requests, Code-Review, CI-Validation und vollständiger Versionshistorie.
+
+### Pipeline
+
+1. **Autoren arbeiten in einem privaten Repo** (z. B. `eledia/checkin-content-premium`). Jede neue Frage, jede Änderung ist ein Pull Request.
+2. **Eine GitHub Action auf jedem PR** validiert:
+   - JSON-Schema-Konformität (gegen `schema/question.schema.json`)
+   - Qualitäts-Lints: keine Duplikate, alle Fragen haben Kategorien, Mindestlänge, Mindest-/Maximal-Zeichen, verbotene Begriffe
+   - Link-Check falls Fragen auf externe Ressourcen verweisen
+3. **Merge auf `main`** triggert eine zweite Action, die:
+   - alle Fragen einsammelt und zu einem versionierten Bundle packt (`bundles/premium-v1.2.3.json`)
+   - die Version aus `git describe` oder einer `VERSION`-Datei zieht
+   - das Bundle mit dem eLeDia-Private-Key (ED25519) signiert (`bundles/premium-v1.2.3.json.sig`)
+   - Bundle + Signatur in den R2-CDN-Bucket hochlädt
+   - den License-Server per Webhook informiert ("v1.2.3 ist live")
+4. **Der License-Server** aktualisiert seinen `current_bundle_version`-Eintrag. Beim nächsten `verify`-Call liefert er automatisch die neue Version aus.
+5. **Kunden-Moodles** pullen via geplantem Task alle 6h, entdecken die neue Version im Manifest, laden das Bundle, verifizieren die Signatur, stagen und swappen.
+
+### Warum privat und nicht öffentlich?
+
+Das Content-Repo ist der einzige Ort, an dem die Fragen im Klartext vorliegen. Öffentlich wäre das Paid-Feature wertlos, weil jeder Dritte die Fragen einfach forken und kostenlos weiterverteilen könnte. Zahlende Kunden bekommen die Fragen ausschließlich über den License-Server als signiertes, tokengeschütztes Bundle.
+
+### Branch-Strategie
+
+- `main` → aktive Premium-Produktion. Jeder Merge = neuer Release.
+- `feature/*` → einzelne Autoren-PRs, bevor sie in `main` gemerged werden.
+- Optional `staging` → wenn ihr größere Release-Zyklen mit Sammel-Releases haben wollt.
+
+## 6. Sicherheits-Modell
+
+### Angriffs-Szenarien und Gegenmaßnahmen
+
+**Szenario: License-Key wird geleakt** (z. B. ein Kunde stellt seine config.php versehentlich auf GitHub). Gegenmaßnahme: `max_installs`-Limit auf jedem Key (Standard 3-5, je nach Tier). Bei Überschreitung lehnt der Server neue Site-Hashes ab. eLeDia-Admin kann den Key manuell widerrufen.
+
+**Szenario: License-Server wird kompromittiert** und ein Angreifer versucht, den Kunden manipulierte Fragen unterzuschieben. Gegenmaßnahme: Content-Signing mit Private-Key, der *nicht* auf dem License-Server liegt (sondern im GitHub-Actions-Secret). Der Server verteilt nur die Signatur, die Plugins verifizieren sie. Selbst ein vollständig übernommener Server kann keine gültigen Bundles ausstellen.
+
+**Szenario: Man-in-the-Middle auf dem Kunden-Netzwerk**. Gegenmaßnahme: HTTPS-Only, Certificate Pinning im Plugin (optional, macht Maintenance schwieriger), plus Content-Signatur als zweite Schicht.
+
+**Szenario: Kunde kündigt, will aber weiter Updates bekommen**. Gegenmaßnahme: Key wird in `licenses.revoked_at` gesetzt, nächster `verify`-Call schlägt fehl, keine neuen Syncs mehr. Die zuletzt gesyncten Fragen bleiben in der lokalen Moodle-DB (das ist bewusst so, damit laufende Kurse nicht abbrechen), aber neue Inhalte kommen nicht mehr.
+
+**Szenario: Brute-Force auf License-Keys**. Gegenmaßnahme: Rate-Limiting pro IP und pro (potentieller) License-Key, Keys sind UUID v4 (122 Bit Entropie, praktisch unratbar).
+
+### DSGVO-Betrachtung
+
+Der License-Server speichert:
+- License-Key ↔ Kundendaten (Name, E-Mail, Rechnungsadresse) — notwendig für Vertragsabwicklung, Rechtsgrundlage Art. 6 Abs. 1 lit. b DSGVO.
+- Site-Hash + optional Site-URL — technisch notwendig für `max_installs`-Enforcement und Missbrauchserkennung.
+- Optional: anonymisierte Nutzungszähler (wie viele Syncs, welche Bundle-Version). Keine Nutzerdaten aus dem Kunden-Moodle.
+
+**Was der License-Server bewusst nicht speichert:** welche Fragen einzelne Moodle-Nutzer sehen oder beantworten. Diese Daten bleiben komplett in der Kunden-Moodle-DB. Das Plugin ist bereits als `null_provider` für die Moodle-Privacy-API deklariert, das ändert sich nicht.
+
+Ein Auftragsverarbeitungsvertrag (AVV) zwischen eLeDia und den Kunden regelt die Verarbeitung der Install-Metadaten.
+
+## 7. UI-Konzept für die Plugin-Settings
+
+Im Moodle-Admin (Website-Administration → Plugins → Aktivitäten → Check-in):
+
+**Abschnitt "Inhaltsquellen"**
+
+Eine Liste konfigurierter Quellen mit folgenden Spalten:
+
+- **Status**: Ampel (grün = letzte Sync erfolgreich, gelb = veraltet, rot = Fehler)
+- **Typ**: Bundled / Git / eLeDia Premium
+- **Name**: vom Nutzer vergeben oder automatisch
+- **Fragen**: Anzahl
+- **Letzter Sync**: Zeitstempel
+- **Nächster Sync**: Zeitstempel (aus Scheduled Task)
+- **Aktionen**: Aktivieren/Deaktivieren, Jetzt synchronisieren, Bearbeiten, Entfernen
+
+Unter der Liste ein Button "Quelle hinzufügen" mit Drop-Down:
+- Bundled (nur einmal möglich, ist standardmäßig aktiv)
+- Eigenes Git-Repo
+- eLeDia Premium (License-Key eingeben)
+
+**Beim Hinzufügen einer Git-Quelle**:
+- Feld "Repository-URL" (HTTPS)
+- Feld "Personal Access Token" (optional, für private Repos, als configpasswordunmask)
+- Feld "Branch" (Default: `main`)
+- Feld "Sync-Intervall" (Default: alle 6h)
+- Button "Verbindung testen" — prüft URL, Token, Schema-Konformität, ohne zu syncen
+- Link "Wie lege ich ein Repo an?" → öffnet Doku-Seite mit Template-Link
+
+**Beim Hinzufügen einer eLeDia-Premium-Quelle**:
+- Feld "License-Key"
+- Button "License prüfen" — verifiziert gegen License-Server, zeigt Tier, Ablaufdatum, verfügbare Bundles
+- Link "License erwerben" → eLeDia-Shop
+
+**Abschnitt "Quellen-Filter beim Kursanlegen"**
+
+Eine Kursleitung kann beim Anlegen einer Check-in-Aktivität optional festlegen, aus welchen der aktiven Quellen gezogen werden soll. Standard: alle. Nützlich z. B., wenn eine HR-Abteilung in einem Onboarding-Kurs nur firmeneigene Fragen nutzen will und die allgemeinen Bundled-Fragen unterdrücken.
+
+## 8. Roadmap — Build-Reihenfolge
+
+### Phase 1 — Plugin-Grundgerüst mit Modus 1 + 2
+
+**Ziel:** Testbares, vollständiges Plugin ohne jegliche eLeDia-Infrastruktur. Moodle-Plugin-Directory-fähig.
+
+- `content_source_interface` und Registry im Plugin
+- `bundled_content_source` mit einer mitgelieferten `pix/content/default.json`
+- `git_content_source` mit HTTPS-Pull, PAT-Support, Schema-Validation
+- Settings-UI für Quellenliste (noch ohne eLeDia-Modus)
+- Öffentliches Demo-Content-Repo auf GitHub (`jmoskaliuk/elediacheckin-content-demo`) mit JSON-Schema, Beispielfragen, CI-Validation, README mit Schema-Doku
+- End-to-end-Test: Plugin installiert sich, Bundled-Content ist sofort da, Demo-Repo-URL eintragen, Sync läuft durch, Fragen erscheinen im Check-in
+
+**Aufwand:** ca. 3-4 Cowork-Sessions. Danach ist das Plugin vollständig funktionsfähig und kann ins Moodle-Plugin-Directory eingereicht werden.
+
+### Phase 2 — License-Server-MVP
+
+**Ziel:** Erster zahlender Kunde kann Premium-Content beziehen.
+
+- API, DB, CDN, Signing, manuelles Key-Management per SQL
+- `eledia_content_source` im Plugin
+- Privates Premium-Content-Repo mit initialem Content-Set
+- GitHub-Action für Build + Upload + Sign
+- Ein erster zahlender Pilotkunde als End-to-end-Test
+
+**Aufwand:** 4-5 fokussierte Arbeitstage. Startet erst, wenn Phase 1 stabil läuft und erster Kunde in Aussicht ist.
+
+### Phase 3 — Production-ready License-Server
+
+**Ziel:** Selbstbedienungs-fähig, skalierbar, überwacht.
+
+- Lemon-Squeezy-Integration mit Webhook-Key-Generierung
+- Admin-Dashboard für eLeDia
+- Monitoring, Rate-Limiting, Backups, Dokumentation
+- Security-Review
+- Öffentlicher Launch
+
+**Aufwand:** weitere 7-9 Arbeitstage. Erst sinnvoll, wenn Phase 2 validiert ist.
+
+### Phase 4 — Erweiterungen
+
+- Optionale Telemetrie (welche Fragen wie oft gezogen, mit Opt-In)
+- Content-Personalisierung nach Kategorien oder Lernpfaden
+- Alternative Bezahl-Modelle (pay-per-bundle statt Abo)
+- Weitere Content-Source-Implementierungen (z. B. AI-generierte Fragen via eLeDia-API)
+
+## 9. Offene Entscheidungen
+
+Diese Punkte sollten vor Beginn der Phase-1-Implementierung geklärt werden:
+
+**JSON-Schema der Fragen.** Wie viele Felder? Nur "Frage + optionaler Hinweis" oder vollständige Struktur mit Kategorien, Schwierigkeit, Tags, Mehrsprachigkeit, Multimedia-Anhängen, Lösungsweg, optionalen Mehrfachantworten? → Johannes arbeitet parallel am Schema.
+
+**Repo-Naming-Konvention** für das öffentliche Demo-Content-Repo und das private Premium-Repo. Vorschlag: `jmoskaliuk/elediacheckin-content-demo` (public, Schema + Demo), `eledia/checkin-content-premium` (private, Redaktion).
+
+**License-Server-Stack** — Option A (Laravel/Hetzner) oder Option B (Cloudflare Workers)? Kann später entschieden werden, blockt Phase 1 nicht.
+
+**Bundle-Format** — ein einziges JSON-File pro Version, oder aufgeteilt nach Kategorien/Sprachen für Delta-Updates? Vorschlag: ein Bundle pro Version für MVP, Delta-Updates später falls nötig.
+
+**Public-Key-Rotation** — wie verfahren wir, wenn der eLeDia-Private-Key einmal rotiert werden muss? Vorschlag: Plugin unterstützt von Anfang an eine Liste erlaubter Public Keys (Array statt String), ein neuer Key wird per Plugin-Update ausgeliefert, alte Bundles bleiben verifizierbar.
+
+**Signing-Verfahren** — ED25519 (empfohlen: schnell, klein) oder RSA-4096 (etablierter)? Vorschlag: ED25519 mittels `sodium_crypto_sign_verify_detached()`, das ist in allen Moodle-5.x-Hostings verfügbar (libsodium ist PHP-Core seit 7.2).
+
+**Sprachen-Handling** — wie werden mehrsprachige Fragen im Bundle repräsentiert? Vorschlag: jede Frage hat ein `translations`-Array mit ISO-Code als Key. Schema-Entscheidung, wird im Zuge von Punkt 1 oben geklärt.
+
+**Versionierungs-Strategie** — SemVer für Content-Bundles, oder Monotone Zähler, oder Datum-basiert? Vorschlag: SemVer für Premium (z. B. `2026.4.0`), weil es Kompatibilitäts-Aussagen erlaubt ("v2026.x ist mit Plugin v0.5+ kompatibel").
+
+---
+
+## 10. Phase-1-Implementierungs-Entscheidungen (2026-04-05)
+
+Während der Cowork-Sessions zu Phase 1 wurden folgende Detail-Entscheidungen getroffen. Sie ergänzen die vorherigen Abschnitte, ersetzen sie aber nicht.
+
+### 10.1 JSON-Schema der Fragen (finalisiert)
+
+Das Bundle-Format ist in `docs/content-schema.json` (JSON Schema Draft 2020-12) definiert. Wichtige Entscheidungen:
+
+- **Bundle-Wrapper** enthält `schema_version`, `bundle_id`, `bundle_version`, `generated_at`, `language`, `questions[]`.
+- **Pflichtfelder je Frage:** `id` (stable, `[A-Za-z0-9_.-]+`), `ziel`, `kategorie[]`, `frage`, `hat_antwort`, `sprache` (ISO-639-1), `lizenz`, `version`, `status`, `created_at`, `updated_at`.
+- **Optionale Felder je Frage:** `antwort` (Pflicht gdw. `hat_antwort=true`), `autor`, `quelle`, `link`, `media`.
+- **`ziel` ist single-select**, Enum: `impuls | checkin | checkout | retro | learning | funfact | zitat`. Bewusste Entscheidung gegen Multi-Select — jede Frage hat genau eine didaktische Intention. **Achtung zwei Ebenen:** Auf Frage-Ebene (`question.ziel` im Bundle) ist das Feld single-select; auf Aktivitäts-Ebene (`elediacheckin.ziele` in `mod_form`) ist es multi-select, weil eine Aktivität mehrere Zielarten in einem Kartenset anbieten darf. Gleiches Wort, unterschiedliche Kardinalität — beim Lesen nicht verwechseln.
+- **`status` Enum:** `draft | published | deprecated`. Der `question_provider` liefert per Default nur `published`.
+- **Kategorie-Enums sind pro `ziel` unterschiedlich**, erzwungen über `allOf`/`if-then`-Blöcke im Schema. Jede Kategorie ist ein externes ID-Token (keine lokalisierten Strings im Content-Repo).
+- **Verworfen:** `tags`, `dauer`, `gruppengroesse`, `replaced_by`. Können bei Bedarf als Schema-v2 nachgezogen werden.
+
+### 10.2 XMLDB-Schema (Phase 1, Version 2026040501)
+
+- **Eine einzige Fragetabelle** `elediacheckin_question` statt getrennter `_category`/`_question_cat`-Tabellen. Kategorien werden als CSV im Feld `categories` mitgeführt. Der `question_provider` filtert die CSV in PHP nach dem SQL-Abruf — akzeptabel bei erwarteten <10k Fragen pro Site.
+- **Staging-Swap-Pattern:** Feld `stage` (0 = live, 1 = staging). Sync-Flow:
+  1. Alle alten Staging-Zeilen löschen.
+  2. Bundle komplett als `stage=1` einschreiben.
+  3. In einer Transaktion: alle `stage=0` löschen, dann `stage=1 → stage=0` umfärben.
+  Garantie: ein fehlschlagender Sync lässt den Live-Datenbestand unverändert.
+- **`elediacheckin`-Tabelle:** Feld `mode` (`checkin|checkout|both`) wurde durch `ziele` (CHAR(255), CSV der erlaubten Kartenarten) ersetzt. `mod_form` bietet Multi-Select. Upgrade migriert `mode=both` → `ziele='checkin,checkout'`.
+- **`elediacheckin_sync_log`** wurde um `sourceid`, `bundleid`, `bundleversion` erweitert, `sourceversion`/`sourcecommit` entfernt.
+- **Indizes:** `stage_ext_lang` (unique) für idempotente Inserts, `stage_ziel_lang_status` (nonunique) für den häufigsten Abfragepfad.
+
+### 10.3 Content-Source-Architektur (Phase 1, umgesetzt)
+
+- **Interface** `mod_elediacheckin\content\content_source_interface` mit `get_id()`, `get_display_name()`, `test_connection()`, `fetch_bundle(): content_bundle`. Wirft `content_source_exception` bei Fehlern.
+- **Registry** `content_source_registry::all()/get($id)/get_fallback()` liefert eine statische Liste.
+- **`bundled_content_source`** liest `db/content/default.json` aus dem Plugin-Verzeichnis. Ist garantierter Fallback.
+- **`git_content_source`** lädt per Moodle-`curl`-Wrapper eine einzelne Bundle-JSON von einer HTTPS-URL (nicht per `git clone` — Moodle-Hoster haben meist kein `git`, und wir brauchen ohnehin nur eine Datei). Optional: Bearer-Token (PAT für private GitHub/GitLab-Repos).
+- **`eledia_premium_content_source`** kommt in Phase 2.
+- **Hand-gerollter `schema_validator`** (keine Composer-Dependency erlaubt in Moodle-Plugins). Validiert Bundle-Header + alle Fragen gegen die Schema-Konstanten (ZIEL_ENUM, STATUS_ENUM, CATEGORIES_BY_ZIEL).
+- **Fallback-Verhalten:** Wenn die konfigurierte Quelle fehlschlägt, loggt `sync_service` den Fehler, lässt aber den Live-Datenbestand intakt (siehe 10.2). Der Admin sieht den Fehler im Sync-Log-Report.
+
+### 10.4 Darstellungs-Modi (Mockup v2 in `docs/display-modes-mockup-v2.html`)
+
+Drei Modi, alle als Teil von `mod_elediacheckin` implementiert (nicht im Block):
+
+- **`normal`** — eingebettet in die normale Moodle-Aktivitätsseite. Standardfall.
+- **`popup`** — Frage in separatem Browserfenster (`window.open`), optimiert für Bildschirm-Teilen in Videokonferenzen. Großer Font (clamp 1.8rem–2.6rem). Close-Button oben rechts. Die Host-Moodle-Seite bleibt offen und zeigt weiterhin Präsentator-Controls.
+- **`vollbild`** — Fullscreen-Overlay im gleichen Tab (`position: fixed; inset: 0`). Radial-Gradient-Hintergrund, sehr großer Font (clamp 2.5rem–5.5rem). Close-Button (✕) rotiert beim Hover. Esc-Taste schließt.
+
+**UI-Regeln (konsolidiert nach v2-Feedback):**
+
+- **Keine Kategorie-Anzeige** in irgendeinem Modus. Kategorien sind Filterkriterium, nicht Inhalt.
+- **Kein statischer Ziel-Chip.** Das Ziel der Aktivität ist in der Instanz-Einstellung (`elediacheckin.ziele`) festgelegt.
+- **Ziel-Umschalter nur bei mehreren Zielen:** Sind in `ziele` z. B. `checkin,checkout` aktiviert, erscheint am Kopf der Karte (und analog in Popup/Vollbild-Header) ein Umschalter mit je einem Button pro aktivem Ziel. Bei nur einem aktiven Ziel keinerlei Ziel-UI.
+- **Navigation:** Ein einziger Primär-Button **„Nächste Frage"**. Keine Vor/Zurück-Pfeile, kein „Andere Frage".
+- **Antwort-Toggle** erscheint nur, wenn die Frage `hat_antwort=true` hat. Bei `false` wird der Button komplett ausgeblendet (nicht disabled).
+- **Vollbild- und Popup-Launcher** sind kleine runde Icon-Buttons (SVG, 36×36) oben rechts auf der Karte in Normal-Modus. Keine Text-Buttons mehr.
+
+**Mod vs. Block:** Alle drei Modi leben im `mod`. Der Block ruft intern `mod_elediacheckin/present.php?cmid=...&layout=popup|fullscreen` auf und ist damit nur ein dünner Frontend-Launcher. Das stellt sicher, dass Berechtigungen, Tracking und Caching einheitlich bleiben.
+
+### 10.5 Admin-Settings-UI (Phase 1, umgesetzt)
+
+`settings.php` zeigt drei Abschnitte:
+
+1. **Inhaltsquelle** — Dropdown (`bundled | git | [eledia — Phase 2]`). Steuert welche Quelle der geplante Sync-Task nutzt.
+2. **Git-Repository** — `repourl`, `reporef`, `repotoken` (passwordunmask). Per `hide_if` nur sichtbar, wenn `contentsource=git`.
+3. **Sprach-Fallbacks** — `defaultlang`, `fallbacklang`.
+
+Zusätzlich: ein Link-Button zum neuen Sync-Log-Report (siehe 10.6).
+
+### 10.6 Admin-Report: Sync-Log
+
+`admin/sync_log.php` registriert sich als `admin_externalpage` unter `modsettings`. Zeigt:
+
+- **Aktuellen Zustand:** aktive Quelle + "Sync jetzt ausführen"-Button (ruft `sync_service::run('manual')`).
+- **Log-Tabelle:** letzte 100 Läufe mit Datum, Auslöser (`manual`/`scheduled`), Source-ID, Bundle+Version, Ergebnis als Badge (`bg-success`/`bg-danger`), Fragen-Anzahl, getrimmte Fehlermeldung.
+
+UI folgt eledia-moodle-ux: Bootstrap-Karten, `table table-sm table-hover`, keine custom CSS.
+
+### 10.7 Demo-Content-Repo: `content_elediacheckin`
+
+Eigenes Repo in `content_elediacheckin/` im Workspace, Name auf expliziten Wunsch von Johannes:
+
+```
+content_elediacheckin/
+├── bundle.json                # 8 Beispielfragen, bundle_id "eledia-default"
+├── schema.json                # Kopie des docs/content-schema.json
+├── README.md                  # Editor-Anleitung, Feld-Tabelle, lokale Validation
+├── .github/workflows/
+│   └── validate.yml           # CI: Schema-Validation + Duplicate-ID-Check
+└── .gitignore
+```
+
+CI läuft `jsonschema>=4.21` (Draft 2020-12) und prüft zusätzlich auf doppelte `id`s. Läuft auf Push, PR, Workflow-Dispatch.
+
+Dieses Repo dient gleichzeitig als (a) Referenz-Implementierung für Kunden, die ihr eigenes Repo forken wollen, (b) Demo-Content für den Plugin-Directory-Review, (c) End-to-end-Testfall für `git_content_source`.
+
+### 10.8 Deploy-Pipeline
+
+Der Deploy-Workflow ist: Workspace → Mac-Git-Repo → GitHub → `~/moodle-update.sh checkin`. Das Plugin-Git-Repo auf dem Mac ist gleichzeitig der Moodle-Plugin-Pfad im Demo-Stack, siehe User-Memory. Änderungen aus Cowork-Sessions müssen explizit rsynct, committet und gepusht werden — sie landen nicht automatisch im Moodle.
+
+### 10.9 Aktivitäts-Form-UX und Sprach-Auflösung (Phase-1-Finalisierung)
+
+Nach dem ersten Demo-Durchlauf wurde das Aktivitätsformular (`mod_form.php`) deutlich verschlankt und die Sprach-Auflösung robuster gemacht:
+
+- **Fragetypen (`ziele`)** werden als `autocomplete`-Multi-Select angeboten, Default `checkin,checkout`. Ein einzelnes Kursmodul kann damit mehrere Kartenarten gleichzeitig abbilden (Check-in + Check-out im selben Meeting-Opener).
+- **Kategorien (`categories`)** verwenden denselben `autocomplete`-Typ. Die Optionen werden zur Laufzeit aus `schema_validator::CATEGORIES_BY_ZIEL` gebaut und als zusammengesetzte Keys (`ziel__cat`, z. B. `checkin__energie`) mit ziel-präfigierten Labels („Check-in: Energie") angezeigt. Das vermeidet Kollisionen zwischen Kategorien gleichen Namens in verschiedenen Zielen und bleibt auf DB-Ebene ein schlichtes CSV (die Composite-Keys werden in `get_data()` wieder auf eindeutige Kategorie-Slugs reduziert, in `data_preprocessing()` wieder auf alle passenden `ziel__cat`-Keys expandiert).
+- **Inhaltssprache (`contentlang`)** ist ein einfaches `select` mit zwei Sentinels plus allen installierten Sprachpacks: `_auto_` („Nutzersprache — empfohlen", Default für neue Aktivitäten), `_course_` („Kurssprache") und danach die konkreten ISO-Codes. Die Sentinels werden als String-Literale in `view.php`/`present.php` aufgelöst; es gibt bewusst keine Klassenkonstanten, um das Laden von `mod_form.php` auf dem Hot-Path zu vermeiden.
+- **Sprach-Fallback-Kette**: Der Provider wird zunächst mit der konfigurierten Sprache aufgerufen, danach mit `current_language()`, danach mit `null` (irgendein Bundle). Dadurch zeigt ein frisch erstelltes Modul auf einer Moodle-Site mit nur DE-Bundle auch bei englischem User sofort Fragen an, statt den Filter „keine Fragen verfügbar" zu liefern.
+- **Tote Felder entfernt**: `randomstart`, `shownav`, `showother` und `showfilter` waren noch aus dem frühen UI-Mock übrig und wurden weder gelesen noch angezeigt. Sie sind in `install.xml` und über `db/upgrade.php` Schritt 2026040503 aus der Datenbank entfernt.
+- **AMD-Bundles sind Pflicht**: Moodles RequireJS lädt nur `amd/build/*.min.js`, nicht `amd/src/*.js`. Die Build-Artefakte werden im Repo mitversioniert (kein Grunt im Deploy), damit die Präsenzmodus-Buttons (Popup, Vollbild) direkt nach einem Upgrade funktionieren. Dies war der Grund für den „Buttons ohne Funktion"-Bug beim ersten Test und ist ab jetzt Teil der Deploy-Checkliste.
+- **Initial-Sync**: `db/install.php` triggert den Sync direkt nach einer Neuinstallation, `db/upgrade.php` 2026040502 holt den Sync für bereits installierte Dev-Sites nach. Vorher war das Fragen-Repository leer, bis der Cron-Scheduler das erste Mal lief.
+- **eledia_premium** erscheint ab sofort als sichtbarer, aber als „(Phase 2)" markierter Eintrag im Content-Source-Dropdown. Es ist keine funktionierende Strategie dahinter registriert; die Sync-Service-Implementierung fällt sauber auf `bundled` zurück, wenn jemand den Wert wählt. Das macht die geplante Premium-Quelle sichtbar, ohne einen Feature-Flag-Branch zu riskieren.
+
+### 10.11 Form-Refinement: „Ziel" + dynamischer Kategorienfilter (April 2026)
+
+Nach dem ersten Sicht-Test wurde das Aktivitätsformular noch einmal nachgeschärft:
+
+- **Labels umbenannt**: „Fragetypen" → „**Ziel**" (Singular, auch wenn Mehrfachauswahl möglich ist — das Feld beantwortet die Frage „was soll diese Aktivität erreichen?"). „Erlaubte Kategorien" → „**Kategorien**". Die alte „Ziel: Kategorie"-Doppelbeschriftung im Kategorien-Picker entfällt, weil sie durch den neuen Filter redundant wird.
+- **Komposit-Keys durch bare Keys ersetzt**: Der Kategorien-Picker benutzt ab Version `2026040505` nur noch die nackten Kategorie-IDs (`stimmung`, `fokus`, …) als Option-Keys. Kategorien, die zu mehreren Zielen gehören (z. B. `stimmung` in `checkin`, `checkout`, `retro`), erscheinen nur einmal in der Liste. Das vereinfacht `data_preprocessing()` und `get_data()` zu trivialen CSV↔Array-Konvertierungen.
+- **Dynamischer Filter per AMD-Modul** `mod_elediacheckin/category_filter`: Beim Laden der Form wird über `$PAGE->requires->js_call_amd` eine Map `{ category_id: [ziel1, ziel2, ...] }` serverseitig erzeugt und an das Modul übergeben. Das Modul hört auf `change`-Events des `id_ziele`-Selects, durchläuft alle `<option>`-Elemente des `id_categories`-Selects und setzt `disabled`/`hidden` je nachdem, ob mindestens eines der selektierten Ziele zu der Kategorie passt. Leere Ziele-Auswahl = alle Kategorien sichtbar. Moodles `form-autocomplete` respektiert `option.disabled` beim Suggestion-Aufbau; ein `change`-Dispatch auf das Source-Select sorgt außerdem dafür, dass bereits selektierte, jetzt nicht mehr passende Kategorien als Pills entfernt werden.
+- **Kein Server-Round-Trip**: Die Filterung läuft vollständig clientseitig, weil die Map klein ist (O(Kategorien)) und sich bei normalen Form-Interaktionen nicht ändert. Ein zukünftiges Feature „dynamische Kategorien aus externem Bundle" würde das Modul auf `ajax`-Typ mit Backend-Handler umstellen.
+
+### 10.12 Zielgruppe + Kontext als orthogonale Tag-Dimensionen (April 2026, Version 2026040508)
+
+Um Kartenbundles für unterschiedliche Nutzer:innen-Szenarien verwendbar zu machen, ohne die `ziel/kategorie`-Achse zu überladen, wurden zwei orthogonale, optionale Tag-Dimensionen eingeführt:
+
+- **`zielgruppe`** — Enum `fuehrungskraefte | team | grundschule`. Beschreibt, für wen die Karte primär gedacht ist.
+- **`kontext`** — Enum `arbeit | schule | hochschule | privat`. Beschreibt, in welchem Setting die Karte gespielt wird.
+
+**Schema-Ebene:** Beide Felder sind im Bundle optional, akzeptieren Arrays von Enum-Werten (mehrfach möglich), sind in `db/content/schema.json` als `$defs` definiert und werden vom `schema_validator` geprüft. Karten ohne diese Felder bleiben 100 % abwärtskompatibel.
+
+**DB-Ebene:** Neue CSV-Spalten `zielgruppe` und `kontext` in `elediacheckin_question` (NOT NULL, Default `''`) und in `elediacheckin` (NULL erlaubt — leer = kein Filter). Upgrade-Step `2026040508` fügt die Spalten hinzu und triggert einen Re-Sync, damit bestehende Bundles die neuen Felder einlesen.
+
+**UI-Ebene:** Zwei Single-Select-Dropdowns im `mod_form` mit „Alle Zielgruppen" bzw. „Alle Kontexte" als erstem, explizit wählbarem Eintrag (leerer Wert = keine Einschränkung). Bewusst **kein dynamischer Filter** wie bei Kategorien: `zielgruppe` und `kontext` sind orthogonal zu `ziel`, d. h. jede Karte kann theoretisch jede Kombination haben, und eine Einschränkung wäre nur Scheingenauigkeit.
+
+> **UX-Umbau 2026-04-05:** Ursprünglich waren beide Felder Autocomplete-**Multi**-Selects mit „Alle X" als Noselection-String. In der Praxis war der häufige Fall „Alle" dadurch versteckt und die Multi-Auswahl („Team **und** Führungskräfte gleichzeitig") wurde nie genutzt. Umgebaut zu Single-Select, damit „Alle X" als erster Dropdown-Eintrag sichtbar ist. `ziele` und `categories` bleiben Multi-Select, weil dort echte Mehrfachauswahl regelmäßig vorkommt. DB-Layout unverändert (CSV-String, der jetzt 0 oder 1 Wert enthält); `question_provider::normalise_csv()` nimmt Skalar wie Array entgegen.
+
+**Matching-Semantik (wichtig):** „**Or-untagged**" — ein Filter matcht eine Karte, wenn die Karte entweder **keinen** Tag in dieser Dimension hat (= allgemeingültig) **oder** mindestens einen Wert mit dem Filter teilt. Konsequenz für Content-Autor:innen: Karten, die überall funktionieren, werden **nicht** getaggt. Nur spezifische Karten (z. B. „Was hast du heute in der Pause gespielt?" → `zielgruppe: [grundschule], kontext: [schule]`) bekommen Tags. Damit bleiben allgemeine Bundles auch bei gesetztem Filter brauchbar.
+
+Implementiert in `question_provider::get_questions_by_filter()` nach dem SQL-Abruf, analog zum bestehenden Kategorien-Filter. Beide Filter werden von `view.php` und `present.php` an den Provider durchgereicht.
+
+### 10.13 Content-Quelle nur admin-seitig, „eigene Fragen" pro Aktivität (April 2026)
+
+Nach einer kurzen Gap-Diskussion wurde die Multi-Source-UI aus der Gap-Analyse bewusst verworfen und durch ein einfacheres, klareres Modell ersetzt:
+
+**Entscheidung 1: Admin owns the source.** Es gibt genau **eine** aktive Content-Quelle pro Moodle-Site. Nur die Site-Administration (Capability `moodle/site:config`) wählt, ob `bundled`, `git` oder später `eledia_premium` aktiv ist — unter *Site-Administration → Plugins → Aktivitäts-Module → Check-in*. Lehrkräfte können die Quelle nicht pro Aktivität overriden. Begründung: (a) Verantwortung für Inhaltsqualität und Lizenzkompatibilität liegt bei der Einrichtung, nicht bei jeder einzelnen Lehrkraft, (b) Sync-Log, Cache-Invalidierung und Quota-Betrachtungen werden durch ein zweites Achsenkreuz (pro Aktivität) unnötig verkompliziert, (c) der Premium-Lizenzcheck wird in Phase 2 genau einmal pro Site bewertet, nicht einmal pro Aktivität.
+
+**Entscheidung 2: „Eigene Fragen" als per-Aktivität-Feld.** Lehrkräfte bekommen im Aktivitätsformular einen neuen Abschnitt „Eigene Fragen", der ein **Freitextfeld** enthält — eine Frage pro Zeile (alternativ ein `Repeat`-Element mit je einem Textfeld; Entscheidung bei der Umsetzung nach UX-Test). Damit kann eine Lehrkraft ihre eigenen Check-in-Karten hinzufügen, ohne das Content-Repo zu berühren und ohne Admin-Rechte zu brauchen.
+
+**Eigenschaften der eigenen Fragen:**
+
+- **Scope: nur diese eine Aktivität.** Nicht global, nicht kursweit. In einem Kurs können mehrere Check-in-Aktivitäten nebeneinander existieren, jede mit einer eigenen Liste — z. B. eine „Morgenrunde" mit anderen Fragen als ein „Wochenabschluss".
+- **Virtuelle Kategorie „eigene".** Diese Kategorie liegt bewusst **außerhalb** des `schema.json`-Kategorien-Enums (schema bleibt unberührt, Bundles sind nicht betroffen). Sie wird rein plugin-seitig als UI-Label und als interner Marker verwendet.
+- **Additive Vermischung in den Zufallspool.** Die eigenen Fragen werden nicht anstelle der Bundle-Fragen gezogen, sondern zusätzlich. Wenn eine Aktivität z. B. Ziel=`checkin+checkout` gewählt hat und der Lehrer drei eigene Fragen eingibt, erscheint jede einzelne Frage (Bundle-Fragen + eigene Fragen) in etwa mit gleicher Wahrscheinlichkeit. Keine Gewichtung in Phase 1.
+- **Vererbung der Scope-Metadaten.** Eigene Fragen haben kein eigenes `ziel`, keine `zielgruppe`, keinen `kontext` und keine `sprache`. Sie gelten implizit für alle Ziele der Aktivität und werden in jeder Sprache angezeigt (keine Übersetzung im MVP).
+- **Reine Impulskarten.** Keine Rückseite, kein `hat_antwort=true`, keine Quelle, kein Autor. Maximale Einfachheit im UI.
+- **Kein Publishing-Status.** Was im Feld steht, ist veröffentlicht. Wer sie ausblenden will, löscht die Zeile.
+
+**Datenhaltung.** Neue Spalte `ownquestions` (`TEXT NOT NULL DEFAULT ''`) auf der Tabelle `elediacheckin`. Persistiert als `\n`-getrennter String (ein Eintrag pro Zeile, leere Zeilen werden beim Speichern verworfen). Kein eigener Table — der Umfang (erwartet: 0–20 Zeilen pro Aktivität) rechtfertigt keine Join-Struktur und kein DB-Schema-Kopfzerbrechen.
+
+**Integration in den Question-Provider.** Der `question_provider::get_questions_by_filter()` bleibt unverändert — er liefert weiterhin nur Bundle-Fragen aus der DB. Stattdessen wird an der Aufrufstelle (`view.php`/`present.php`) die eigene-Fragen-Liste aus der Aktivitäts-Instanz geparst und in den Pool gemerged, bevor `array_rand` aufgerufen wird. Das hält den Provider fachlich sauber (er kennt nur bundle-sourced Content) und bündelt die Vermischungs-Logik an einer Stelle.
+
+**UI.** Im `mod_form` kommt ein neuer Abschnitt „Eigene Fragen" direkt unter „Kategorien" (vor „Zielgruppe/Kontext"). Zur Umsetzung wahrscheinlich ein `textarea` mit 5 sichtbaren Zeilen und Platzhaltertext „Eine Frage pro Zeile. Bleiben leer = nur Bundle-Content." — alternativ Moodles `repeat_elements` mit einzelnen Textfeldern für mehr Struktur. Wird beim Bauen entschieden.
+
+**Was das für die Gap-Analyse bedeutet:** Punkte **C** (Multi-Source-Admin-UI — Auswahl zwischen mehreren parallelen Quellen) und **D** (per-Aktivität-Source-Override) sind damit endgültig **gestrichen**. Stattdessen gibt es genau diese eine Admin-Auswahl plus die per-Aktivität-Eigenfragen. Deutlich einfacher, deutlich klarer in der Verantwortungsaufteilung.
+
+## 11. Aktualisierter Stand der offenen Entscheidungen
+
+Viele Punkte aus Abschnitt 9 sind inzwischen beantwortet:
+
+- **JSON-Schema der Fragen** — ✅ erledigt, siehe 10.1 und `docs/content-schema.json`.
+- **Repo-Naming** — ✅ erledigt. Demo: `content_elediacheckin` (öffentlich). Premium: `eledia/checkin-content-premium` (privat, kommt in Phase 2).
+- **Bundle-Format** — ✅ erledigt: ein JSON pro Version, keine Delta-Updates im MVP.
+- **Sprachen-Handling** — ✅ erledigt: ein Bundle pro Sprache, `language` im Bundle-Header. Kein `translations`-Array pro Frage.
+- **Versionierungs-Strategie** — ✅ `bundle_version` als freier String, Empfehlung Kalender-Semver (`2026.04.1`).
+
+Weiterhin offen (blocken Phase 1 nicht):
+
+- **License-Server-Stack** (Phase 2).
+- **Public-Key-Rotation-Strategie** (Phase 2).
+- **Signing-Verfahren** — Vorschlag ED25519 bleibt stehen (Phase 2).
+- **Modus-Auswahl Default vs. Session-Switch** (siehe 10.4) — wird in der Phase-1-View-Implementierung geklärt.
+
+### 10.16 Default-Wert für Custom-Git-URL (April 2026, Version 2026040517)
+
+Das Admin-Setting `mod_elediacheckin/repourl` bekommt einen vorbelegten Wert: `https://github.com/jmoskaliuk/content_elediacheckin.git`. Dabei handelt es sich um das öffentliche Beispiel-Repo von eLeDia, das als Referenz-Bundle und für Demo-Installationen dient. Admins, die eigene Inhalte pflegen, können den Wert jederzeit überschreiben — aber „Content-Quelle = Git wählen, direkt Sync drücken, läuft" ist jetzt ein Default-Happy-Path ohne zusätzliche Suche nach einer URL. Der Hinweis auf die Existenz des Beispiel-Repos steht bereits in `repoheading_desc` und in der Quickstart-Intro des Admin-Screens.
+
+### 10.15 Toggle „Nur eigene Fragen verwenden" (April 2026, Version 2026040516)
+
+Ergänzend zu den additiv gemischten „Eigenen Fragen" (§10.13) bekommen Lehrkräfte einen Toggle, mit dem sie den Bundle-Pool für eine Aktivität ausdrücklich ausschließen können. Anwendungsfall: eine Aktivität, die ausschließlich aus eigenen, firmenspezifischen Fragen zieht, ohne die Site-Inhaltsquelle verändern zu müssen.
+
+**DB-Ebene.** Neues tinyint-Feld `onlyownquestions` auf der Instanz-Tabelle, Default 0. Upgrade-Step 2026040516.
+
+**Semantik.** Wenn aktiv, kürzt `activity_pool::build_pool()` die Bundle-Query komplett weg und gibt nur das Ergebnis von `parse_own_questions()` zurück. Konsequenz: ist der Toggle aktiv, aber das Feld „Eigene Fragen" leer, zeigt die Aktivität den `noquestions`-Empty-State — das ist beabsichtigt und wird im Hilfetext des Toggles explizit erwähnt, damit niemand überrascht ist.
+
+**UI.** Single-Yes/No-Element direkt unter dem Textarea im Abschnitt „Eigene Fragen". Bewusst nicht als „Radiobutton bundle vs. own", weil die additive Semantik der Default-Pfad ist und der exklusive Modus die Ausnahme darstellt.
+
+### 10.14 „Zur vorherigen Frage"-Button als per-Aktivität-Option (April 2026, Version 2026040515)
+
+Lehrkräfte können pro Aktivität einen Button „Zur vorherigen Frage" einblenden, mit dem Lernende zur zuletzt gezogenen Karte zurückspringen. Bewusste Entscheidung gegen ein vor/zurück-Pfeilpaar: bei zufälligem Ziehen ergibt „zurück" nur für genau **einen** Schritt semantischen Sinn, und ein Forward-Button würde bei random-Draw entweder überraschend redraw oder gar nichts tun.
+
+**Umsetzung.** Neues tinyint-Feld `showprevbutton` auf `elediacheckin` (Default 0, Toggle im `mod_form` unter „Anzeigeoptionen"). Der Navigations-State wird in `$SESSION->elediacheckin_history[$cmid]` als bounded Liste mit maximal zwei externalids gehalten (Top = aktuelle Karte). Die Logik kapselt `activity_pool::resolve_navigation()`, damit `view.php` und `present.php` dieselbe Semantik teilen und Back-Schritte über beide Ansichten hinweg konsistent wirken.
+
+**State-Maschine:**
+
+- **Fresh page load** (keine Params) → neuer Random-Draw, Stack wird auf genau diesen einen Eintrag zurückgesetzt. Back-Button bleibt aus. Wichtig: der `$SESSION`-State aus einem früheren Besuch derselben Aktivität wird dabei bewusst verworfen, weil „ich bin gerade erst auf der Aktivität gelandet" semantisch kein Zurück erlaubt. (Entscheidung 2026-04-05 nach Johannes' Rückmeldung: „Button soll erst bei der zweiten Frage erscheinen".)
+- **Expliziter „Nächste Frage"-Klick** (`?next=1`) → neuer Random-Draw, wird auf den Stack gepusht, ältester Eintrag bei Bedarf abgeschnitten. Erst jetzt wird der Back-Button sichtbar.
+- **„Zur vorherigen Frage"** (`?prev=1`, nur wenn der Stack ≥ 2 Einträge hat) → Top poppen, zuvor sichtbare Karte wird neuer Top. Der Back-Button verschwindet danach, bis der Lernende einen neuen „Nächste Frage"-Klick macht — verhindert Ping-Pong zwischen zwei Karten.
+- **Pin per `?q=<externalid>`** (Block-Launcher) → Stack wird auf genau diesen Eintrag zurückgesetzt, Back-Button ist initial aus.
+
+**Robustheit.** Wenn ein im Stack gespeicherter Eintrag nicht mehr im aktuellen Pool liegt (z. B. weil das Bundle zwischen zwei Requests neu synchronisiert wurde), fällt `resolve_navigation` transparent auf `pick_random()` zurück und setzt den Stack neu auf.
+
+### 10.17 Phase 2 MVP — eLeDia-Premium via License-Server + signierte Bundles (April 2026, Version 2026040521)
+
+Nach Abschluss der Phase-1-Stabilisierung wurde die gesamte Phase-2-Achse „Premium" in einem Rutsch aufgebaut. Es gibt jetzt **beide Seiten** des signierten-Content-Pfads: die plugin-seitige Content-Source und einen schlanken, lokal lauffähigen License-Server, gegen den sich der Premium-Modus end-to-end testen lässt.
+
+**Plugin-Seite.** Drei neue Klassen plus Admin-Felder:
+
+- `classes/content/bundle_signature_verifier.php` — kapselt die ED25519-Verifikation mittels PHPs Kern-libsodium (`sodium_crypto_sign_verify_detached`). Der Public Key ist als 64-stellige Hex-Konstante `ELEDIA_PREMIUM_PUBLIC_KEY_HEX` im Source hart verdrahtet — bewusst, weil der Public Key der Trust-Root ist und seine Rotation ein Plugin-Release erzwingen soll. Die Klasse akzeptiert sowohl base64- als auch hex-kodierte Signaturen (via `decode_signature()`) und kennt einen `has_production_key()`-Check, damit der Dashboard-Renderer später vor Dev-Builds mit Demo-Key warnen kann. Aktuell ist der Demo-Key (`35154cbd…e2c0`) gemountet, passend zum Demo-Keypair in `license_server/data/keys/`.
+- `classes/content/eledia_premium_content_source.php` — implementiert das bestehende `content_source_interface`. Ablauf: `fetch_bundle()` → `verify_license()` (POST `{license_key, site_hash, site_url, plugin_version, component}` an `/verify`) → zwei authentifizierte GETs für `bundle_url` und `signature_url` mit dem frisch erhaltenen Bearer-Token → Signaturverifikation über die **rohen** Bundle-Bytes → Schema-Validierung → `content_bundle`. Jeder Fehlerpfad wirft eine spezifische `content_source_exception` mit einem eigenen `contenterror_eledia_*`-String, damit der Admin im Sync-Log sofort sieht, ob Key, Lizenz, HTTP, Signatur oder Schema Schuld sind.
+- `site_hash` wird plugin-seitig als `sha256(wwwroot + '|' + siteidentifier)` berechnet. `siteidentifier` kommt aus Moodles `get_site_identifier()` und ist stabil, aber nicht PII-tragend — der Server sieht also niemals die echte URL als Primärschlüssel, er kann Installs nur zählen und (bei Bedarf) die optional übertragene `site_url` für Support-Zwecke mitloggen.
+
+Die Content-Source wird in `content_source_registry::build_default_sources()` als dritter Eintrag nach `bundled_content_source` und `git_content_source` registriert. Die beiden neuen Admin-Settings `licenseserverurl` (PARAM_URL, Default `https://licenses.eledia.de`) und `licensekey` (`admin_setting_configpasswordunmask`) werden per `hide_if` **nur** sichtbar, wenn die Inhaltsquelle tatsächlich auf `eledia_premium` steht. Damit bleibt der Admin-Screen für Bundled- und Git-Nutzer:innen aufgeräumt.
+
+**Server-Seite — `license_server/`.** Bewusst als minimaler, dependency-freier PHP-Stack gehalten (PHP 8.1+, PDO/SQLite, Kern-libsodium — kein Composer, kein Framework). Darum passt der ganze Server in ~350 Zeilen verteilt auf fünf `src/*.php` + drei `bin/*.php`:
+
+- **`public/index.php`** ist der Front-Controller, drei Routen: `GET /health`, `POST /verify`, `GET /bundle/{v}` und `GET /signature/{v}`. Routing per `preg_match`, keine Router-Lib. Für lokales Testen reicht `php -S 127.0.0.1:8787 public/index.php`.
+- **`src/TokenMinter.php`** mintet stateless Bearer-Tokens als HMAC-SHA256 über `{lid, bv, iat, exp}` mit `APP_SECRET` als Key. Format: `base64url(payload) . '.' . base64url(hmac)` — kein JWT, keine Lib. Hash-Verify via `hash_equals`, Expiry wird serverseitig beim `/bundle`-Zugriff erneut geprüft. Ein Token ist damit an genau eine Bundle-Version gebunden; wer versucht, ein altes Token auf eine neuere Version zu lenken, fliegt mit `token_bundle_mismatch`.
+- **`src/Database.php`** legt beim ersten Connect drei Tabellen an (`licenses`, `installs`, `usage_log`) und kapselt `register_install()` mit `(license_id, site_hash)`-Unique: existiert der Hash schon, wird nur `last_seen` aktualisiert; ist er neu, wird `max_installs` hart gegen `COUNT(*)` geprüft. Dadurch bleibt eine Demo-Lizenz mit `max_installs=3` robust gegen Re-Keying und Clock-Drift, solange es wirklich dieselben drei Sites sind.
+- **`src/VerifyController.php`** führt die Policy: UUID-Format-Check, 64-hex-Site-Hash, unbekannt/revoked/expired → 401, max_installs überschritten → 403, sonst Token + URLs + `expires_at`. Jeder Fall wird in `usage_log` protokolliert — das ist das erste Audit-Artefakt für Lizenzmissbrauch.
+- **`src/BundleController.php`** validiert Bearer-Token, matcht `bv` mit dem URL-Pfad, whitelistet den Versionsstring gegen `^[0-9a-zA-Z.\-]{1,32}$` (verhindert Path-Traversal), und streamt `data/bundles/premium-v{version}.json` bzw. `.sig` mit passenden Cache-Headern. `bundle.fetch`- und `signature.fetch`-Events werden mit Lizenz-ID protokolliert, sodass Ops nachvollziehen kann, welche Site welche Version wann gezogen hat.
+- **`bin/generate-keypair.php`** legt ein ED25519-Keypair in `data/keys/<name>.{secret,public}.key` ab (base64-Secret, hex-Public, 0600/0644), **`bin/sign-bundle.php`** signiert eine `bundle.json` mit einem gegebenen Key und schreibt `.sig` als base64 daneben, **`bin/create-license.php`** legt einzelne Lizenzen an, **`bin/seed-demo.php`** ist die One-Shot-Wiederherstellung: Keypair + Demo-License + Demo-Bundle (Rewrite von `mod_elediacheckin/db/content/default.json` mit `bundle_id=eledia-premium-demo`) + frische Signatur, alles idempotent. `seed-demo.php` druckt am Ende Lizenz-Key und Public-Key-Hex, direkt zum Copy-Paste in Plugin-Setting und `bundle_signature_verifier.php`.
+
+**Trust-Modell.** Der Private Key gehört in Produktion nicht auf den License-Server, sondern ausschließlich in den GitHub-Actions-Secret des Premium-Content-Repos: die Action baut das Bundle, signiert es, und lädt Bundle + Signatur auf den Server hoch. Der Server kennt den Private Key nie, verteilt also nur, was ihm aus dem Redaktions-Pipeline-Tree zugespielt wurde. Das bedeutet: selbst eine Kompromittierung des License-Servers kann **keine** gefälschten Inhalte an die Plugins ausliefern — der Plugin-seitige Verifier würde jede Signatur mit einem anderen Schlüssel ablehnen. Im Demo-Setup sitzt der Private Key vorübergehend auf dem gleichen Rechner (für reines Testen), aber das ist ausdrücklich als Dev-only markiert.
+
+**Runtime-Trennung.** `license_server/data/` (SQLite + Keys + signierte Bundles) ist komplett gitignored, nur leere Placeholder-Verzeichnisse sind committet. `.env` wird nie committet, `.env.example` schon. Damit kann ein frischer Checkout durch `php bin/seed-demo.php && php -S 127.0.0.1:8787 public/index.php` in 30 Sekunden fahrbereit sein.
+
+**Was damit in der Gap-Analyse verschoben ist.** Die bisher als „Phase 2 / später" geführten Punkte License-Server-Stack, Public-Key-Rotation-Strategie und Signing-Verfahren (alle in Abschnitt 11 gelistet) sind konzeptionell und implementatorisch **jetzt** abgearbeitet. Was noch fehlt, ist rein betrieblich: echter Produktions-Host, echtes Signing-Keypair, echte Lizenz-Provisionierung aus dem Shopsystem, Logging-Abfluss und Rate-Limits. Keiner dieser Punkte blockiert mehr den Weg in die Plugin-Directory.
+
+### 10.18 Build-Time-Feature-Flag für Premium (April 2026, Version 2026040523)
+
+**Motivation.** Die erste Einreichung ins Moodle Plugins Directory soll bewusst ohne die „eLeDia Premium"-Option ausgeliefert werden: der License-Server-Pfad ist zwar technisch komplett (§10.17), aber das Produkt drumherum — Shop, Rechnung, Support-Flow, `licenses.eledia.de` — existiert noch nicht. Reviewer und frühe Installer sollen kein halbfertiges UI sehen, während wir intern gleichzeitig unverändert an den Premium-Features weiterbauen können.
+
+**Lösung: ein Compile-Time-Flag in einer einzigen Datei.** `classes/feature_flags.php` definiert eine `final class feature_flags` mit einer einzigen Konstanten `PREMIUM_ENABLED` (plus Convenience-Methode `premium_enabled(): bool`). Keine Setting, kein DB-Lookup, kein Runtime-Toggle — der Wert steht im Quellcode, damit ein Release-Build-Script ihn deterministisch umschalten kann, ohne dass Serverzustand oder Admin-Aktion dazwischenfunken.
+
+**Zwei Call-Sites.** Das Flag wird an genau zwei Stellen respektiert:
+
+1. `content_source_registry::build_default_sources()` — fügt `eledia_premium_content_source` der Registry nur dann hinzu, wenn das Flag `true` ist. Fällt das Flag weg, ist die ID `eledia_premium` schlicht unbekannt und `sync_service` fällt über den bereits vorhandenen `get_fallback()`-Pfad automatisch auf `bundled` zurück, falls ein Altbestand das noch in der DB stehen hatte.
+2. `settings.php` — die Option `eledia_premium` im Dropdown `contentsource` wird konditional eingehängt, und der gesamte Premium-Konfigurationsblock (Heading, `licenseserverurl`, `licensekey`, die beiden `hide_if`-Aufrufe) sitzt in einem `if (\mod_elediacheckin\feature_flags::premium_enabled()) { … }`.
+
+**Explizit NICHT geflaggt.** Die Premium-Klassen selbst (`bundle_signature_verifier`, `eledia_premium_content_source`) bleiben jederzeit ladbar. Das ist Absicht: PHPUnit soll sie auch im Release-Build-Zustand ausführen können, und der Autoloader soll nicht an Feature-Flags herumraten müssen. Das Flag kontrolliert ausschließlich die **Sichtbarkeit** (Registry-Eintrag + Admin-UI).
+
+**Release-Build-Workflow.** Um vor einer Plugins-Directory-Einreichung das Flag umzuschalten, reicht ein einzeiliger `sed`-Aufruf:
+
+```sh
+sed -i '' 's/PREMIUM_ENABLED = true/PREMIUM_ENABLED = false/' \
+    classes/feature_flags.php
+```
+
+(Unter Linux ohne das leere Argument hinter `-i`.) Danach `git archive`-ZIP bauen, hochladen. Das Flag ist bewusst so formuliert, dass genau eine Zeile ersetzt werden muss — Grep-freundlich, Merge-Conflict-arm, und jeder, der die Datei liest, sieht in den Doc-Comments sofort wie der Build-Flow funktioniert. Sobald der Premium-Backend-Stack produktiv ist, entfällt der `sed`-Schritt einfach (oder es wird auf eine dedizierte `bin/build-release.sh` umgezogen, die diesen und eventuelle Folgeschritte kapselt).
+
+**Warum nicht via Admin-Setting / Site-Config / Environment-Variable.** Alle drei würden dasselbe Ziel erreichen, aber mit höherer Angriffsfläche: Admin-Setting ist per Hand togglebar (Reviewer könnte es anschalten), Environment-Variable hängt vom Deployment-Kontext ab (in Docker-Compose vs. Bare-Metal unterschiedlich), und eine Site-Config-Zeile müsste in `config.php` gepflegt werden, was wir bei Kunden nicht garantieren können. Eine PHP-Konstante im Plugin-Tarball ist dagegen **immer** der Zustand, den wir tatsächlich ausgeliefert haben — was beim Release exakt dieses Ziel erfüllt.
+
+### 10.19 UX-Runde April 2026 (Version 2026040524 / 2026040525)
+
+Dieser Abschnitt bündelt eine Serie kleiner, aber semantisch relevanter UX-Änderungen aus der Testing-Inbox. Sie verändern kein Schema substanziell und keine Content-Distribution-Semantik; sie werden aber hier dokumentiert, damit die Begründungen später nachvollziehbar sind (viele davon sind „kleine Dinge mit großem ‚warum‘").
+
+**„Lernreflexion" statt Lexikon-Content (Ziel `learning`).** Ursprünglich war das Ziel `learning` als Micro-Learning-Modul gedacht — methode/theorie/tool/modell-Kategorien mit Frage **und** Musterantwort. In der Praxis vermischt das zwei sehr unterschiedliche Lernszenarien: „Wissen abfragen" vs. „Reflexion anregen". Johannes hat das beim Testen sauber getrennt: Wissensabfragen mit Antworten sollen über das reguläre Quiz-Modul laufen; der Check-in soll für die zweite Hälfte — **offene Reflexionsimpulse** — zuständig sein. `learning` trägt jetzt das Label „Lernreflexion" (DE) / „Learning reflection" (EN), die sechs Bundle-Fragen sind auf `hat_antwort: false` umgestellt, und die Kategorien sind zu `tagesreflexion`, `transfer`, `aha`, `hindernis`, `meta` umgebaut. Die alten Kategorien (methode/theorie/tool/modell) sind ersatzlos raus; die Enum-Definitionen liegen jetzt synchron in `schema_validator.php` + `schema.json` (mod + content-repo).
+
+**Tri-state „Eigene Fragen" (§10.15-Update).** Der ursprüngliche Yes/No-Toggle `onlyownquestions` hatte eine versteckte dritte Option, die niemand benennen konnte: „Ich habe eigene Fragen ins Textarea geschrieben, **möchte aber gerade nur das Bundle sehen**." Mit „Nein" wurden sie trotzdem gemischt, mit „Ja" wurde das Bundle ganz abgeschaltet — die „Bundle-only trotz gefülltem Textarea"-Variante gab es nicht. Neues Feld `ownquestionsmode` mit drei sauberen Werten: `0 = mixed` (Default; bisheriges „Nein"), `1 = only_own` (bisheriges „Ja"), `2 = none` (neu — Bundle only, eigene Fragen werden ignoriert). Die Umbenennung läuft über `$dbman->rename_field()`, damit vorhandene 0/1-Werte aus `onlyownquestions` semantisch identisch erhalten bleiben. `activity_pool::build_pool()` liest primär das neue Feld, fällt aber auf das alte zurück. `mod_form.php` reiht die Abschnitte jetzt: *Allgemein → Check-in → Anzeigeoptionen → Eigene Fragen*. `hideIf` blendet das Textarea aus, wenn `none` gewählt ist.
+
+**Block `block_elediacheckin` auf Startseite / Frontpage.** `applicable_formats()` setzt jetzt sowohl `site-index` (Moodle-core-Kanonform) als auch `site` (Kurzform) auf `true`, zusätzlich zu `course-view`. Moodle behandelt die Frontpage als Kurs mit `SITEID`; `get_fast_modinfo($COURSE)` im Edit-Form löst korrekt auf. Damit kann ein Admin eine Check-in-Aktivität auf der Frontpage platzieren und den Block beliebig anheften — ideal für site-weite „Motivations-Karte des Tages". Dashboard/My-Page bleiben bewusst aus (`my => false`).
+
+**Zitate mit Autor-Attribution.** Zitate sind das einzige Ziel, bei dem die Autorschaft integral zum Inhalt gehört — „Culture eats strategy for breakfast" ohne *— Peter Drucker* ist keine Quelle. Die Templates (embedded `view.mustache`, Fullscreen-Overlay, Popup `present.mustache`) rendern bei `ziel === 'zitat'` einen zweiten Absatz mit `— {{question.author}}` unter dem Zitat plus eine `--quote`-Klasse (italic serif, zentriert). Template-Kontexte in view.php + present.php tragen die drei Flags `isquote`, `hasauthor`, `author`. Das `autor`-Feld im Bundle hatte bisher den Platzhalter „eLeDia Redaktion"; bereinigt auf den tatsächlichen Urheber (Henry Ford, Steve Jobs, Simon Sinek, „Afrikanisches Sprichwort", …), `quelle` bleibt als Bibliographie-Feld daneben.
+
+**Info-Link im Activity Chooser (`eledia.de/mod_elediacheckin`).** Moodles Chooser rendert `modulename_help` als HTML-Block unter dem Aktivitätsnamen. Wir hängen am Ende des Strings (DE + EN) ein `<a href="https://www.eledia.de/mod_elediacheckin" target="_blank" rel="noopener">` an — direkteste Art, einen „Mehr erfahren"-Link neben die Beschreibung zu setzen, ohne Custom-Chooser-Hook. Alternativen (`modulename_link`, `FEATURE_MOD_PURPOSE`, `mod_xxx_get_coursemodule_info()`) bieten entweder nur Pfade relativ zu docs.moodle.org oder Plätze an anderer Stelle.
+
+**User-Tour für Lehrkräfte.** `db/tours/teacher_checkin_tour.json` definiert eine fünfstufige `tool_usertours`-Tour (Welcome → Karte → Ziel-Picker → Nächste-Frage-Button → Popup/Fullscreen-Launchers), gefiltert auf `editingteacher`/`teacher`/`manager` und `pathmatch=/mod/elediacheckin/view.php%`. `tool_usertours` importiert Tours aus Plugin-Verzeichnissen nicht automatisch — `db/install.php` ruft `mod_elediacheckin_install_bundled_tours()` auf, die jede JSON-Datei durch `\tool_usertours\manager::import_tour_from_json()` schickt. Upgrade-Pfad zu `2026040525` ruft dieselbe Funktion auf, damit bestehende Instanzen die Tour nachträglich bekommen. Duplikate kann ein Admin unter *Site admin → Appearance → User tours* manuell löschen.
+
+**Firefox: `window.open` ohne `popup=yes`.** Firefox ≥ 109 behandelt `window.open(url, name, 'width=…,height=…,…')` ohne explizites `popup=yes` als Tab-Request — `width`/`height` werden ignoriert. Fix: `popup=yes` als erste Feature-Flag in `POPUP_FEATURES` (`amd/src/view.js` **und** `amd/build/view.min.js`, weil Moodle mit aktivem Cache ausschließlich die minifierte Variante lädt).
+
+**Duplikat der Aktivitätsbeschreibung entfernt.** `view.php` rief vor dem Template-Render explizit `$OUTPUT->box(format_module_intro(…))` auf — Überbleibsel aus Moodle-3.x. Seit Moodle 4.x rendert `$PAGE->activityheader` den Intro automatisch. Die explizite `$OUTPUT->box()`-Zeile ist entfernt; ein Kommentar hält fest, warum hier bewusst kein zweiter Intro gerendert wird.
+
+### 10.20 Barrierefreiheits-Pass + Release-Finalisierung (April 2026, Version 2026040527)
+
+Mit dem ersten Release im Blick wurde die View-Seite einmal gegen die WAI-ARIA-Authoring-Practices-Checkliste gezogen. Drei Ebenen wurden angefasst:
+
+**Semantik in den Templates.** Der Ziel-Picker (view + present) war ein `<div class="elediacheckin-ziel-picker">` — technisch Links, semantisch aber ohne Gruppenrolle. Jetzt: `<nav aria-label="{{strzielnavlabel}}">` mit `aria-current="page"` auf dem aktiven Link. Der frühere `role="tablist"`/`role="tab"`-Versuch wurde **wieder entfernt**, weil `tablist` Pfeil-Tasten-Navigation verspricht, die wir nicht implementieren — falsche Versprechen an Screenreader-Nutzer sind schlimmer als gar keine Rolle. Die Fragekarte hat ein `lang`-Attribut, sobald eine Frage über `question.lang` die Sprache mitliefert (wichtig für englische Zitate auf einer deutschen Instanz — ohne `lang` lesen Screenreader „Culture eats strategy for breakfast" mit deutscher Phonetik vor).
+
+**Vollbild-Dialog mit Focus-Management.** Die `.elediacheckin-fullscreen`-Overlay ist jetzt ein echtes Modal: `role="dialog"`, `aria-modal="true"`, `aria-labelledby` auf einen visuell versteckten `<h2 class="sr-only">`-Titel, `tabindex="-1"` damit es programmgesteuert Fokus annehmen kann. `amd/src/view.js` speichert beim Öffnen das vorige `document.activeElement`, setzt den Fokus auf den Close-Button, trappt `Tab`/`Shift+Tab` innerhalb des Dialogs (inkl. Fallback auf das Dialog-Element selbst, wenn kein fokussierbares Kind vorhanden ist) und restauriert den Fokus beim Schließen. `Esc` schließt wie bisher. Ohne diese Schritte war die Overlay für Tastatur-only-Nutzer eine Sackgasse: man konnte aus dem Dialog heraustabben, ohne zu merken, dass der fokussierte Link hinter einer visuellen Vollbild-Schicht lag.
+
+**Kontrast + sichtbarer Fokus.** Die `styles.css` hat jetzt eine zentrale `:focus-visible`-Regel für alle interaktiven Plugin-Controls (Icon-Buttons, Ziel-Buttons, „Nächste Frage", Launchers, Fullscreen-Close): 3 px orange Outline + 5 px halbtransparenter Ring. Das überschreibt Boost-Defaults, die bei farbigen Buttons teils zu schwachen Fokus-Ring liefern. Zusätzlich ein `.sr-only`-Fallback für die Dialog-Titel-Elemente, falls das Theme die Utility-Klasse nicht selbst mitbringt.
+
+**Premium-Flag für Release auf `false`.** `classes/feature_flags.php::PREMIUM_ENABLED` ist für den ersten Submit-Build auf `false` gestellt. Die License-Server-UI erscheint damit nicht in den Plugin-Settings, und das Dropdown „Inhaltsquelle" zeigt nur *Bundled* + *Git*. Die Klassen (`bundle_signature_verifier`, `eledia_premium_content_source`) bleiben lauffähig, damit PHPUnit sie weiterhin ausführen kann. Johannes schaltet nach der ersten Testrunde intern wieder auf `true`.
+
+**`$CFG`-Scope-Bug im Verbindungstest gefixt.** `git_content_source::fetch_raw()` lud `filelib.php` über `require_once($GLOBALS['CFG']->libdir . '/filelib.php');`. Das lädt zwar die Datei selbst, aber deren Top-Level-Code enthält `require_once($CFG->libdir . '/filestorage/file_exceptions.php');` — und `$CFG` als bare Variable ist im Methoden-Scope des Aufrufers nicht definiert. Folge: `Warning: Undefined variable $CFG`, danach `require_once(/filestorage/file_exceptions.php): Failed to open stream`, und der Verbindungstest bricht komplett ab. Fix: `global $CFG;` **vor** dem `require_once`, dann normale Variable statt `$GLOBALS[]`. Ein ausführlicher Kommentar direkt darüber erklärt die Fußangel, damit das nicht wieder rausrefactored wird.
+
+**Save-Changes-Button oberhalb des Sync-Panels.** Core-Moodle hängt den Submit-Button einer `admin_settingpage` immer an das Form-Ende, d.h. nach dem letzten Setting — und der `dashboard_renderer`-Output ist technisch das letzte Setting (ein `admin_setting_heading`). Das Ergebnis war Panel → Save-Button, Johannes wollte Save-Button → Panel. Lösung ohne Umbau auf `admin_externalpage`: der `dashboard_renderer::render()`-String enthält am Ende einen kleinen `<script>`-Block, der `#admin-dashboardpanel` im DOM hinter den `<form>`-direkten-Child des Submit-Inputs verschiebt. Graceful Degradation: ohne JS steht das Panel oberhalb — weiterhin vollständig nutzbar, nur nicht in der bevorzugten Reihenfolge. Das ist weniger sauber als eine echte Struktur-Änderung, aber admin_externalpage hätte bedeutet, die gesamte Konfig-Seite mit MoodleQuickForm neu zu schreiben — zu viel Aufwand für eine Reihenfolgefrage.
+
+---
+
+## Zusammenfassung in einem Satz
+
+Drei austauschbare Content-Source-Implementierungen hinter einem gemeinsamen Plugin-Interface, wobei der bezahlpflichtige eLeDia-Modus über einen schlanken License-Server plus signierte CDN-Bundles realisiert wird, die wiederum aus einem git-basierten Redaktions-Workflow via GitHub Action automatisch gebaut und verteilt werden — mit der Option für Kunden, zusätzlich eigene Git-Repos anzuschließen oder einfach den mitgelieferten Starter-Content zu nutzen.

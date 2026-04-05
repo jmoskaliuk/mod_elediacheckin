@@ -211,15 +211,16 @@ if ($ADMIN->fulltree) {
     ));
 
     // ---------------------------------------------------------------------
-    // 5. Sync-Status-Dashboard — visuell unterhalb der Konfig-Felder.
+    // 5. Sync-Status-Dashboard — visuell UNTERHALB des Save-Changes-Buttons.
     //
-    // Core-Moodle platziert den Save-Changes-Button nach dem letzten
-    // admin_setting, nicht nach dem letzten admin_setting_heading, daher
-    // erscheint dieses Panel technisch „über" dem Save-Button. Das ist
-    // die UX, die Johannes im April-2026-Feedback nach Abwägung bevorzugt
-    // hat: ein Screen statt zweier Nav-Einträge. Für echte "nach Save-
-    // Button"-Platzierung müsste die ganze Seite als admin_externalpage
-    // neu gebaut werden — das wäre eine größere Refactoring-Runde.
+    // Core-Moodle hängt den Save-Button an das Form-Ende, d.h. direkt nach
+    // dem letzten Setting — inklusive diesem Heading. Damit der Button
+    // trotzdem VOR dem Panel erscheint (Johannes' April-2026-UX-Feedback:
+    // „Änderungen speichern muss höher, vor Sync-Status"), enthält der
+    // dashboard_renderer::render()-Output am Ende einen kleinen JS-Snippet,
+    // der das Panel-Element im DOM hinter den Submit-Container verschiebt.
+    // Fällt JS aus, landet das Panel oberhalb — weiterhin nutzbar, nur
+    // nicht in der bevorzugten Reihenfolge.
     //
     // Inhalt kommt aus dem vorhandenen dashboard_renderer, so dass
     // dashboard.php (weiterhin als Redirect-Ziel für Altlast-Links
