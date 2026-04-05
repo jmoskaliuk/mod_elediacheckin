@@ -98,6 +98,25 @@ räumt dann ggf. nach.
   fehlt: Upgrade-Step hat nicht gegriffen — dann bitte den vollen Output
   von `php admin/cli/upgrade.php` schicken.
 
+- **v2026040540 — Vollbild-Weiter-Fix + DE-Sie-Audit.** Zwei kleine
+  Folgefixes aus dem 2026-04-05-Feedback.
+  (1) **Vollbild bleibt beim Weiter-Klick offen.** Auf einer Check-in-
+  Aktivität Vollbild öffnen → „Weiter" klicken → das Overlay muss
+  offen bleiben, es darf KEIN sichtbarer Flash zurück auf die View-
+  Seite passieren. Gleiches bei „Zurück" und beim Ziel-Picker im
+  Vollbild-Header. Technisch: der URL-Parameter `fs=1` wird beim Klick
+  an den Link angehängt, `view.js` liest ihn beim Laden und öffnet das
+  Overlay sofort. Esc und der Schließen-Button (×) schließen weiterhin
+  wie gehabt.
+  (2) **DE-Lang durchgängig Sie.** Admin-Settings-Seite, Tour-Texte
+  (Check-in-Tour, Einstellungs-Tour, Aktivitäts-Einstellungs-Tour),
+  Exhausted-Message, Block-Hilfe — keine „du/dich/dein"-Formen mehr,
+  alles auf „Sie/Ihnen/Ihre". Quick-Check: Aktivitäts-Tour starten,
+  alle Steps lesen; Settings-Tour starten, alle 5 Steps lesen;
+  Aktivitäts-Einstellungs-Tour auf modedit.php starten, alle 7 Steps
+  lesen. Wenn noch irgendwo ein „du" steht, bitte Stichwort in die
+  Neu-Section.
+
 ## ✅ Erledigt
 
 - **v2026040537 — Bundled Fixes aus dem ersten PHPUnit-Run (verifiziert

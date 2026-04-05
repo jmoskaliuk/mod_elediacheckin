@@ -73,6 +73,24 @@ export const init = (rootSelector) => {
         }
     });
 
+    // Helper: stamp `fs=1` onto a URL so the next page load re-opens the
+    // fullscreen overlay. Navigation links (Weiter/Zurück/Ziel-Picker)
+    // inside the overlay are plain <a href>s — without this stamp the
+    // fullscreen would silently collapse on every click, because the new
+    // page renders with fullscreen closed by default. Johannes reported
+    // this as "Wenn man im Vollbildmodus auf weiter klickt, schließt das
+    // Vollbild" on 2026-04-05.
+    const addFsFlag = (href) => {
+        try {
+            const u = new URL(href, window.location.href);
+            u.searchParams.set('fs', '1');
+            return u.toString();
+        } catch (err) {
+            // Fallback for pathological hrefs: append crude query param.
+            return href + (href.indexOf('?') >= 0 ? '&' : '?') + 'fs=1';
+        }
+    };
+
     // Fullscreen overlay interactions.
     if (fullscreen) {
         fullscreen.addEventListener('click', (e) => {
@@ -88,8 +106,31 @@ export const init = (rootSelector) => {
                 if (ans) {
                     ans.hidden = !ans.hidden;
                 }
+                return;
+            }
+            // Any other <a> inside the fullscreen overlay is a navigation
+            // link (Weiter, Zurück, Ziel-Picker). Stamp fs=1 on it so the
+            // next view.php/present.php render re-opens the overlay.
+            const nav = e.target.closest('a[href]');
+            if (nav && !nav.dataset.fsStamped) {
+                nav.dataset.fsStamped = '1';
+                nav.href = addFsFlag(nav.href);
             }
         });
+    }
+
+    // If the current URL carries fs=1, auto-open the overlay immediately
+    // so sequential navigation inside fullscreen feels like a single,
+    // uninterrupted session rather than a page-reload roundtrip.
+    try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('fs') === '1') {
+            openFullscreen();
+        }
+    } catch (err) {
+        // URLSearchParams is available in every browser Moodle 5.x
+        // supports; swallow defensively so a third-party polyfill bug
+        // cannot break the whole view page.
     }
 
     // Esc closes fullscreen.
