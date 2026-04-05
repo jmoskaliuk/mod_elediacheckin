@@ -27,11 +27,16 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-Run sync now gibt diesen Fehler:  Sync failed: The repository bundle does not conform to the expected schema. (Missing or non-string bundle field: schema_version. | Missing or non-string bundle field: bundle_id. | Missing or non-string bundle field: bundle_version. | Missing or non-string bundle field: language. | Missing or invalid "questions" array.) :: Missing or non-string bundle field: schema_version. | Missing or non-string bundle field: bundle_id. | Missing or non-string bundle field: bundle_version. | Missing or non-string bundle field: language. | Missing or invalid "questions" array. 
-
-_(leer — bitte nach dem nächsten Deploy `~/moodle-update.sh checkin` testen,
-ob die drei unten aufgeführten Punkte vom 2026-04-05 tatsächlich wie
-erwartet wirken.)_
+- **NACH DEPLOY BITTE PRÜFEN:** Sync-Now sollte jetzt eine deutlich
+  hilfreichere Fehlermeldung geben. Wenn es weiterhin fehlschlägt, bitte
+  den vollen Text kopieren — die neue Meldung enthält die Top-Level-
+  Schlüssel der empfangenen JSON und einen URL-Hinweis, woran man sofort
+  sieht, ob es eine GitHub-API-URL, eine `/blob/`-URL oder etwas anderes
+  ist. Erwarteter Fix: im Admin unter *Plugin-Settings → Git-Config →
+  Repository URL* muss eine **raw**-URL stehen, z.B.
+  `https://raw.githubusercontent.com/jmoskaliuk/content_elediacheckin/main/bundle.json`.
+  Falls dein Feld leer ist oder auf `github.com/.../blob/...` oder
+  `api.github.com/.../contents/...` zeigt, ist das die Ursache.
 
 ## ❓ Klärung notwendig
   

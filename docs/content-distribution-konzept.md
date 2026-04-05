@@ -649,6 +649,36 @@ Mit dem ersten Release im Blick wurde die View-Seite einmal gegen die WAI-ARIA-A
 - Kein Auto-Create-Trick, der beim ersten Block-Placement magisch eine Hidden-Aktivität anlegt (erklärt sich dem Admin nicht und ist undebuggbar, wenn später etwas schiefläuft).
 - Kein Cross-Course-Picker (siehe oben, drei Gründe gegen).
 
+### 10.22 Sync-Fehler-Diagnostik für Git-Content-Source (April 2026, Version 2026040528)
+
+Beim ersten Release-Test hat Johannes „Sync jetzt ausführen" mit diesem Fehler gesehen:
+
+> Missing or non-string bundle field: schema_version. | Missing or non-string bundle field: bundle_id. | Missing or non-string bundle field: bundle_version. | Missing or non-string bundle field: language. | Missing or invalid "questions" array.
+
+Die bundle.json im Content-Repo (`jmoskaliuk/content_elediacheckin`) enthält alle Felder korrekt — an der Quelle liegt es nicht. Dass **alle vier** Header-Felder **und** das `questions`-Array als fehlend gemeldet werden, ist ein Fingerabdruck dafür, dass `$decoded` ein Array ist (sonst würde vorher `contenterror_gitparse` greifen), aber keines der erwarteten Schlüssel enthält. Das ist das typische Muster, wenn die konfigurierte URL auf einen **anderen JSON-Endpunkt** zeigt als auf die rohe Datei:
+
+- `https://api.github.com/repos/<o>/<r>/contents/bundle.json` → Antwort: `{name, path, sha, url, content: "base64…", encoding, …}` — kein einziges Bundle-Feld.
+- `https://api.github.com/repos/<o>/<r>/contents/` → Antwort: **indiziertes Array** von File-Entries.
+- Eine selbstgehostete Wrapping-API: `{"status": "ok", "data": {…bundle…}}`.
+
+`schema_validator::validate_bundle_header()` sieht in all diesen Fällen exakt denselben „alles fehlt"-Fingerabdruck, den Johannes bekommen hat. Die bisherige Fehlermeldung sagt **was fehlt**, aber nicht **was stattdessen ankam** — diagnostisch zu wenig, wenn der Admin nicht weiß, welche URL er wirklich fetcht.
+
+**Fix: diagnostische Verbesserung in `git_content_source::fetch_bundle()`** (keine Auto-Korrektur, nur mehr Kontext in der Exception):
+
+1. **Top-Level-Keys werden mitgeloggt.** Wenn die Validierung fehlschlägt, hängt `fetch_bundle()` die ersten 12 Schlüssel des empfangenen Objekts an die Exception-Message: `top-level keys received: [name, path, sha, size, url, html_url, …]`. Wer den Fehler sieht, erkennt sofort „Aha, das ist die GitHub-API-Contents-Antwort".
+2. **Body-Preview bei JSON-Parse-Fehlern.** Der `contenterror_gitparse`-Zweig zeigt jetzt die ersten 200 Zeichen der Response (mit zusammengefaltetem Whitespace), damit man bei HTML-Antworten sofort `<!DOCTYPE html>` oder eine Fehlermeldung sieht.
+3. **URL-Heuristik.** Wenn die konfigurierte URL einem der vier häufigen Fehlermuster entspricht, kommt ein konkreter Hinweis dazu:
+   - `github.com/.../blob/...` → „`/blob/` liefert HTML, nimm `raw.githubusercontent.com/...`."
+   - `api.github.com/.../contents/...` → „Metadaten-Objekt, nicht die rohe Datei."
+   - URL endet auf `.git` → „Clone-URL, nicht die rohe Datei."
+   - URL endet nicht auf `.json` → „Prüfe ob die URL wirklich auf bundle.json zeigt."
+
+Diese Hinweise landen im Sync-Log (`elediacheckin_sync_log.message`-Spalte) und damit auch im Sync-Status-Panel unter den letzten Sync-Versuchen. Bei der nächsten fehlgeschlagenen Sync-Runde ist damit sofort klar, was zu tun ist.
+
+**Warum keine Auto-Korrektur.** Ich könnte `github.com/.../blob/...`-URLs beim Speichern automatisch zu raw-URLs umschreiben. Absichtlich nicht gemacht: das verschleiert Intent (was, wenn ein Admin tatsächlich eine eigene URL mit `/blob/` im Pfad benutzt?), und die Fehlermeldung ist jetzt klar genug, dass der Admin die URL einmalig richtig setzt. Explicit > magisch.
+
+**Nicht betroffen: `test_connection()`.** Der Verbindungstest in `admin/actions.php` prüft nur `fetch_raw()` (HTTP-Status + nicht-leere Antwort), nicht das Schema. Wer grün testet und dann rot syncht, hat genau diese Kategorie von Problem — die bessere Diagnostik in `fetch_bundle()` ist der richtige Ort, weil der Schema-Validator dort läuft. Perspektivisch könnte `test_connection()` zusätzlich einen Probe-Decode mit Top-Level-Key-Check machen; das wäre eine kleine zweite Iteration.
+
 ---
 
 ## Zusammenfassung in einem Satz

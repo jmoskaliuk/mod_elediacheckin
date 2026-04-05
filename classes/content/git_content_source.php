@@ -86,6 +86,7 @@ final class git_content_source implements content_source_interface {
      * @inheritDoc
      */
     public function fetch_bundle(): content_bundle {
+        $url = (string)$this->config->get('repourl', '');
         $raw = $this->fetch_raw();
 
         $decoded = json_decode($raw, true);
@@ -93,18 +94,83 @@ final class git_content_source implements content_source_interface {
             throw new content_source_exception(
                 'contenterror_gitparse',
                 'json_decode error: ' . json_last_error_msg()
+                    . ' — first 200 chars of response: '
+                    . self::preview_body($raw)
+                    . self::url_hint($url)
             );
         }
 
         $validator = new schema_validator();
         if (!$validator->validate($decoded)) {
+            // Include the top-level keys that WERE present so admins can
+            // immediately tell whether they fetched a GitHub API contents
+            // envelope ({name, path, sha, content: base64…}), a directory
+            // listing (indexed array of file entries), or some other
+            // wrapper, rather than the flat bundle.json we expect.
+            $gotkeys = array_slice(array_keys($decoded), 0, 12);
             throw new content_source_exception(
                 'contenterror_gitinvalid',
                 implode(' | ', $validator->get_errors())
+                    . ' — top-level keys received: ['
+                    . implode(', ', array_map('strval', $gotkeys))
+                    . ']'
+                    . self::url_hint($url)
             );
         }
 
         return content_bundle::from_array($decoded);
+    }
+
+    /**
+     * Return a short, sanitised preview of a response body for error
+     * messages. Collapses whitespace so one log-line stays readable.
+     */
+    private static function preview_body(string $raw): string {
+        $trim = trim(preg_replace('/\s+/', ' ', (string)$raw) ?? '');
+        if (\core_text::strlen($trim) > 200) {
+            $trim = \core_text::substr($trim, 0, 197) . '…';
+        }
+        return $trim;
+    }
+
+    /**
+     * Produce a targeted hint when a URL matches a common
+     * misconfiguration pattern. Empty string if no pattern matches.
+     *
+     * Typical mistakes:
+     *  - GitHub "blob" URL (returns HTML page, not raw JSON).
+     *  - GitHub API contents endpoint (returns {name,path,sha,content…}).
+     *  - URL ending in ".git" (returns refs, not JSON).
+     *  - Directory URL without the /bundle.json suffix.
+     */
+    private static function url_hint(string $url): string {
+        if ($url === '') {
+            return '';
+        }
+        if (strpos($url, '/blob/') !== false && strpos($url, 'github.com') !== false) {
+            return ' — Hinweis: Die URL enthält `/blob/` und liefert deshalb'
+                . ' eine HTML-Seite statt der rohen Datei. Ersetze'
+                . ' `github.com/<owner>/<repo>/blob/<branch>/bundle.json` durch'
+                . ' `raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json`.';
+        }
+        if (strpos($url, 'api.github.com') !== false && strpos($url, '/contents/') !== false) {
+            return ' — Hinweis: Die URL zeigt auf den GitHub-API-Contents-'
+                . 'Endpoint und liefert ein Metadaten-Objekt'
+                . ' ({name, path, sha, content: base64…}), nicht die rohe bundle.json.'
+                . ' Setze stattdessen die raw-URL ein'
+                . ' (`raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json`).';
+        }
+        if (substr($url, -4) === '.git') {
+            return ' — Hinweis: Die URL endet auf `.git` (Clone-URL).'
+                . ' Der Plugin-Sync fetcht eine einzelne Datei via HTTPS, kein'
+                . ' git-clone. Setze die raw-URL der bundle.json ein.';
+        }
+        if (substr(strtolower($url), -5) !== '.json') {
+            return ' — Hinweis: Die URL endet nicht auf `.json`. Prüfe, ob sie'
+                . ' wirklich auf die rohe bundle.json zeigt und nicht auf ein'
+                . ' Verzeichnis oder eine HTML-Seite.';
+        }
+        return '';
     }
 
     /**
