@@ -25,8 +25,15 @@
 /* ----- Card container ------------------------------------------------- */
 
 .path-mod-elediacheckin .elediacheckin-stage {
-    max-width: 760px;
-    margin: 0 auto;
+    /* Full width of the Moodle content column, matching the Activity
+       header + intro alert + other eLeDia plugins (LeitnerFlow etc.).
+       A previous 760px-centred variant optimised for reading comfort
+       but looked inconsistent next to the rest of the page — header
+       + intro were full width, the card was inset. If the readability
+       ceiling is missed, reintroduce it on the inner
+       .elediacheckin-question-text rule, not the outer stage. */
+    max-width: none;
+    margin: 0;
 }
 
 .path-mod-elediacheckin .elediacheckin-card {
@@ -211,6 +218,40 @@
     background: rgba(249, 128, 18, .08);
     color: var(--el-orange-dark);
     border-color: var(--el-orange-dark);
+}
+
+/* ============ A11y: sichtbarer Fokus-Ring + sr-only Fallback =========== */
+
+/* Alle interaktiven Elemente bekommen einen deutlich sichtbaren Fokus-Ring
+   (WCAG 2.4.7 „Focus Visible"). :focus-visible statt :focus, damit der
+   Ring nur bei Tastatur-Navigation erscheint, nicht beim Maus-Klick. */
+.path-mod-elediacheckin .elediacheckin-icon-btn:focus-visible,
+.path-mod-elediacheckin .elediacheckin-ziel-btn:focus-visible,
+.path-mod-elediacheckin .elediacheckin-next-btn:focus-visible,
+.path-mod-elediacheckin .elediacheckin-next-btn--ghost:focus-visible,
+.elediacheckin-fullscreen .elediacheckin-fs-close:focus-visible,
+.elediacheckin-fullscreen .elediacheckin-fs-btn:focus-visible,
+.elediacheckin-fullscreen .elediacheckin-fs-ziel-btn:focus-visible {
+    outline: 3px solid var(--el-orange, #f98012);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px rgba(249, 128, 18, .25);
+}
+
+/* Fallback für Moodle-Themes, die bootstrap's .sr-only nicht mitbringen.
+   Auf Boost (default) existiert .sr-only schon global; die Regel hier
+   greift nur ergänzend für den Fullscreen-Titel (der wird per position:
+   fixed aus dem .path-mod-elediacheckin-Baum herausgetragen, deshalb
+   nicht namespaced). */
+.elediacheckin-fullscreen .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* ============ Fullscreen overlay ====================================== */

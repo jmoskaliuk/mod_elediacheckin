@@ -343,5 +343,44 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040525, 'elediacheckin');
     }
 
+    // 2026040529 — Tour-JSON repariert.
+    //
+    // Die in 2026040525 importierte Lehrkräfte-Tour war leer (0 Schritte im
+    // Admin-UI), weil das JSON `configdata` als verschachteltes Objekt statt
+    // als JSON-String enthielt. tool_usertours ruft aber intern
+    // `json_decode($record->configdata)` auf — ein stdClass-Input wirft in
+    // PHP 8 einen TypeError, was den Step-Insert stumm scheitern lässt.
+    // Siehe docs/content-distribution-konzept.md §10.23.
+    //
+    // Fix: kaputte Tour(s) per pathmatch löschen und neu importieren. Der
+    // pathmatch ist eindeutig genug (/mod/elediacheckin/view.php%), dass wir
+    // nicht versehentlich fremde Tours treffen.
+    if ($oldversion < 2026040529) {
+        if (class_exists('\\tool_usertours\\tour')) {
+            $brokentours = $DB->get_records_select(
+                'tool_usertours_tours',
+                $DB->sql_like('pathmatch', ':path'),
+                ['path' => '/mod/elediacheckin/%']
+            );
+            foreach ($brokentours as $record) {
+                try {
+                    $tour = \tool_usertours\tour::load_from_record($record);
+                    $tour->remove();
+                } catch (\Throwable $e) {
+                    debugging(
+                        'mod_elediacheckin upgrade: could not remove broken tour '
+                            . $record->id . ': ' . $e->getMessage(),
+                        DEBUG_DEVELOPER
+                    );
+                }
+            }
+        }
+        require_once(__DIR__ . '/install.php');
+        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
+            mod_elediacheckin_install_bundled_tours();
+        }
+        upgrade_mod_savepoint(true, 2026040529, 'elediacheckin');
+    }
+
     return true;
 }
