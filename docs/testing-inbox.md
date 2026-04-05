@@ -53,6 +53,14 @@ Mit `~/moodle-update.sh checkin` deployen, dann der Reihe nach durchgehen.
 Häkchen oder Fehlermeldung unter den jeweiligen Punkt schreiben — Claude
 räumt dann ggf. nach.
 
+- **v2026040532 — Sync-Status-Heading wandert mit + Abstand über Panel.**
+  Nach Deploy von v2026040531 war der Save-Button korrekt oben, aber
+  die `Sync status`-h3 blieb verwaist darüber liegen und „Current state"
+  klebte direkt am Button. Jetzt verschiebt das JS den gesamten
+  Form-Item-Container (h3 + Panel gemeinsam) und setzt `margin-top:
+  2.5rem` auf den verschobenen Block. Nach Deploy: Heading direkt über
+  „Current state", sichtbare Luft zwischen Save-Button und Heading.
+  Konzept §10.25.
 - **v2026040531 — Save-Button oberhalb Sync-Status-Panel (Fix 2).**
   v2026040528-Fix griff nicht, weil `admin_setting_heading` keinen
   Wrapper mit `id="admin-<name>"` rendert. Jetzt umschließt
