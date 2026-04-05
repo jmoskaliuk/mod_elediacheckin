@@ -208,6 +208,19 @@ final class activity_pool {
         string $activeziel,
         array $langcandidates
     ): array {
+        $own = self::parse_own_questions($instance);
+
+        // "Nur eigene Fragen verwenden"-Toggle (Konzept §10.15): wenn
+        // aktiv, wird die Bundle-Query komplett uebersprungen. Damit kann
+        // eine Lehrkraft eine Aktivitaet aufsetzen, die ausschliesslich aus
+        // ihren eigenen Karten zieht, ohne die Site-Content-Quelle zu
+        // beruehren. Wenn der Teacher den Toggle aktiviert, aber gar keine
+        // eigenen Fragen eintraegt, gibt es konsequent nichts zu zeigen —
+        // die View rendert dann den "noquestions"-Empty-State.
+        if (!empty($instance->onlyownquestions)) {
+            return $own;
+        }
+
         $provider = new question_provider();
 
         $bundle = [];
@@ -233,8 +246,6 @@ final class activity_pool {
                 break;
             }
         }
-
-        $own = self::parse_own_questions($instance);
 
         return array_merge($bundle, $own);
     }

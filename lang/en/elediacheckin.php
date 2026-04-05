@@ -62,6 +62,8 @@ $string['avoidrepeat_help']   = 'If enabled, the same question will not be shown
 $string['showprevbutton']     = 'Show "Previous question" button';
 $string['showprevbutton_help'] = 'If enabled, a second button appears next to "Next question" that lets learners jump back one step — to the card that was shown just before. Only a single step back, not a full history.';
 $string['prevquestion']       = 'Previous question';
+$string['onlyownquestions']   = 'Use own questions only';
+$string['onlyownquestions_help'] = 'If enabled, this activity draws only from the own questions entered above. The bundle questions from the site content source are ignored. If the "Own questions" field is empty, the activity will show no cards.';
 
 // Audience + context (optional tag dimensions).
 $string['zielgruppe']         = 'Audience';

@@ -27,9 +27,6 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- **[Todo]** „Nur eigene Fragen verwenden"-Toggle als neue Checkbox im
-  Abschnitt „Eigene Fragen". Wenn aktiv, überspringt `activity_pool` die
-  Bundle-Query komplett und nutzt nur `parse_own_questions()`.
 - **[Todo]** Custom-Repo `github.com/jmoskaliuk/content_elediacheckin`
   direkt einbinden, wenn der Nutzer „Custom Git repo" als Inhaltsquelle
   wählt — als vorausgefüllter Default im URL-Feld.
@@ -58,7 +55,10 @@ _(leer — nächste Aufgabe: „Nur eigene Fragen"-Toggle)_
 - „Zur vorherigen Frage"-Button pro Aktivität: neues tinyint-Feld
   `showprevbutton` + `activity_pool::resolve_navigation()` mit 2er-
   Stack in `$SESSION`. One-step back, kein vor/zurück-Paar, view.php
-  und present.php teilen sich den State.
+  und present.php teilen sich den State. — Commit `9d483f1`
+- „Nur eigene Fragen verwenden"-Toggle im Abschnitt „Eigene Fragen":
+  neues tinyint-Feld `onlyownquestions`, `activity_pool::build_pool()`
+  kürzt Bundle-Query komplett weg wenn aktiv.
 - Block-Deploy auf Demo-Instanz geklärt: Verzeichnispfad in Moodle 5.x
   public layout ist `public/blocks/elediacheckin/`. `moodle-update.sh`
   Meta-Key `checkin` updated jetzt mod + block atomisch.

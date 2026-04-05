@@ -60,6 +60,8 @@ $string['avoidrepeat_help']   = 'Wenn aktiviert, wird innerhalb einer Sitzung ni
 $string['showprevbutton']     = 'Button „Zur vorherigen Frage" anzeigen';
 $string['showprevbutton_help'] = 'Wenn aktiviert, erscheint neben „Nächste Frage" ein zweiter Button, mit dem Lernende einen Schritt zurückspringen können — zur zuletzt gezogenen Karte. Nur ein Schritt zurück, kein vollständiger Verlauf.';
 $string['prevquestion']       = 'Zur vorherigen Frage';
+$string['onlyownquestions']   = 'Nur eigene Fragen verwenden';
+$string['onlyownquestions_help'] = 'Wenn aktiviert, zieht diese Aktivität ausschließlich aus den oben eingegebenen eigenen Fragen. Die Bundle-Fragen der Site-Inhaltsquelle werden ignoriert. Ist das Feld „Eigene Fragen" leer, zeigt die Aktivität keine Karten an.';
 
 // Zielgruppe + Kontext (optionale Tag-Dimensionen).
 $string['zielgruppe']         = 'Zielgruppe';

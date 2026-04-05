@@ -291,5 +291,21 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040515, 'elediacheckin');
     }
 
+    // 2026040516 — Toggle „Nur eigene Fragen verwenden".
+    //
+    // Neue tinyint-Spalte `onlyownquestions` auf der Aktivitäts-Instanz.
+    // Default 0. Wenn aktiv, überspringt `activity_pool::build_pool()`
+    // die Bundle-Query komplett und nutzt ausschließlich
+    // `parse_own_questions()`. Siehe Konzept §10.15.
+    if ($oldversion < 2026040516) {
+        $tableinstance = new xmldb_table('elediacheckin');
+        $fieldonly = new xmldb_field('onlyownquestions', XMLDB_TYPE_INTEGER, '1', null,
+            XMLDB_NOTNULL, null, '0', 'showprevbutton');
+        if (!$dbman->field_exists($tableinstance, $fieldonly)) {
+            $dbman->add_field($tableinstance, $fieldonly);
+        }
+        upgrade_mod_savepoint(true, 2026040516, 'elediacheckin');
+    }
+
     return true;
 }

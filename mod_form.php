@@ -181,6 +181,14 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->setType('ownquestions', PARAM_TEXT);
         $mform->addHelpButton('ownquestions', 'ownquestions', 'elediacheckin');
 
+        // „Nur eigene Fragen verwenden"-Toggle (Konzept §10.15).
+        // Wenn aktiv, ueberspringt activity_pool die Bundle-Query komplett
+        // und zieht ausschliesslich aus `ownquestions`. Default: aus.
+        $mform->addElement('selectyesno', 'onlyownquestions',
+            get_string('onlyownquestions', 'elediacheckin'));
+        $mform->setDefault('onlyownquestions', 0);
+        $mform->addHelpButton('onlyownquestions', 'onlyownquestions', 'elediacheckin');
+
         // Anzeigeoptionen.
         $mform->addElement('header', 'displaysettings', get_string('displaysettings', 'elediacheckin'));
 
