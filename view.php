@@ -66,18 +66,29 @@ if (!$multiziel || !in_array($activeziel, $ziele, true)) {
 }
 
 // Resolve a question through the service layer — only for the active ziel.
-// Language resolution tries (1) the activity's configured lang, (2) the user's
-// current language, (3) any language. This keeps the UX friendly on dev sites
-// where the bundle language may not match the site language yet.
+// Language resolution tries: (1) the activity's configured lang, resolving
+// the sentinels '_auto_' → current user language and '_course_' → course
+// language; (2) the user's current language; (3) any language. This keeps
+// the UX friendly on dev sites where the bundle language may not match
+// the site language yet.
 $provider = new \mod_elediacheckin\local\service\question_provider();
 $langcandidates = [];
-if (!empty($instance->contentlang)) {
-    $langcandidates[] = $instance->contentlang;
+// Sentinels: '_auto_' = user language, '_course_' = course language.
+// Kept as string literals so this hot-path resolves without loading
+// mod_form.php; the canonical definitions live in mod_form::LANG_AUTO /
+// LANG_COURSE and must stay in sync.
+$configured = (string) ($instance->contentlang ?? '');
+if ($configured === '_auto_') {
+    $langcandidates[] = current_language();
+} else if ($configured === '_course_') {
+    $langcandidates[] = !empty($course->lang) ? $course->lang : current_language();
+} else if ($configured !== '') {
+    $langcandidates[] = $configured;
 }
 $langcandidates[] = current_language();
 $langcandidates[] = null; // Final fallback: accept any language.
 $question = null;
-foreach (array_unique($langcandidates, SORT_REGULAR) as $lang) {
+foreach (array_unique(array_filter($langcandidates, static fn($v) => $v !== ''), SORT_REGULAR) as $lang) {
     $question = $provider->get_random_question([
         'ziele'      => [$activeziel],
         'categories' => $instance->categories,

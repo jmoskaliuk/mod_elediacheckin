@@ -42,6 +42,28 @@ final class schema_validator {
     /** Major schema version this validator understands. */
     public const SUPPORTED_MAJOR = 1;
 
+    /**
+     * Public accessor for the ziel → categories catalogue.
+     *
+     * Exposed so that the mod_form picker can render a labelled
+     * multi-select without duplicating the category list. Returns a copy,
+     * not a reference, so callers cannot mutate the catalogue.
+     *
+     * @return array<string, string[]>
+     */
+    public static function get_categories_by_ziel(): array {
+        return self::CATEGORIES_BY_ZIEL;
+    }
+
+    /**
+     * Public accessor for the ziel enum.
+     *
+     * @return string[]
+     */
+    public static function get_ziel_enum(): array {
+        return self::ZIEL_ENUM;
+    }
+
     /** Allowed values for the "ziel" field. */
     private const ZIEL_ENUM = [
         'impuls', 'checkin', 'checkout', 'retro',

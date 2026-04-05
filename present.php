@@ -51,15 +51,21 @@ if (!$multiziel || !in_array($activeziel, $ziele, true)) {
 }
 
 // Language resolution with graceful fallback (see view.php for rationale).
+// Sentinels: '_auto_' → current user language, '_course_' → course language.
 $provider = new \mod_elediacheckin\local\service\question_provider();
 $langcandidates = [];
-if (!empty($instance->contentlang)) {
-    $langcandidates[] = $instance->contentlang;
+$configured = (string) ($instance->contentlang ?? '');
+if ($configured === '_auto_') {
+    $langcandidates[] = current_language();
+} else if ($configured === '_course_') {
+    $langcandidates[] = !empty($course->lang) ? $course->lang : current_language();
+} else if ($configured !== '') {
+    $langcandidates[] = $configured;
 }
 $langcandidates[] = current_language();
 $langcandidates[] = null;
 $question = null;
-foreach (array_unique($langcandidates, SORT_REGULAR) as $lang) {
+foreach (array_unique(array_filter($langcandidates, static fn($v) => $v !== ''), SORT_REGULAR) as $lang) {
     $question = $provider->get_random_question([
         'ziele'      => [$activeziel],
         'categories' => $instance->categories,

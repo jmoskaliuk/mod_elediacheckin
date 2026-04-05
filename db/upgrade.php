@@ -165,5 +165,37 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040502, 'elediacheckin');
     }
 
+    // 2026040503 — Drop dead instance columns, default contentlang to '_auto_'.
+    //
+    // The following columns were scaffolded for the old UI mock-up but are
+    // never read by view.php/present.php or any service: randomstart,
+    // shownav, showother, showfilter. They are dropped to keep the schema
+    // honest and avoid confusing future developers.
+    //
+    // The contentlang column gets the new sentinel default '_auto_' so
+    // freshly created activities resolve to the user language without any
+    // admin intervention. Existing rows with an empty contentlang are left
+    // alone; the view resolves empty → current_language() anyway.
+    if ($oldversion < 2026040503) {
+        $tableinstance = new xmldb_table('elediacheckin');
+
+        foreach (['randomstart', 'shownav', 'showother', 'showfilter'] as $deadfield) {
+            $field = new xmldb_field($deadfield);
+            if ($dbman->field_exists($tableinstance, $field)) {
+                $dbman->drop_field($tableinstance, $field);
+            }
+        }
+
+        // Widen contentlang and change its default to the auto sentinel.
+        $fieldcontentlang = new xmldb_field('contentlang', XMLDB_TYPE_CHAR, '16', null,
+            null, null, '_auto_', 'categories');
+        if ($dbman->field_exists($tableinstance, $fieldcontentlang)) {
+            $dbman->change_field_precision($tableinstance, $fieldcontentlang);
+            $dbman->change_field_default($tableinstance, $fieldcontentlang);
+        }
+
+        upgrade_mod_savepoint(true, 2026040503, 'elediacheckin');
+    }
+
     return true;
 }

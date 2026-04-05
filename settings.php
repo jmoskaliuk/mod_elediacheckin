@@ -44,9 +44,11 @@ if ($ADMIN->fulltree) {
     ));
 
     $sourceoptions = [
-        'bundled' => get_string('contentsource_bundled', 'elediacheckin'),
-        'git'     => get_string('contentsource_git', 'elediacheckin'),
-        // 'eledia' => get_string('contentsource_eledia', 'elediacheckin'), // Phase 2.
+        'bundled'        => get_string('contentsource_bundled', 'elediacheckin'),
+        'git'            => get_string('contentsource_git', 'elediacheckin'),
+        // Phase-2 placeholder — listed but disabled until the premium backend is live.
+        // The sync service falls back to 'bundled' if this value is ever picked.
+        'eledia_premium' => get_string('contentsource_eledia', 'elediacheckin') . ' (Phase 2)',
     ];
     $settings->add(new admin_setting_configselect(
         'mod_elediacheckin/contentsource',
