@@ -60,7 +60,12 @@
 
     {{^hasquestion}}
         <div class="elediacheckin-present-middle">
-            <p class="elediacheckin-present-empty">{{strnone}}</p>
+            {{#exhausted}}
+                <p class="elediacheckin-present-empty">{{strexhausted}}</p>
+            {{/exhausted}}
+            {{^exhausted}}
+                <p class="elediacheckin-present-empty">{{strnone}}</p>
+            {{/exhausted}}
         </div>
     {{/hasquestion}}
 </div>

@@ -465,5 +465,66 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040534, 'elediacheckin');
     }
 
+    // 2026040538 — Neues Feld exhaustedbehavior + dritte User-Tour
+    // (activity_settings_tour) importieren.
+    //
+    // Johannes' Feedback v2026040537→v2026040538: Bei Wiederholt-Nutzung der
+    // Check-in-Aktivität sollen Lehrkräfte pro Aktivität festlegen können,
+    // was passiert, wenn alle Fragen einmal gezogen wurden — entweder still
+    // von vorne beginnen (Default) oder eine „Alle Fragen durch"-Karte
+    // zeigen. Das neue CHAR-Feld `exhaustedbehavior` hält genau diesen
+    // Selector. Außerdem: die in v2026040537 neu dazugekommene
+    // `activity_settings_tour.json` wurde bei bestehenden Installationen
+    // nie nachinstalliert, weil der install.php-Helper nur bei fresh
+    // installs läuft. Deshalb hier zusätzlich alle Plugin-Tours löschen und
+    // neu importieren — idempotent und betrifft nur vom Plugin bundled Tours.
+    if ($oldversion < 2026040538) {
+        $tableinstance = new xmldb_table('elediacheckin');
+        $fieldex = new xmldb_field('exhaustedbehavior', XMLDB_TYPE_CHAR, '16', null,
+            XMLDB_NOTNULL, null, 'restart', 'showprevbutton');
+        if (!$dbman->field_exists($tableinstance, $fieldex)) {
+            $dbman->add_field($tableinstance, $fieldex);
+        }
+
+        if (class_exists('\\tool_usertours\\tour')) {
+            $patterns = [
+                '/mod/elediacheckin/%',
+                '/admin/settings.php?section=modsettingelediacheckin%',
+                '/course/modedit.php%',
+            ];
+            foreach ($patterns as $pattern) {
+                $oldtours = $DB->get_records_select(
+                    'tool_usertours_tours',
+                    $DB->sql_like('pathmatch', ':path'),
+                    ['path' => $pattern]
+                );
+                foreach ($oldtours as $record) {
+                    // Nur Tours mit eindeutigem eLeDia-Prefix im Namen
+                    // entfernen — `/course/modedit.php%` ist zu generisch,
+                    // könnte fremde Tours treffen.
+                    if (strpos((string) $record->name, 'Check-In') === false
+                        && strpos((string) $record->name, 'Check-in') === false) {
+                        continue;
+                    }
+                    try {
+                        $tour = \tool_usertours\tour::load_from_record($record);
+                        $tour->remove();
+                    } catch (\Throwable $e) {
+                        debugging(
+                            'mod_elediacheckin upgrade: could not remove old tour '
+                                . $record->id . ': ' . $e->getMessage(),
+                            DEBUG_DEVELOPER
+                        );
+                    }
+                }
+            }
+        }
+        require_once(__DIR__ . '/install.php');
+        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
+            mod_elediacheckin_install_bundled_tours();
+        }
+        upgrade_mod_savepoint(true, 2026040538, 'elediacheckin');
+    }
+
     return true;
 }

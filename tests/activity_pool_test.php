@@ -124,7 +124,10 @@ final class activity_pool_test extends \advanced_testcase {
             'ownquestions'     => 'only-one',
             'ownquestionsmode' => 1,
         ]);
-        $SESSION->elediacheckin_history = [999 => ['stale-a', 'stale-b']];
+        $SESSION->elediacheckin_nav = [999 => [
+            'history' => ['stale-a', 'stale-b'],
+            'pos' => 1, 'seen' => ['stale-a' => true, 'stale-b' => true], 'exhausted' => false,
+        ]];
         $result = activity_pool::resolve_navigation(
             $instance, 999, 'checkin', ['de'], '', false, false
         );
@@ -139,7 +142,7 @@ final class activity_pool_test extends \advanced_testcase {
             'ownquestions'     => "a\nb\nc\nd",
             'ownquestionsmode' => 1,
         ]);
-        $SESSION->elediacheckin_history = [];
+        $SESSION->elediacheckin_nav = [];
         // First load.
         activity_pool::resolve_navigation($instance, 42, 'checkin', ['de'], '', false, false);
         // Explicit Next click should push onto history → hasprev becomes true.
@@ -149,22 +152,66 @@ final class activity_pool_test extends \advanced_testcase {
         $this->assertTrue($result['hasprev']);
     }
 
-    public function test_resolve_navigation_back_pops_to_previous(): void {
+    public function test_resolve_navigation_back_keeps_prev_available(): void {
         global $SESSION;
         $this->resetAfterTest();
         $instance = $this->fake_instance([
             'ownquestions'     => "a\nb\nc\nd\ne",
             'ownquestionsmode' => 1,
         ]);
-        $SESSION->elediacheckin_history = [];
+        $SESSION->elediacheckin_nav = [];
+        // Start + three Next clicks → history has 4 cards, pos = 3.
         activity_pool::resolve_navigation($instance, 7, 'checkin', ['de'], '', false, false);
         activity_pool::resolve_navigation($instance, 7, 'checkin', ['de'], '', false, true);
-        // Now history has 2 entries — back should return the older one and
-        // hide the prev button (history shrinks to 1).
+        activity_pool::resolve_navigation($instance, 7, 'checkin', ['de'], '', false, true);
+        activity_pool::resolve_navigation($instance, 7, 'checkin', ['de'], '', false, true);
+        // Step back once: still not at pos 0, hasprev must stay true
+        // (regression guard — the old single-step stack always collapsed
+        // hasprev to false after a back click, which Johannes flagged
+        // as a UX bug in v2026040537).
         $result = activity_pool::resolve_navigation(
             $instance, 7, 'checkin', ['de'], '', true, false
         );
         $this->assertNotNull($result['question']);
-        $this->assertFalse($result['hasprev']);
+        $this->assertTrue($result['hasprev']);
+    }
+
+    public function test_resolve_navigation_exhausted_restart_draws_again(): void {
+        global $SESSION;
+        $this->resetAfterTest();
+        $instance = $this->fake_instance([
+            'ownquestions'       => "a\nb",
+            'ownquestionsmode'   => 1,
+            'exhaustedbehavior'  => activity_pool::EXHAUSTED_RESTART,
+        ]);
+        $SESSION->elediacheckin_nav = [];
+        // Pool has only 2 cards. First load + two Next clicks would exhaust it.
+        activity_pool::resolve_navigation($instance, 1, 'checkin', ['de'], '', false, false);
+        activity_pool::resolve_navigation($instance, 1, 'checkin', ['de'], '', false, true);
+        // Third Next click: pool exhausted, restart mode must yield a new
+        // question (not null).
+        $result = activity_pool::resolve_navigation(
+            $instance, 1, 'checkin', ['de'], '', false, true
+        );
+        $this->assertNotNull($result['question']);
+        $this->assertFalse($result['exhausted']);
+    }
+
+    public function test_resolve_navigation_exhausted_empty_stops(): void {
+        global $SESSION;
+        $this->resetAfterTest();
+        $instance = $this->fake_instance([
+            'ownquestions'       => "a\nb",
+            'ownquestionsmode'   => 1,
+            'exhaustedbehavior'  => activity_pool::EXHAUSTED_EMPTY,
+        ]);
+        $SESSION->elediacheckin_nav = [];
+        activity_pool::resolve_navigation($instance, 2, 'checkin', ['de'], '', false, false);
+        activity_pool::resolve_navigation($instance, 2, 'checkin', ['de'], '', false, true);
+        $result = activity_pool::resolve_navigation(
+            $instance, 2, 'checkin', ['de'], '', false, true
+        );
+        $this->assertNull($result['question']);
+        $this->assertTrue($result['exhausted']);
     }
 }

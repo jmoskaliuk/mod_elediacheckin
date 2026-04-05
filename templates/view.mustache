@@ -123,7 +123,17 @@
         {{/hasquestion}}
 
         {{^hasquestion}}
-            <div class="alert alert-info mb-0" role="status">{{strnone}}</div>
+            {{#exhausted}}
+                <div class="elediacheckin-exhausted" role="status">
+                    <p class="elediacheckin-question-text">{{strexhausted}}</p>
+                    <div class="elediacheckin-controls">
+                        <a href="{{nextquestionurl}}" class="btn btn-primary elediacheckin-next-btn">{{strnext}}</a>
+                    </div>
+                </div>
+            {{/exhausted}}
+            {{^exhausted}}
+                <div class="alert alert-info mb-0" role="status">{{strnone}}</div>
+            {{/exhausted}}
         {{/hasquestion}}
     </div>
 </div>

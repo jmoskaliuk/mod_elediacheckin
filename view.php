@@ -107,8 +107,9 @@ $langcandidates[] = current_language();
 $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
     $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback, $isnext
 );
-$question = $nav['question'];
-$hasprev  = !empty($instance->showprevbutton) && $nav['hasprev'];
+$question  = $nav['question'];
+$hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
+$exhausted = !empty($nav['exhausted']);
 
 // Build ziel-picker buttons (only used if $multiziel).
 $zielbuttons = [];
@@ -171,6 +172,8 @@ $templatecontext = [
     'nextquestionurl' => $nexturl->out(false),
     'prevquestionurl' => $prevurl->out(false),
     'hasprev'         => $hasprev,
+    'exhausted'       => $exhausted,
+    'strexhausted'    => get_string('exhaustedmessage', 'elediacheckin'),
     'popupurl'        => $popupurl->out(false),
     'presenturl'      => $popupurl->out(false),
     'strnext'         => get_string('nextquestion', 'elediacheckin'),

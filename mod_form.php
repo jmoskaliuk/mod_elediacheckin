@@ -179,8 +179,26 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // Paar. Zustand pro cmid im $SESSION, siehe view.php/present.php.
         $mform->addElement('selectyesno', 'showprevbutton',
             get_string('showprevbutton', 'elediacheckin'));
-        $mform->setDefault('showprevbutton', 0);
+        $mform->setDefault('showprevbutton', 1);
         $mform->addHelpButton('showprevbutton', 'showprevbutton', 'elediacheckin');
+
+        // „Wenn alle Fragen durch sind" — per-Aktivität einstellbares
+        // Verhalten. 'restart' = Seen-Set zurücksetzen und weiter neu
+        // ziehen (Default, weil die meisten Check-in-Pools klein sind
+        // und der Lernende sowieso zeitlich versetzt wieder auftaucht).
+        // 'empty' = eine Hinweiskarte „Alle Fragen durch" anzeigen und
+        // nicht mehr weiterziehen. Siehe activity_pool::resolve_navigation.
+        $exhausteoptions = [
+            \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_RESTART
+                => get_string('exhaustedbehavior_restart', 'elediacheckin'),
+            \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_EMPTY
+                => get_string('exhaustedbehavior_empty', 'elediacheckin'),
+        ];
+        $mform->addElement('select', 'exhaustedbehavior',
+            get_string('exhaustedbehavior', 'elediacheckin'), $exhausteoptions);
+        $mform->setDefault('exhaustedbehavior',
+            \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_RESTART);
+        $mform->addHelpButton('exhaustedbehavior', 'exhaustedbehavior', 'elediacheckin');
 
         // Eigene Fragen (per-Aktivität, siehe Konzept §10.13 + §10.19).
         // Additiver Zusatzpool zu den Bundle-Fragen: eine Zeile = eine

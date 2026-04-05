@@ -62,7 +62,7 @@ class dashboard_renderer {
         $out .= \html_writer::tag('span',
             get_string('dashboard_savehint', 'elediacheckin'),
             ['class' => 'text-muted me-3']);
-        $out .= '<button type="submit" class="btn btn-primary btn-sm" name="elediacheckin_earlysave">'
+        $out .= '<button type="submit" class="btn btn-primary" name="elediacheckin_earlysave">'
             . s(get_string('savechanges')) . '</button>';
         $out .= \html_writer::end_div();
 

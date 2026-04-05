@@ -60,9 +60,13 @@ $string['lang_auto']          = 'Nutzersprache (empfohlen)';
 $string['lang_course']        = 'Kurssprache';
 $string['avoidrepeat']        = 'Wiederholung der letzten Frage vermeiden';
 $string['avoidrepeat_help']   = 'Wenn aktiviert, wird innerhalb einer Sitzung nicht zweimal dieselbe Frage gezeigt.';
-$string['showprevbutton']     = 'Button „Zur vorherigen Frage" anzeigen';
-$string['showprevbutton_help'] = 'Wenn aktiviert, erscheint neben „Nächste Frage" ein zweiter Button, mit dem Lernende einen Schritt zurückspringen können — zur zuletzt gezogenen Karte. Nur ein Schritt zurück, kein vollständiger Verlauf.';
-$string['prevquestion']       = 'Zur vorherigen Frage';
+$string['showprevbutton']     = 'Button „Zurück" anzeigen';
+$string['showprevbutton_help'] = 'Wenn aktiviert, erscheint neben „Weiter" ein „Zurück"-Button, mit dem Lernende durch die bereits gesehenen Karten dieser Sitzung zurückblättern können. Auf der allerersten Karte bleibt der Button ausgeblendet.';
+$string['prevquestion']       = 'Zurück';
+$string['exhaustedbehavior']       = 'Wenn alle Fragen durch sind';
+$string['exhaustedbehavior_help']  = 'Was soll passieren, wenn in dieser Sitzung alle Fragen des Pools einmal gezeigt wurden? „Von vorne beginnen" setzt den Gesehen-Zähler still zurück und zieht weiter neue Karten (Standard, empfohlen für kleine Pools). „Leere Abschluss-Karte anzeigen" stoppt das Ziehen und zeigt stattdessen eine Hinweismeldung.';
+$string['exhaustedbehavior_restart'] = 'Von vorne beginnen';
+$string['exhaustedbehavior_empty']   = 'Leere Abschluss-Karte anzeigen';
 $string['ownquestionsmode']   = 'Quelle für diese Aktivität';
 $string['ownquestionsmode_help'] = 'Legt fest, welche Fragen in dieser Aktivität gezogen werden. „Gemischt" mischt die unten eingetragenen eigenen Fragen additiv zu den Bundle-Fragen der Site-Inhaltsquelle (Default). „Nur eigene Fragen" ignoriert das Site-Bundle komplett — ist das Textfeld leer, werden keine Karten angezeigt. „Keine eigenen Fragen" ignoriert das Textfeld, auch wenn es gefüllt ist — nützlich, um eine Aktivität temporär aus dem eigenen Pool zu nehmen, ohne die Einträge zu löschen.';
 $string['ownquestionsmode_mixed']   = 'Gemischt: eigene Fragen zusätzlich zu Bundle-Fragen';
@@ -134,7 +138,8 @@ $string['cat_lebensweisheit']         = 'Lebensweisheit';
 $string['cat_humor']                  = 'Humor';
 
 $string['newquestion']        = 'Andere Frage';
-$string['nextquestion']       = 'Nächste Frage';
+$string['nextquestion']       = 'Weiter';
+$string['exhaustedmessage']   = 'Für diese Sitzung sind alle Fragen aus dem Pool durch. Schau später wieder vorbei — oder bitte deine Lehrkraft, weitere Fragen zu ergänzen.';
 $string['openpopup']          = 'Als Popup öffnen';
 $string['openfullscreen']     = 'Vollbild';
 // HINWEIS: "Schließen" nutzt den Core-String `closebuttontitle` (moodle).

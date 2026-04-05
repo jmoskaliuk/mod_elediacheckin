@@ -106,32 +106,55 @@ final class activity_pool {
     }
 
     /**
-     * Resolves the next question to display including one-step history
-     * tracking for the "Zur vorherigen Frage"-Button.
+     * Upper bound on the in-session history stack. Caps memory so a
+     * learner who clicks "Weiter" several thousand times does not blow
+     * up their PHP session record. The oldest entry is shifted out when
+     * the stack grows past this value — learners can still navigate
+     * backwards through the last HISTORY_MAX cards, which is plenty for
+     * any realistic check-in session (typical pool sizes are 20–200).
+     */
+    public const HISTORY_MAX = 500;
+
+    /**
+     * Constants for the exhausted-pool behaviour selector.
+     */
+    public const EXHAUSTED_RESTART = 'restart';
+    public const EXHAUSTED_EMPTY   = 'empty';
+
+    /**
+     * Resolves the next question to display including full in-session
+     * history tracking for the "Zurück"-Button and pool-exhausted
+     * handling.
      *
-     * Shared helper for view.php and present.php so the navigation state
-     * machine lives in one place. History is persisted in $SESSION under
-     * `elediacheckin_history[$cmid]` as a bounded list of at most 2
-     * externalids, newest at the tail.
+     * Shared helper for view.php and present.php so the navigation
+     * state machine lives in one place. Session state is persisted
+     * under `elediacheckin_nav[$cmid]` as a small record:
+     *
+     *   ['history' => [extid, extid, …], // newest at tail
+     *    'pos'     => int,               // current index inside history
+     *    'seen'    => [extid => true],   // everything drawn this session
+     *    'exhausted' => bool]
      *
      * Semantics:
-     *  - If `$pinnedexternalid` is non-empty, try to lock onto that card
-     *    (used by the block launcher via `?q=`). History is reset to just
-     *    that entry so the user has a clean starting point and the prev
-     *    button stays hidden.
-     *  - Else if `$goback` is true AND history has at least 2 entries,
-     *    pop the current top and return the previous card. History
-     *    shrinks back to size 1 — the button disappears until the user
-     *    draws a new card, which avoids ping-pong between two cards.
-     *  - Else if `$isnext` is true (explicit „Nächste Frage"-click), draw
-     *    a new random and push it on the history stack, keeping at most
-     *    2 entries (shift the oldest out). This is the only path that
-     *    makes the prev button appear.
-     *  - Else (fresh page load, e.g. direct navigation to the activity),
-     *    draw a new random and *reset* the history to just that entry.
-     *    Per-viewing-session state should not leak across navigations —
-     *    Johannes wanted the button to appear only once the user has
-     *    actively moved forward at least once.
+     *  - `$pinnedexternalid` non-empty → lock onto that card, reset
+     *    history to just that entry. Used by the block launcher.
+     *  - `$goback` → decrement `pos` (clamped at 0). Returns the card
+     *    at the new position from the history. No new draw happens.
+     *    „Previous" button stays hidden only when `pos === 0`.
+     *  - `$isnext` → if `pos` is not at the tail (user had stepped
+     *    back and now wants to go forward), just increment and return
+     *    the existing history entry. If `pos` is at the tail, draw a
+     *    *fresh* card (excluding everything in `seen`), append, move
+     *    `pos` forward. If no fresh card is available, apply the
+     *    configured exhausted behaviour:
+     *      • 'restart' → clear `seen`, draw again; the newly drawn
+     *        card is pushed onto history as a normal new entry.
+     *      • 'empty'   → return no question and set `exhausted=true`.
+     *  - Fresh page load (neither flag) → draw a random card and
+     *    *reset* the whole navigation state for this cmid. This makes
+     *    the Previous-button stay hidden until the learner has
+     *    actively clicked "Weiter" at least once in this viewing
+     *    session, which matches Johannes' product expectation.
      *
      * @param \stdClass $instance        Row from the {elediacheckin} table.
      * @param int       $cmid            Course module id (session namespace).
@@ -140,7 +163,7 @@ final class activity_pool {
      * @param string    $pinnedexternalid  Externalid to lock onto, or ''.
      * @param bool      $goback          True = handle "back" button click.
      * @param bool      $isnext          True = handle "next" button click.
-     * @return array{question: ?\stdClass, hasprev: bool}
+     * @return array{question: ?\stdClass, hasprev: bool, exhausted: bool}
      */
     public static function resolve_navigation(
         \stdClass $instance,
@@ -153,62 +176,179 @@ final class activity_pool {
     ): array {
         global $SESSION;
 
-        $prop = 'elediacheckin_history';
+        $prop = 'elediacheckin_nav';
         if (!isset($SESSION->{$prop}) || !is_array($SESSION->{$prop})) {
             $SESSION->{$prop} = [];
         }
         $all = $SESSION->{$prop};
-        $history = isset($all[$cmid]) && is_array($all[$cmid]) ? $all[$cmid] : [];
+        $state = (isset($all[$cmid]) && is_array($all[$cmid])) ? $all[$cmid] : [];
+        $history = isset($state['history']) && is_array($state['history']) ? $state['history'] : [];
+        $pos     = isset($state['pos']) ? (int) $state['pos'] : 0;
+        $seen    = isset($state['seen']) && is_array($state['seen']) ? $state['seen'] : [];
 
+        $exhaustedmode = self::normalise_exhausted_behavior($instance);
         $question = null;
+        $exhausted = false;
 
         if ($pinnedexternalid !== '') {
-            // Pinned from block launcher: reset the history stack.
+            // Pinned from block launcher: clean slate.
             $question = self::pick_by_externalid(
                 $instance, $pinnedexternalid, $activeziel, $langcandidates
             );
             if (!$question) {
-                // Unknown externalid (e.g., bundle resynced). Fall back to random.
                 $question = self::pick_random($instance, $activeziel, $langcandidates);
             }
-            $history = $question ? [(string) $question->externalid] : [];
-        } else if ($goback && count($history) >= 2) {
-            // Pop current, reveal previous.
-            array_pop($history);
-            $topid = (string) end($history);
-            $question = self::pick_by_externalid(
-                $instance, $topid, $activeziel, $langcandidates
-            );
+            if ($question) {
+                $extid = (string) $question->externalid;
+                $history = [$extid];
+                $pos = 0;
+                $seen = [$extid => true];
+            } else {
+                $history = [];
+                $pos = 0;
+                $seen = [];
+            }
+        } else if ($goback) {
+            // Step backwards in the in-session history.
+            if ($pos > 0) {
+                $pos--;
+            }
+            if (!empty($history[$pos])) {
+                $question = self::pick_by_externalid(
+                    $instance, (string) $history[$pos], $activeziel, $langcandidates
+                );
+            }
             if (!$question) {
                 // Previous card disappeared (bundle resynced?). Draw fresh.
-                $question = self::pick_random($instance, $activeziel, $langcandidates);
-                $history = $question ? [(string) $question->externalid] : [];
+                $question = self::pick_random_excluding($instance, $activeziel, $langcandidates, $seen);
+                if ($question) {
+                    $extid = (string) $question->externalid;
+                    $history = [$extid];
+                    $pos = 0;
+                    $seen[$extid] = true;
+                }
             }
         } else if ($isnext) {
-            // Explicit "Next"-click: draw a random and push on top.
-            $question = self::pick_random($instance, $activeziel, $langcandidates);
-            if ($question) {
-                $history[] = (string) $question->externalid;
-                while (count($history) > 2) {
-                    array_shift($history);
+            // Forward: either walk ahead in the stored history (if the
+            // learner had stepped back) or draw a fresh card.
+            if ($pos + 1 < count($history)) {
+                $pos++;
+                $question = self::pick_by_externalid(
+                    $instance, (string) $history[$pos], $activeziel, $langcandidates
+                );
+            }
+            if (!$question) {
+                $question = self::pick_random_excluding($instance, $activeziel, $langcandidates, $seen);
+                if (!$question) {
+                    // Pool exhausted.
+                    if ($exhaustedmode === self::EXHAUSTED_RESTART) {
+                        $seen = [];
+                        $question = self::pick_random($instance, $activeziel, $langcandidates);
+                    } else {
+                        $exhausted = true;
+                    }
+                }
+                if ($question) {
+                    $extid = (string) $question->externalid;
+                    // Truncate history forward of current pos (we branch
+                    // off the existing trail) then append.
+                    if ($pos + 1 < count($history)) {
+                        $history = array_slice($history, 0, $pos + 1);
+                    }
+                    $history[] = $extid;
+                    $pos = count($history) - 1;
+                    $seen[$extid] = true;
+                    // Cap memory.
+                    if (count($history) > self::HISTORY_MAX) {
+                        $drop = count($history) - self::HISTORY_MAX;
+                        $history = array_slice($history, $drop);
+                        $pos = count($history) - 1;
+                    }
                 }
             }
         } else {
-            // Fresh page load / first entry: draw a random and *reset*
-            // the history stack. Keeps the prev button hidden until the
-            // user has actively clicked "Next" at least once in this
-            // page-viewing session.
+            // Fresh page load: reset the whole navigation state.
             $question = self::pick_random($instance, $activeziel, $langcandidates);
-            $history = $question ? [(string) $question->externalid] : [];
+            if ($question) {
+                $extid = (string) $question->externalid;
+                $history = [$extid];
+                $pos = 0;
+                $seen = [$extid => true];
+            } else {
+                $history = [];
+                $pos = 0;
+                $seen = [];
+            }
         }
 
-        $all[$cmid] = $history;
+        $all[$cmid] = [
+            'history'   => $history,
+            'pos'       => $pos,
+            'seen'      => $seen,
+            'exhausted' => $exhausted,
+        ];
         $SESSION->{$prop} = $all;
 
         return [
-            'question' => $question,
-            'hasprev'  => count($history) >= 2,
+            'question'  => $question,
+            'hasprev'   => $pos > 0,
+            'exhausted' => $exhausted,
         ];
+    }
+
+    /**
+     * Like `pick_random()` but filters out every question whose externalid
+     * already sits in `$seen`. Returns null when the remaining pool is
+     * empty — the caller is responsible for applying the configured
+     * exhausted-behavior (restart vs. empty card).
+     *
+     * @param \stdClass $instance
+     * @param string    $activeziel
+     * @param string[]  $langcandidates
+     * @param array<string,bool> $seen  Map of externalid → true.
+     * @return \stdClass|null
+     */
+    public static function pick_random_excluding(
+        \stdClass $instance,
+        string $activeziel,
+        array $langcandidates,
+        array $seen
+    ): ?\stdClass {
+        $pool = self::build_pool($instance, $activeziel, $langcandidates);
+        if (empty($pool)) {
+            return null;
+        }
+        if (empty($seen)) {
+            return $pool[array_rand($pool)];
+        }
+        $remaining = [];
+        foreach ($pool as $row) {
+            $extid = (string) ($row->externalid ?? '');
+            if ($extid === '' || !isset($seen[$extid])) {
+                $remaining[] = $row;
+            }
+        }
+        if (empty($remaining)) {
+            return null;
+        }
+        return $remaining[array_rand($remaining)];
+    }
+
+    /**
+     * Reads and normalises the instance-level exhausted-behavior selector.
+     * Falls back to the documented default 'restart' on unknown or empty
+     * values so an upgrade from an older schema never produces a broken
+     * runtime state.
+     *
+     * @param \stdClass $instance
+     * @return string One of self::EXHAUSTED_RESTART | self::EXHAUSTED_EMPTY.
+     */
+    public static function normalise_exhausted_behavior(\stdClass $instance): string {
+        $raw = (string) ($instance->exhaustedbehavior ?? self::EXHAUSTED_RESTART);
+        if ($raw !== self::EXHAUSTED_EMPTY && $raw !== self::EXHAUSTED_RESTART) {
+            return self::EXHAUSTED_RESTART;
+        }
+        return $raw;
     }
 
     /**

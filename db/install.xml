@@ -27,8 +27,10 @@
                COMMENT="Optional teacher-authored extra questions, one per line. Merged additively into the random draw pool for this activity. Virtual category 'eigene'."/>
         <FIELD NAME="ownquestionsmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
                COMMENT="Tri-state selector for the own-questions pool. 0 = mixed (own + bundle, equal weight, default), 1 = only_own (skip bundle pool entirely), 2 = none (ignore own-questions field even if filled). Replaces the earlier yes/no toggle 'onlyownquestions' so teachers can cleanly pick between all three behaviours."/>
-        <FIELD NAME="showprevbutton" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
-               COMMENT="If set, view.php/present.php render a 'Zur vorherigen Frage'-Button that re-shows the last-drawn question from the session state."/>
+        <FIELD NAME="showprevbutton" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"
+               COMMENT="If set, view.php/present.php render a 'Zurück'-Button that lets learners step back through previously seen cards in this session. Hidden on the first card."/>
+        <FIELD NAME="exhaustedbehavior" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="restart" SEQUENCE="false"
+               COMMENT="Behaviour when every question in the pool has been shown once in this session. 'restart' = reset the seen-set and keep drawing fresh cards (default). 'empty' = stop drawing and show an 'all questions seen' placeholder card."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

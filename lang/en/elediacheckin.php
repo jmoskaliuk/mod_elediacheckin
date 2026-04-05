@@ -62,9 +62,13 @@ $string['lang_auto']          = 'User language (recommended)';
 $string['lang_course']        = 'Course language';
 $string['avoidrepeat']        = 'Avoid repeating the previous question';
 $string['avoidrepeat_help']   = 'If enabled, the same question will not be shown twice in a row within a single view.';
-$string['showprevbutton']     = 'Show "Previous question" button';
-$string['showprevbutton_help'] = 'If enabled, a second button appears next to "Next question" that lets learners jump back one step — to the card that was shown just before. Only a single step back, not a full history.';
-$string['prevquestion']       = 'Previous question';
+$string['showprevbutton']     = 'Show "Previous" button';
+$string['showprevbutton_help'] = 'If enabled, a "Previous" button appears next to "Next" that lets learners step back through the cards they have already seen in this session. The button is hidden on the very first card.';
+$string['prevquestion']       = 'Previous';
+$string['exhaustedbehavior']       = 'When every question has been seen';
+$string['exhaustedbehavior_help']  = 'What should happen when the learner has worked through every question in the pool in this session? "Start over" silently resets the seen-tracker and keeps showing cards (recommended for small pools and short visits). "Show empty card" stops drawing and displays a placeholder message instead.';
+$string['exhaustedbehavior_restart'] = 'Start over from the beginning';
+$string['exhaustedbehavior_empty']   = 'Show an empty "all done" card';
 $string['ownquestionsmode']   = 'Question pool for this activity';
 $string['ownquestionsmode_help'] = 'Decides which questions are drawn in this activity. "Mixed" adds the own questions entered below to the bundle questions from the site content source with equal weight (default). "Only own questions" ignores the site bundle entirely — if the textarea is empty, no cards are shown. "No own questions" ignores the textarea even if it is filled — useful to temporarily take an activity out of the own-questions pool without deleting the entries.';
 $string['ownquestionsmode_mixed']   = 'Mixed: own questions in addition to bundle questions';
@@ -137,7 +141,8 @@ $string['cat_humor']                  = 'Humour';
 
 // View page.
 $string['newquestion']        = 'Another question';
-$string['nextquestion']       = 'Next question';
+$string['nextquestion']       = 'Next';
+$string['exhaustedmessage']   = 'You have seen every question in this pool for now. Come back later — or ask your teacher to add more.';
 $string['openpopup']          = 'Open as popup';
 $string['openfullscreen']     = 'Fullscreen';
 // NOTE: "Close" label reuses the core string `closebuttontitle` (moodle).
