@@ -52,7 +52,7 @@ eingereicht werden kann. Reihenfolge = empfohlene Abarbeitungsreihenfolge.
 
 ### 1. Deploy + Behat 9/9 ← nächster Schritt
 
-Aktueller HEAD: commit `41e033f` (Behat-Context für Tour-Test).
+Aktueller HEAD: commit `55ff467` (Tour-Namen in JSON auf echte EN-Strings geändert).
 
 ```
 ~/moodle-update.sh checkin
@@ -65,13 +65,13 @@ docker compose -f ~/demo/compose.yml exec -T webserver \
   php /var/www/site/moodle/public/admin/tool/behat/cli/init.php 2>&1 | tail -5
 ```
 
-Dann Behat-Lauf:
+Dann Behat-Lauf (Pfad-basiert, nicht --suite):
 
 ```
 docker compose -f ~/demo/compose.yml exec -T webserver \
-  php /var/www/site/moodle/vendor/bin/behat \
+  php /var/www/site/vendor/bin/behat \
     --config /var/www/behatdata/behatrun/behat/behat.yml \
-    --suite mod_elediacheckin 2>&1 | tail -20
+    /var/www/site/moodle/public/mod/elediacheckin/tests/behat/ 2>&1 | tail -25
 ```
 
 Erwartetes Ergebnis: **9 scenarios, 9 passed**.
@@ -108,12 +108,12 @@ git push
 
 ### 3. PHPCS — muss 0 errors, 0 warnings sein
 
-CI nutzt `--max-warnings 0`. Moodle-CS muss installiert sein:
+CI nutzt `--max-warnings 0`. Moodle-CS muss installiert sein (`composer` liegt unter `/var/www/site/moodle/composer.phar`):
 
 ```
 docker compose -f ~/demo/compose.yml exec -T \
   -w /var/www/site/moodle webserver \
-  composer require --dev moodlehq/moodle-cs --no-interaction 2>&1 | tail -3
+  php composer.phar require --dev moodlehq/moodle-cs --no-interaction 2>&1 | tail -5
 ```
 
 Dann prüfen:
