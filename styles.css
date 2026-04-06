@@ -280,8 +280,15 @@
 }
 
 @keyframes elediacheckin-fadein {
-    from { opacity: 0; transform: scale(.985); }
-    to   { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 body.elediacheckin-fs-locked {
@@ -347,6 +354,7 @@ body.elediacheckin-fs-locked {
 }
 
 .elediacheckin-fs-question {
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(2.5rem, 6vw, 5.5rem);
     font-weight: 700;
     line-height: 1.15;
@@ -361,6 +369,7 @@ body.elediacheckin-fs-locked {
 }
 
 .elediacheckin-fs-author {
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(1rem, 1.6vw, 1.4rem);
     margin: 18px auto 0;
     opacity: .75;
@@ -368,6 +377,7 @@ body.elediacheckin-fs-locked {
 }
 
 .elediacheckin-fs-answer {
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(1.1rem, 2vw, 1.6rem);
     margin: 24px auto 0;
     opacity: .85;
@@ -460,6 +470,7 @@ body.pagelayout-popup #block-region-side-post,
 body.pagelayout-popup nav.navbar,
 body.pagelayout-popup #page-footer,
 body.pagelayout-popup footer {
+    /* stylelint-disable-next-line declaration-no-important */
     display: none !important;
 }
 
@@ -551,6 +562,7 @@ body.pagelayout-popup .page-header-headings {
 }
 
 .elediacheckin-present-question {
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(1.8rem, 3.4vw, 3rem);
     font-weight: 700;
     color: var(--el-dark-blue);
@@ -569,6 +581,7 @@ body.pagelayout-popup .page-header-headings {
     margin: 14px 0 0;
     color: var(--el-dark-blue);
     opacity: .7;
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(1rem, 1.5vw, 1.25rem);
     font-style: normal;
 }
@@ -578,6 +591,7 @@ body.pagelayout-popup .page-header-headings {
     max-width: 900px;
     text-align: center;
     color: var(--el-dark-blue);
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(1rem, 1.6vw, 1.25rem);
     background: rgba(25, 72, 102, .06);
     border-left: 3px solid var(--el-dark-blue);
