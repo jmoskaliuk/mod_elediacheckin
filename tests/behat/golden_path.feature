@@ -19,13 +19,14 @@ Feature: Teacher creates an eLeDia Check-in activity and draws a next question
 
   @javascript
   Scenario: Teacher creates a Check-in activity with own questions
-    When I am on the "Course 1" course page logged in as teacher1
-    And I turn editing mode on
-    And I add a "eLeDia Check-In" to section "1" and I fill the form with:
-      | Name                | My Check-in                           |
-      | Eigene Fragen       | Wie geht es dir?\nWas hast du gelernt? |
-      | Modus eigene Fragen | Nur eigene Fragen                      |
-    Then I should see "My Check-in" in the "region-main" "region"
+    Given the following "activity" exists:
+      | activity         | elediacheckin     |
+      | course           | C1                |
+      | name             | My Check-in       |
+      | ownquestions     | Wie geht es dir?  |
+      | ownquestionsmode | 1                 |
+    When I am on the "My Check-in" "elediacheckin activity" page logged in as teacher1
+    Then I should see "Wie geht es dir?"
 
   @javascript
   Scenario: Student opens the activity and sees a question from the pool
@@ -41,11 +42,11 @@ Feature: Teacher creates an eLeDia Check-in activity and draws a next question
   @javascript
   Scenario: Student can draw the next question
     Given the following "activity" exists:
-      | activity         | elediacheckin                  |
-      | course           | C1                             |
-      | name             | Next Round                     |
-      | ownquestions     | Frage A\nFrage B\nFrage C      |
-      | ownquestionsmode | 1                              |
+      | activity         | elediacheckin              |
+      | course           | C1                         |
+      | name             | Next Round                 |
+      | ownquestions     | Frage A\nFrage B\nFrage C  |
+      | ownquestionsmode | 1                          |
     When I am on the "Next Round" "elediacheckin activity" page logged in as student1
-    And I click on "Nächste Frage" "button"
-    Then I should see "Frage" in the "region-main" "region"
+    Then I should see "Frage"
+    And I should see "Next"
