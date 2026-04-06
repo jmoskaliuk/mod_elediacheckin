@@ -44,9 +44,40 @@ class behat_mod_elediacheckin extends behat_base {
      * bails out silently; this step explicitly imports the tours so tour-
      * related Behat scenarios can proceed without depending on install order.
      *
+     * Unlike tour_installer::install_bundled_tours() (which catches all
+     * Throwables silently), this step propagates exceptions so Behat can
+     * report the real cause of failure.
+     *
      * @Given the elediacheckin bundled tours are installed
      */
     public function the_elediacheckin_bundled_tours_are_installed(): void {
-        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
+        global $CFG, $DB;
+
+        if (!class_exists('\\tool_usertours\\manager')) {
+            throw new \Exception('tool_usertours\\manager class not found — is tool_usertours enabled?');
+        }
+
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists('tool_usertours_tours')) {
+            throw new \Exception('tool_usertours_tours table does not exist in Behat DB');
+        }
+
+        $toursdir = $CFG->dirroot . '/mod/elediacheckin/db/tours';
+        if (!is_dir($toursdir)) {
+            throw new \Exception('Tours directory not found: ' . $toursdir);
+        }
+
+        $files = glob($toursdir . '/*.json');
+        if (empty($files)) {
+            throw new \Exception('No JSON tour files found in: ' . $toursdir);
+        }
+
+        foreach ($files as $file) {
+            $json = file_get_contents($file);
+            if ($json === false) {
+                throw new \Exception('Could not read tour file: ' . $file);
+            }
+            \tool_usertours\manager::import_tour_from_json($json);
+        }
     }
 }
