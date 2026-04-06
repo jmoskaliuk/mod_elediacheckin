@@ -25,136 +25,13 @@ Session und arbeitet sie ab.
 Workflow: Du schreibst unter „Neu" weiter, während Claude an etwas
 anderem arbeitet. Zu Beginn jeder Session triagiert Claude die Inbox
 (Bug → sofort, Designfrage → „Klärung notwendig", Phase 2 → verschieben),
-bündelt verwandte Punkte und setzt sie um.
+bündelt verwandte Punkte und setzt sie ab.
 
 ---
 
 ## 🆕 Neu
 
 _(leer)_
-
-## 🔎 Nach Deploy verifizieren
-
-### Grunt AMD rebuild nach category_filter.js ES6-Umbau (v2026040607)
-
-`category_filter.js` wurde auf ES6 umgeschrieben.
-Das `amd/build/` muss nach `~/moodle-update.sh checkin` neu gebaut werden:
-
-```
-docker compose -f ~/demo/compose.yml exec -T \
-  -w /var/www/site/moodle webserver \
-  npx grunt amd --root=public/mod/elediacheckin
-```
-
-Danach im Mac-Checkout prüfen (`~/demo/site/moodle/public/mod/elediacheckin/`):
-
-```
-git diff amd/build/
-```
-
-Falls geändert: `git add amd/build/ && git commit -m "rebuild: AMD for ES6 category_filter"` und `git push`.
-
-### PHPCS — muss grün sein vor Plugin Directory Submission
-
-```
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  bash -c 'cd /var/www/site/moodle && vendor/bin/phpcs \
-    --standard=moodle --extensions=php \
-    --ignore="*/vendor/*,*/node_modules/*,*/tests/*" \
-    public/mod/elediacheckin/ 2>&1 | tail -20'
-```
-
-Ziel: 0 errors, 0 warnings (CI nutzt `--max-warnings 0`).
-
-### Behat 9/9 — finaler Lauf (v2026040604)
-
-Deploy `~/moodle-update.sh checkin` bringt commit `8943891`. Danach:
-
-```
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  php /var/www/site/moodle/admin/tool/behat/cli/init.php 2>&1 | tail -5
-
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  php /var/www/site/vendor/bin/behat \
-    --config /var/www/behatdata/behatrun/behat/behat.yml \
-    --suite mod_elediacheckin 2>&1 | tail -20
-```
-
-Erwartetes Ergebnis: **9 scenarios, 9 passed**.
-
-### Deinstallation (nie getestet)
-
-Nach erfolgreichem Behat-Lauf, als nächster Schritt:
-
-1. Plugin deinstallieren via _Site administration → Plugins → Manage activities_.
-2. Prüfen, dass die drei User-Tours entfernt wurden
-   (_Site administration → Server → User tours_ — keine „Check-in"-Tours mehr).
-3. Prüfen, dass keine `elediacheckin`-Tabellen übrig bleiben:
-
-```
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  php -r "define('CLI_SCRIPT', true); require '/var/www/site/moodle/config.php';
-  global \$DB; \$tables = \$DB->get_tables();
-  foreach (\$tables as \$t) { if (strpos(\$t,'elediacheckin') !== false) echo \$t.PHP_EOL; }"
-```
-
-Wenn leer → sauber. Danach Plugin neu installieren (damit die Demo-Instanz
-wieder nutzbar ist).
-
-## 🔬 PreCheck-Verifizierung (v2026040541, auf Docker)
-
-Die folgenden Kommandos brauchen PHP und laufen deshalb im Docker-Container.
-Bitte nach `~/moodle-update.sh checkin` (v2026040541 Deploy) ausführen und
-Ergebnis hier einfügen oder in der Chat-Session melden.
-
-### 1. PHPCS (Moodle Coding Standards)
-
-```
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  bash -c 'cd /var/www/site/moodle && vendor/bin/phpcs \
-    --standard=moodle \
-    --extensions=php \
-    --ignore=*/vendor/*,*/node_modules/*,*/tests/* \
-    public/mod/elediacheckin/'
-```
-
-Falls `phpcs` oder der moodle-Standard fehlt:
-
-```
-docker compose -f ~/demo/compose.yml exec -T -w /var/www/site/moodle webserver \
-  composer require --dev moodlehq/moodle-cs
-```
-
-### 2. Grunt AMD-Rebuild (offizielle Moodle-Toolchain)
-
-```
-docker compose -f ~/demo/compose.yml exec -T \
-  -w /var/www/site/moodle webserver \
-  npx grunt amd --root=public/mod/elediacheckin
-```
-
-Danach `git diff amd/build/` prüfen — wenn sich nur Whitespace oder
-Kommentar-Hashes ändern, ist alles OK. Wenn Funktionslogik abweicht,
-muss der Grunt-Build committet werden.
-
-### 3. Savepoints-Check (upgrade.php Konsistenz)
-
-```
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  php /var/www/site/moodle/admin/cli/check_database_schema.php
-```
-
-Suche in der Ausgabe nach `elediacheckin` — keine Fehler = OK.
-
-### 4. install.xml vs. Upgrade-Endstand
-
-```
-docker compose -f ~/demo/compose.yml exec -T webserver \
-  php /var/www/site/moodle/admin/cli/check_database_schema.php 2>&1 \
-  | grep -i elediacheckin
-```
-
-Falls Schema-Differenzen auftauchen, install.xml muss nachgezogen werden.
 
 ## ❓ Klärung notwendig
 
@@ -164,119 +41,199 @@ _(leer)_
 
 _(leer)_
 
-## 🔎 Nach Deploy verifizieren
+---
 
-_(leer)_
+## 🔎 Pre-Release 1 — Offene Punkte (Stand 2026-04-06)
+
+Alle Punkte müssen erledigt sein, bevor das Plugin ins Moodle Plugin Directory
+eingereicht werden kann. Reihenfolge = empfohlene Abarbeitungsreihenfolge.
+
+---
+
+### 1. Deploy + Behat 9/9 ← nächster Schritt
+
+Aktueller HEAD: commit `41e033f` (Behat-Context für Tour-Test).
+
+```
+~/moodle-update.sh checkin
+```
+
+Dann Behat-Init (Pfad liegt unter `public/`!):
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php /var/www/site/moodle/public/admin/tool/behat/cli/init.php 2>&1 | tail -5
+```
+
+Dann Behat-Lauf:
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php /var/www/site/moodle/vendor/bin/behat \
+    --config /var/www/behatdata/behatrun/behat/behat.yml \
+    --suite mod_elediacheckin 2>&1 | tail -20
+```
+
+Erwartetes Ergebnis: **9 scenarios, 9 passed**.
+
+---
+
+### 2. Grunt AMD rebuild (Moodle Node >=22 erforderlich)
+
+`category_filter.js` wurde auf ES6 umgeschrieben (commit `c77565d`).
+Node fehlt im webserver-Container → separaten Node-22-Container nutzen:
+
+```
+docker run --rm \
+  -v ~/demo/site/moodle:/work \
+  -w /work \
+  node:22 \
+  node_modules/.bin/grunt amd --root=public/mod/elediacheckin
+```
+
+Danach im Mac-Checkout (`~/demo/site/moodle/public/mod/elediacheckin/`):
+
+```
+git diff amd/build/
+```
+
+Falls Änderungen:
+```
+git add amd/build/
+git commit -m "rebuild: AMD for ES6 category_filter"
+git push
+```
+
+---
+
+### 3. PHPCS — muss 0 errors, 0 warnings sein
+
+CI nutzt `--max-warnings 0`. Moodle-CS muss installiert sein:
+
+```
+docker compose -f ~/demo/compose.yml exec -T \
+  -w /var/www/site/moodle webserver \
+  composer require --dev moodlehq/moodle-cs --no-interaction 2>&1 | tail -3
+```
+
+Dann prüfen:
+
+```
+docker compose -f ~/demo/compose.yml exec -T \
+  -w /var/www/site/moodle webserver \
+  vendor/bin/phpcs --standard=moodle --extensions=php \
+    --ignore="*/vendor/*,*/node_modules/*,*/tests/*" \
+    public/mod/elediacheckin/ 2>&1 | tail -20
+```
+
+---
+
+### 4. Deinstallations-Test (nie getestet — Pflicht für Plugin Directory)
+
+1. Plugin deinstallieren: _Site administration → Plugins → Manage activities →
+   eLeDia Check-In → Uninstall_.
+2. Prüfen ob User-Tours weg:
+   _Site administration → Server → User tours_ → keine „Check-in"-Tours mehr.
+3. Prüfen ob keine Tabellen übrig:
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php -r "
+    define('CLI_SCRIPT', true);
+    require '/var/www/site/moodle/public/config.php';
+    global \$DB;
+    \$tables = \$DB->get_tables();
+    foreach (\$tables as \$t) {
+        if (strpos(\$t, 'elediacheckin') !== false) echo \$t . PHP_EOL;
+    }
+    echo 'Done.' . PHP_EOL;
+  "
+```
+
+Wenn die Ausgabe nur `Done.` enthält → sauber.
+Danach Plugin neu installieren (damit Demo-Instanz wieder läuft).
+
+---
+
+### 5. Backup/Restore-Test (Code vorhanden, nie live getestet)
+
+Backup/Restore-Code ist implementiert, aber nie live getestet.
+Approval Blocker für `mod_*` Plugins.
+
+1. Kurs mit einer Check-in-Aktivität anlegen.
+2. Kurs-Backup erstellen (_Kursseite → Aktionen → Sichern_).
+3. Backup in neuen Kurs wiederherstellen.
+4. Check-in-Aktivität im wiederhergestellten Kurs öffnen — Fragen müssen
+   sichtbar sein, Einstellungen (Ziele, Kategorien, eigene Fragen) erhalten.
+
+---
+
+### 6. MySQL/MariaDB-Kompatibilitätstest (nur auf PostgreSQL getestet)
+
+Derzeit läuft die Demo-Instanz auf PostgreSQL. Vor der Einreichung muss
+das Plugin auch auf MySQL funktionieren (Moodle Plugin Directory Requirement).
+
+Optionen:
+- Temporär eine MySQL-Instanz in Docker hochfahren und Moodle damit testen.
+- Oder CI auf GitHub Actions abwarten — CI testet gegen PostgreSQL, aber
+  moodle-plugin-ci kann auch MySQL. Ggf. Workflow ergänzen.
+
+---
+
+### 7. GitHub Actions CI — muss grün sein
+
+CI läuft automatisch bei jedem Push gegen Moodle 4.5 (PHP 8.2) und 5.0
+(PHP 8.3), jeweils PostgreSQL.
+
+Status prüfen:
+https://github.com/jmoskaliuk/mod_elediacheckin/actions
+
+Alle Schritte müssen grün sein: phplint, phpcs, phpdoc, savepoints,
+mustache, grunt, phpunit, behat.
+
+---
+
+### 8. Screenshots für Plugin Directory
+
+Für die Einreichung werden Screenshots benötigt. Mindestens:
+- Aktivitäts-Ansicht (Karte mit Frage)
+- Admin-Einstellungsseite
+- Block im Kurs-Sidebar
+
+---
 
 ## ✅ Erledigt
 
+- **v2026040608 — Behat-Context `behat_mod_elediacheckin.php` + Tour-Fix.**
+  `mod_*` installiert vor `tool_usertours` → Behat-DB hatte nie Tours.
+  Custom-Step `Given the elediacheckin bundled tours are installed` ruft
+  `tour_installer::install_bundled_tours()` explizit auf. — Commit `41e033f`
+- **v2026040607 — `category_filter.js` auf ES6 umgeschrieben.**
+  `define([], function(){...var...})` → `export const init`. Behebt
+  ESLint `no-var`-Fehler in CI (`grunt --max-lint-warnings 0`).
+  AMD-Build vorläufig in Sandbox neu gebaut. — Commits `c77565d`, `dbaaeb8`
+- **v2026040606 — `db/uninstall.php` + block BETA.**
+  Entfernt 3 bundled User-Tours bei Deinstallation. `block_elediacheckin`
+  ALPHA → BETA 0.9.0. — Commits `bddbefa`, `c5527b7`
+- **v2026040604 — Behat User-Tours-Navigation gefixt.**
+  `"Server > User tours"` (ungültig in Moodle 5.x) → direkter URL
+  `/admin/tool/usertours/index.php`. — Commit `8943891`
+- **v2026040601–603 — Behat-Fixes (4 Runden).**
+  Pluginname-Typo, fehlender Generator, DE-Strings in EN-Tests,
+  auto-start Tour-Assertions ersetzt. 0/9 → 8/9. — Commits `357ac23`–`b3acba6`
+- **v2026040601 — version.php ALPHA → BETA, release 0.9.0.** — Commit `357ac23`
 - **v2026040538 — UX-Feedback-Bundle (8 Punkte, verifiziert 2026-04-06).**
   Alle 8 Punkte bestanden: Block sichtbar, Kartentext, Button-Label,
   Weiter/Zurück-Navigation, History-Stack, Exhausted-Einstellung,
   Save-Button, Aktivitäts-Tour.
 - **v2026040540 — Vollbild-Weiter + DE-Sie-Audit (verifiziert 2026-04-06).**
-  Fullscreen bleibt bei Weiter/Zurück offen. Alle Tour-Texte durchgängig
-  Sie-Form.
+  Fullscreen bleibt bei Weiter/Zurück offen. Alle Tour-Texte durchgängig Sie-Form.
 - **v2026040542 — 4 UX-Fixes (verifiziert 2026-04-06).** Block-Preview,
-  Popup gleiche Frage, stabile Frage bei Reload (PRG-Fix `2538adf`),
-  leerer Block-Titel.
-- **v2026040543 — Schema + Popup-Close + Block-Autor (verifiziert
-  2026-04-06).** Autor bei Zitaten, Popup-Close aktualisiert View,
-  check_database_schema sauber.
+  Popup gleiche Frage, stabile Frage bei Reload (PRG-Fix), leerer Block-Titel.
+- **v2026040543 — Schema + Popup-Close + Block-Autor (verifiziert 2026-04-06).**
 - **v2026040545 — BroadcastChannel-Sync (verifiziert 2026-04-06).**
-  View↔Popup bidirektional synchron, Ziel-Picker, mehrfach Weiter.
-- **PreChecks (verifiziert 2026-04-06).** PHPCS 0/0, Grunt AMD rebuild
-  committet (`c18b6c8`), check_database_schema clean.
-
-- **v2026040544 — Popup-Fernsteuerung (bidirektional, bestätigt
-  2026-04-06).** Grundmechanismus funktioniert (View↔Popup Navigation
-  via postMessage). Externalid-Sync in v2026040545 nachgezogen
-  (BroadcastChannel statt postMessage, gleiche Frage statt unabhängiger
-  Zufallsziehung). — Commits `755ab42`, `c6be736`, `30b3dac`
-- **v2026040537 — Bundled Fixes aus dem ersten PHPUnit-Run (verifiziert
-  per Test-Run am 2026-04-05).** Sechs Themen in einem Commit: (1)
-  `@covers`-Docblocks in allen 4 Testklassen → `#[CoversClass]`-Attribute
-  (PHPUnit 11 deprecation gone — `38 tests, 61 assertions`, keine
-  Deprecations mehr). (2) XMLDB: `categories/zielgruppe/kontext/license`
-  in `elediacheckin_question` von NOTNULL=true/DEFAULT="" auf
-  NOTNULL=false (keine Debugging-Warnings mehr im init-Output). (3)
-  `db/install.php`: Tour-Import guard mit `table_exists('tool_usertours_tours')`,
-  Fresh-Install-Crash weg. (4) Save-Button der Settings-Seite: inline
-  secondary submit über `alert alert-light`-Zeile (kein DOM-Reorder
-  mehr). (5) Dritte User-Tour `activity_settings_tour.json`. (6)
-  Lang-String-Audit: `close` → Core-String `closebuttontitle`.
-  Konzept §10.29. — Commit `3bb7b02`
-- **v2026040536 — Prechecks + PHPUnit + Behat Scaffold.** Kein
-  Runtime-Change. `.github/workflows/moodle-ci.yml` mit moodle-plugin-ci
-  gegen Moodle 4.5/5.0. Vier Unit-Test-Klassen
-  (`schema_validator_test`, `bundle_signature_verifier_test`,
-  `feature_flags_test`, `activity_pool_test`). Drei Behat-Features
-  (`golden_path`, `settings_dashboard`, `block_and_tour`). Erster lokaler
-  Lauf erfolgreich: 38 Tests, 61 Assertions. Konzept §10.28. —
-  Commit `7aeec32`
-- **v2026040535 — Companion-Block-Health-Check.** Sync-Status-Panel
-  zeigt jetzt oben eine Alert-Zeile: grün bei aktivem Begleit-Plugin,
-  gelb bei „installiert aber verborgen" mit CTA-Link, rot bei fehlendem
-  Record mit Link auf `admin/index.php`. Konzept §10.27. — Commit
-  `1f2c3df`
-- **v2026040534 — Admin-Settings-User-Tour.** Zweite Tour (5 Schritte:
-  Welcome → Inhaltsquelle → Save → Sync-State-Card → Log-Tabelle),
-  pathmatch `/admin/settings.php?section=modsettingelediacheckin%`,
-  Rollen `-1 + manager`, alle Texte als Lang-String-Refs. Upgrade-Step
-  2026040534 löscht und reimportiert beide bundled Tours. Konzept
-  §10.26. — Commit `06fc195`
-- **v2026040533 — Save-Button-Reorder-Regression gefixt.** (in §10.29 dann
-  durch die inline-Submit-Strategie komplett ersetzt.) — Commit `4b6c94a`
-- **v2026040532 — Sync-Status-Heading wandert mit + Abstand über Panel.**
-  Konzept §10.25. — (obsolet seit §10.29 Save-Button-Fix.)
-- **v2026040531 — Tour-Texte auf Englisch im EN-Paket + Site-Admin-Fix.**
-  Role-Filter um `-1` ergänzt, alle Tour-Textfelder als
-  `stringid,mod_elediacheckin`-Refs. Upgrade-Step reimportiert die Tour.
-  Konzept §10.24.
-- **v2026040530 — Premium wirklich ausgeblendet (Konstanten-Flip
-  committet).** — Commit `e1f8952`
-- **v2026040529 — Lehrkräfte-Tour repariert + Karten-Vollbreite.** Tour-
-  JSON-Format an Moodle-Core-Referenz angeglichen (configdata als
-  JSON-String). Karten-Stage auf volle Breite. Konzept §10.23. — Commit
-  `94b7a36`
-- **v2026040528 — Sync-Diagnose.** Aussagekräftige Fehlermeldungen mit
-  Top-Level-Key-Liste, Body-Preview und URL-Heuristiken. Konzept §10.22.
-  — Commit `ee8beef`
-- **v2026040527 — Barrierefreiheits-Pass.** Ziel-Picker als `<nav>` mit
-  `aria-current`, Fullscreen als echtes Modal mit Focus-Trap,
-  `:focus-visible`-Outlines. Konzept-Doc §10.20.
-- **Frontpage-Block: welche Aktivität wird ausgewählt?** Design-Entscheidung
-  dokumentiert (Konzept-Doc §10.21): Dropdown zeigt auf der Startseite
-  exakt die Check-in-Aktivitäten, die auf der Startseite selbst angelegt
-  sind. Cross-Course-Linking bewusst verworfen.
-- **`$CFG`-Scope-Bug im Verbindungstest.** `git_content_source::fetch_raw()`
-  hatte `require_once($GLOBALS['CFG']->libdir . '/filelib.php')` ohne
-  `global $CFG;` davor.
-- **Learning-Content als Reflexionsfragen reformuliert.** Ziel `learning`
-  jetzt „Lernreflexion" mit neuen Kategorien.
-- **Tri-state „Eigene Fragen"-Modus.** 3-Wege-Auswahl `ownquestionsmode`.
-- **Block auch auf der Startseite.** `applicable_formats()` mit
-  `site-index => true` + `site => true`.
-- **Zitate mit Autor-Attribution.** Template rendert Autor-Absatz nur bei
-  `ziel === 'zitat'`.
-- **Firefox: Popup öffnete neues Fenster.** `popup=yes` in
-  `POPUP_FEATURES` vorangestellt.
-- **Aktivitätsbeschreibung wurde doppelt angezeigt.** Explizites
-  `$OUTPUT->box(format_module_intro(...))` aus view.php entfernt.
-- **Premium/License-Server-Option per Build-Flag ausblendbar.**
-- **Sync-Now-Button wieder auf der Settings-Seite sichtbar.**
-- **Phase 2 License-Server-MVP komplett gebaut** — Konzept §10.17.
-- **Icon auf `message-circle-question` umgestellt.** — Commit `ee57a16`
-- **Block-Launch pinnt gezeigte Frage.** `?q=<externalid>&activeziel=<ziel>`.
-  — Commit `7b880b5` + `30d7d29`
-- **Popup-Formatierung.** `body.pagelayout-popup` Padding genullt,
-  ActivityHeader in present.php deaktiviert, 100 vh Karte. — Commit
-  `878ae16`
-- **„Zur vorherigen Frage"-Button pro Aktivität** mit 2er-Stack in
-  `$SESSION`. — Commit `9d483f1` (in v2026040538 durch echten
-  Cursor-History-Stack ersetzt, siehe §10.30)
-- **„Nur eigene Fragen verwenden"-Toggle.** — Commit `a4c203a`
-- **Plugin heißt „eLeDia Check-In".** — Commit `7fcb105`
-- **Mini-Anleitung (Quickstart) als Intro-Block.** — Commit `7fcb105`
-- **Git-Repository-Section `hide_if` auf Default-Source.** — Commit
-  `7fcb105`
+- **PreChecks (verifiziert 2026-04-06).** PHPCS 0/0, Grunt AMD rebuild (`c18b6c8`),
+  check_database_schema clean.
+- **v2026040537 — Bundled Fixes PHPUnit-Run.** PHPUnit 11 Attribute,
+  XMLDB NOTNULL-Fix, Tour-Import-Guard, Save-Button inline-submit,
+  dritte Tour, Lang-String-Audit. — Commit `3bb7b02`
