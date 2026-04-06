@@ -25,14 +25,14 @@ Feature: Companion block and user tour integration
   Scenario: Teacher adds the Check-in block to a course and sees a question preview
     When I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
-    And I add the "eLeDia Check-in" block
-    Then "eLeDia Check-in" "block" should exist
-    And I should see "Block-Frage" in the "eLeDia Check-in" "block"
+    And I add the "Check-in" block
+    Then "Check-in" "block" should exist
+    And I should see "Block-Frage" in the "Check-in" "block"
 
   @javascript
   Scenario: Admin settings user tour auto-starts on first visit
     When I log in as "admin"
-    And I navigate to "Plugins > Activity modules > eLeDia Check-in" in site administration
+    And I navigate to "Plugins > Activity modules > eLeDia Check-In" in site administration
     Then I should see "Willkommen"
     And I click on "Weiter" "button"
     And I should see "Content-Quelle"

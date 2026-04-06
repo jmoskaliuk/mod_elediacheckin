@@ -21,7 +21,7 @@ Feature: Teacher creates an eLeDia Check-in activity and draws a next question
   Scenario: Teacher creates a Check-in activity with own questions
     When I am on the "Course 1" course page logged in as teacher1
     And I turn editing mode on
-    And I add an "eLeDia Check-in" to section "1" and I fill the form with:
+    And I add a "eLeDia Check-In" to section "1" and I fill the form with:
       | Name                | My Check-in                           |
       | Eigene Fragen       | Wie geht es dir?\nWas hast du gelernt? |
       | Modus eigene Fragen | Nur eigene Fragen                      |

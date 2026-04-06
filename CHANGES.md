@@ -3,13 +3,57 @@
 All notable changes to this plugin are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased] — v2026040541
+## v2026040601 — 2026-04-06
+
+### Fixed
+- Behat feature files: pluginname typo `eLeDia Check-in` → `eLeDia Check-In`
+  in all admin navigation steps.
+- Behat golden_path: `I add an "..."` → `I add a "..."` (Moodle 5.x step name).
+- Block name in feature file corrected to `"Check-in"` (matching block pluginname).
+- Removed undefined custom Behat step `the "elediacheckin" block exists`.
+
+### Added
+- `tests/generator/lib.php` — data generator enabling `the following "activity" exists:`
+  fixture syntax in Behat and PHPUnit tests.
+
+### Changed
+- `version.php`: bumped to 2026040601, maturity ALPHA → BETA, release 0.2.0 → 0.9.0.
+
+## v2026040545 — 2026-04-06
+
+### Added
+- BroadcastChannel-based bidirectional synchronisation between activity view
+  and popup window: navigating in one window updates the other in real time.
+- Multi-target (Ziel) picker in popup mode.
+
+## v2026040544 — 2026-04-06
+
+### Added
+- Popup remote control (postMessage groundwork; superseded by
+  BroadcastChannel in v2026040545).
+
+## v2026040543 — 2026-04-06
+
+### Fixed
+- Author attribution now rendered for `ziel === 'zitat'` questions.
+- Popup close button triggers navigation refresh in parent view.
+- `check_database_schema` — schema clean, no differences.
+
+## v2026040542 — 2026-04-06
+
+### Fixed
+- Block preview renders question text correctly.
+- Popup shows the same question as the activity view (no independent draw).
+- F5 / page reload no longer triggers a new question draw (PRG pattern).
+- Block title no longer renders as empty heading when not set.
+
+## v2026040541 — 2026-04-06
 
 ### Changed
 - Extracted tour import logic into autoloaded `tour_installer` class
   (`classes/local/tour_installer.php`) — eliminates all `require_once`
   calls from `db/install.php` and `db/upgrade.php`.
-- Rebuilt AMD bundle (`amd/build/view.min.js`) with Babel + Terser.
+- Rebuilt AMD bundle (`amd/build/view.min.js`) with Moodle Grunt toolchain.
 - Rewrote `README.md` for Moodle Plugins Directory submission.
 
 ### Added

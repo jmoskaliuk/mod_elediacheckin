@@ -7,21 +7,20 @@ Feature: Admin dashboard for the content distribution subsystem
   @javascript
   Scenario: Admin opens the plugin settings page and sees the dashboard panel
     When I log in as "admin"
-    And I navigate to "Plugins > Activity modules > eLeDia Check-in" in site administration
+    And I navigate to "Plugins > Activity modules > eLeDia Check-In" in site administration
     Then I should see "Content source"
     And I should see "Dashboard"
 
   @javascript
   Scenario: Admin sees the block health widget when the companion block is installed
-    Given the "elediacheckin" block exists
     When I log in as "admin"
-    And I navigate to "Plugins > Activity modules > eLeDia Check-in" in site administration
-    Then I should see "eLeDia Check-in Block"
+    And I navigate to "Plugins > Activity modules > eLeDia Check-In" in site administration
+    Then I should see "eLeDia Check-In Block"
 
   @javascript
   Scenario: Admin can change the content source and save
     When I log in as "admin"
-    And I navigate to "Plugins > Activity modules > eLeDia Check-in" in site administration
+    And I navigate to "Plugins > Activity modules > eLeDia Check-In" in site administration
     And I set the field "Content source" to "Bundled demo content"
     And I press "Save changes"
     Then I should see "Changes saved"
