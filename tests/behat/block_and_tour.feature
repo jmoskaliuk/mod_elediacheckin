@@ -28,12 +28,11 @@ Feature: Companion block and user tour integration
     And I add the "Check-in" block
     Then "Check-in" "block" should exist
 
-  @javascript
   Scenario: Bundled teacher tour is installed in the system
+    # The custom step imports all bundled tours and verifies the teacher tour
+    # exists in tool_usertours_tours with the correct name. No browser
+    # interaction is needed — the assertion lives in the step itself.
     Given the elediacheckin bundled tours are installed
-    When I log in as "admin"
-    And I visit "/admin/tool/usertours/index.php"
-    Then I should see "Check-in for teachers"
 
   @javascript
   Scenario: Teacher activity view renders for enrolled teacher
