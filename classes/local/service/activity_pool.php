@@ -407,23 +407,30 @@ final class activity_pool {
         $provider = new question_provider();
 
         $bundle = [];
-        $candidates = array_values(array_unique(array_filter(
-            $langcandidates,
-            static fn($v) => $v !== ''
-        ), SORT_REGULAR));
+        $candidates = array_values(
+            array_unique(
+                array_filter(
+                    $langcandidates,
+                    static fn($v) => $v !== ''
+                ),
+                SORT_REGULAR
+            )
+        );
         // Always keep a final "any language" fallback.
         if (!in_array(null, $candidates, true)) {
             $candidates[] = null;
         }
 
         foreach ($candidates as $lang) {
-            $hits = $provider->get_questions_by_filter([
-                'ziele'      => [$activeziel],
-                'categories' => $instance->categories,
-                'zielgruppe' => $instance->zielgruppe ?? null,
-                'kontext'    => $instance->kontext ?? null,
-                'lang'       => $lang,
-            ]);
+            $hits = $provider->get_questions_by_filter(
+                [
+                    'ziele' => [$activeziel],
+                    'categories' => $instance->categories,
+                    'zielgruppe' => $instance->zielgruppe ?? null,
+                    'kontext' => $instance->kontext ?? null,
+                    'lang' => $lang,
+                ]
+            );
             if (!empty($hits)) {
                 $bundle = $hits;
                 break;

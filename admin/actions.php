@@ -57,15 +57,24 @@ switch ($action) {
         $service = new sync_service();
         $log = $service->run('manual');
         if ($log->result === 'success') {
-            \core\notification::success(get_string('dashboard_runsuccess',
-                'elediacheckin',
-                (object)[
-                    'count'  => $log->questionsimported,
-                    'bundle' => $log->bundleid,
-                ]));
+            \core\notification::success(
+                get_string(
+                    'dashboard_runsuccess',
+                    'elediacheckin',
+                    (object)[
+                        'count' => $log->questionsimported,
+                        'bundle' => $log->bundleid,
+                    ]
+                )
+            );
         } else {
-            \core\notification::error(get_string('dashboard_runfailed',
-                'elediacheckin', s($log->message)));
+            \core\notification::error(
+                get_string(
+                    'dashboard_runfailed',
+                    'elediacheckin',
+                    s($log->message)
+                )
+            );
         }
         break;
 
@@ -76,21 +85,30 @@ switch ($action) {
         try {
             $ok = $source->test_connection();
             if ($ok) {
-                \core\notification::success(get_string(
-                    'dashboard_testconnection_ok',
-                    'elediacheckin',
-                    $source->get_display_name()));
+                \core\notification::success(
+                    get_string(
+                        'dashboard_testconnection_ok',
+                        'elediacheckin',
+                        $source->get_display_name()
+                    )
+                );
             } else {
-                \core\notification::error(get_string(
-                    'dashboard_testconnection_fail',
-                    'elediacheckin',
-                    $source->get_display_name()));
+                \core\notification::error(
+                    get_string(
+                        'dashboard_testconnection_fail',
+                        'elediacheckin',
+                        $source->get_display_name()
+                    )
+                );
             }
         } catch (\Throwable $e) {
-            \core\notification::error(get_string(
-                'dashboard_testconnection_error',
-                'elediacheckin',
-                s($e->getMessage())));
+            \core\notification::error(
+                get_string(
+                    'dashboard_testconnection_error',
+                    'elediacheckin',
+                    s($e->getMessage())
+                )
+            );
         }
         break;
 

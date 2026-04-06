@@ -30,7 +30,6 @@ require_once($CFG->dirroot . '/mod/elediacheckin/backup/moodle2/backup_elediache
  * Activity task for backing up a single mod_elediacheckin instance.
  */
 class backup_elediacheckin_activity_task extends backup_activity_task {
-
     /**
      * Declares task-level settings. None are needed.
      */

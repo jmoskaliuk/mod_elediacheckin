@@ -30,7 +30,6 @@ require_once($CFG->dirroot . '/mod/elediacheckin/backup/moodle2/restore_elediach
  * Activity task for restoring a mod_elediacheckin instance.
  */
 class restore_elediacheckin_activity_task extends restore_activity_task {
-
     /**
      * Defines task-level settings. None needed.
      */

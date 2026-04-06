@@ -45,7 +45,6 @@ use mod_elediacheckin\content\schema_validator;
  *  - 'randomstart' has been removed (was dead code — never read anywhere).
  */
 class mod_elediacheckin_mod_form extends moodleform_mod {
-
     /** Sentinel for "use the current user's language". */
     public const LANG_AUTO   = '_auto_';
 
@@ -85,11 +84,16 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             'funfact'  => get_string('ziel_funfact', 'elediacheckin'),
             'zitat'    => get_string('ziel_zitat', 'elediacheckin'),
         ];
-        $mform->addElement('autocomplete', 'ziele',
-            get_string('ziele', 'elediacheckin'), $zieloptions, [
-                'multiple'            => true,
-                'noselectionstring'   => get_string('ziele_all', 'elediacheckin'),
-            ]);
+        $mform->addElement(
+            'autocomplete',
+            'ziele',
+            get_string('ziele', 'elediacheckin'),
+            $zieloptions,
+            [
+                'multiple' => true,
+                'noselectionstring' => get_string('ziele_all', 'elediacheckin'),
+            ]
+        );
         $mform->setDefault('ziele', ['checkin', 'checkout']);
         $mform->addHelpButton('ziele', 'ziele', 'elediacheckin');
 
@@ -97,12 +101,16 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // The visible option set is filtered client-side based on the
         // Currently selected ziele (see mod_elediacheckin/category_filter).
         $categoryoptions = $this->build_category_options();
-        $mform->addElement('autocomplete', 'categories',
+        $mform->addElement(
+            'autocomplete',
+            'categories',
             get_string('categories', 'elediacheckin'),
-            $categoryoptions, [
+            $categoryoptions,
+            [
                 'multiple' => true,
                 'noselectionstring' => get_string('categories_all', 'elediacheckin'),
-            ]);
+            ]
+        );
         $mform->addHelpButton('categories', 'categories', 'elediacheckin');
 
         // Zielgruppe: Single-Select-Dropdown mit "Alle Zielgruppen" als
@@ -116,8 +124,12 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         foreach (schema_validator::get_zielgruppe_enum() as $zg) {
             $zgoptions[$zg] = get_string('zielgruppe_' . $zg, 'elediacheckin');
         }
-        $mform->addElement('select', 'zielgruppe',
-            get_string('zielgruppe', 'elediacheckin'), $zgoptions);
+        $mform->addElement(
+            'select',
+            'zielgruppe',
+            get_string('zielgruppe', 'elediacheckin'),
+            $zgoptions
+        );
         $mform->setDefault('zielgruppe', '');
         $mform->addHelpButton('zielgruppe', 'zielgruppe', 'elediacheckin');
 
@@ -127,8 +139,12 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         foreach (schema_validator::get_kontext_enum() as $kx) {
             $kxoptions[$kx] = get_string('kontext_' . $kx, 'elediacheckin');
         }
-        $mform->addElement('select', 'kontext',
-            get_string('kontext', 'elediacheckin'), $kxoptions);
+        $mform->addElement(
+            'select',
+            'kontext',
+            get_string('kontext', 'elediacheckin'),
+            $kxoptions
+        );
         $mform->setDefault('kontext', '');
         $mform->addHelpButton('kontext', 'kontext', 'elediacheckin');
 
@@ -177,8 +193,11 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
 
         // "Zur vorherigen Frage"-Button: single-step back, kein vor/zurück-
         // Paar. Zustand pro cmid im $SESSION, siehe view.php/present.php.
-        $mform->addElement('selectyesno', 'showprevbutton',
-            get_string('showprevbutton', 'elediacheckin'));
+        $mform->addElement(
+            'selectyesno',
+            'showprevbutton',
+            get_string('showprevbutton', 'elediacheckin')
+        );
         $mform->setDefault('showprevbutton', 1);
         $mform->addHelpButton('showprevbutton', 'showprevbutton', 'elediacheckin');
 
@@ -194,10 +213,16 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_EMPTY
                 => get_string('exhaustedbehavior_empty', 'elediacheckin'),
         ];
-        $mform->addElement('select', 'exhaustedbehavior',
-            get_string('exhaustedbehavior', 'elediacheckin'), $exhausteoptions);
-        $mform->setDefault('exhaustedbehavior',
-            \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_RESTART);
+        $mform->addElement(
+            'select',
+            'exhaustedbehavior',
+            get_string('exhaustedbehavior', 'elediacheckin'),
+            $exhausteoptions
+        );
+        $mform->setDefault(
+            'exhaustedbehavior',
+            \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_RESTART
+        );
         $mform->addHelpButton('exhaustedbehavior', 'exhaustedbehavior', 'elediacheckin');
 
         // Eigene Fragen (per-Aktivität, siehe Konzept §10.13 + §10.19).
@@ -217,17 +242,25 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             1 => get_string('ownquestionsmode_onlyown', 'elediacheckin'),
             2 => get_string('ownquestionsmode_none', 'elediacheckin'),
         ];
-        $mform->addElement('select', 'ownquestionsmode',
-            get_string('ownquestionsmode', 'elediacheckin'), $modeoptions);
+        $mform->addElement(
+            'select',
+            'ownquestionsmode',
+            get_string('ownquestionsmode', 'elediacheckin'),
+            $modeoptions
+        );
         $mform->setDefault('ownquestionsmode', 0);
         $mform->addHelpButton('ownquestionsmode', 'ownquestionsmode', 'elediacheckin');
 
-        $mform->addElement('textarea', 'ownquestions',
-            get_string('ownquestions', 'elediacheckin'), [
+        $mform->addElement(
+            'textarea',
+            'ownquestions',
+            get_string('ownquestions', 'elediacheckin'),
+            [
                 'rows' => 6,
                 'cols' => 60,
                 'style' => 'font-family: inherit;',
-            ]);
+            ]
+        );
         $mform->setType('ownquestions', PARAM_TEXT);
         $mform->addHelpButton('ownquestions', 'ownquestions', 'elediacheckin');
         // Wenn der Modus auf "Keine eigenen Fragen" steht, ist das Textfeld

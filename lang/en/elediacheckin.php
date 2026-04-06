@@ -24,7 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Admin settings.
 $string['activitytour_description']   = 'Guide for teachers through the Check-in-specific settings of a course activity.';
 $string['activitytour_endlabel']      = 'Got it';
 $string['activitytour_name']          = 'Check-In activity settings';
@@ -52,12 +51,9 @@ $string['blockhealth_missing']      = 'is not installed. Without it, course and 
 $string['blockhealth_missing_cta']  = 'Go to admin notifications →';
 $string['blockhealth_ok']           = 'installed and available.';
 $string['blockhealth_title']        = 'Companion plugin "Check-In block":';
-$string['categories']         = 'Categories';
-$string['categories_all']     = 'All categories';
-$string['categories_help']    = 'Restrict the activity to specific categories. Only categories that belong to the goals selected above are shown. Leave empty to allow all categories of the selected goals.';
 $string['cat_aha']                    = 'Aha moment';
-$string['cat_alltag']                 = 'Everyday life';
 $string['cat_aktion']                 = 'Action';
+$string['cat_alltag']                 = 'Everyday life';
 $string['cat_arbeitsmodus']           = 'Work mode';
 $string['cat_ausblick']               = 'Outlook';
 $string['cat_beziehung']              = 'Relationship';
@@ -90,10 +86,13 @@ $string['cat_verbesserung']           = 'Improvement';
 $string['cat_wandel']                 = 'Change';
 $string['cat_was-lief-gut']           = 'What went well';
 $string['cat_was-lief-schlecht']      = 'What went badly';
-$string['cat_wertschaetzung']         = 'Appreciation';
 $string['cat_werte']                  = 'Values';
+$string['cat_wertschaetzung']         = 'Appreciation';
 $string['cat_wissenschaft']           = 'Science';
 $string['cat_zusammenarbeit']         = 'Collaboration';
+$string['categories']         = 'Categories';
+$string['categories_all']     = 'All categories';
+$string['categories_help']    = 'Restrict the activity to specific categories. Only categories that belong to the goals selected above are shown. Leave empty to allow all categories of the selected goals.';
 $string['checkinsettings']    = 'Check-in settings';
 $string['checkintour_description']   = 'A short tour through the Check-in activity: the card, the aim picker, the next-question button, and presentation mode.';
 $string['checkintour_endlabel']      = 'Got it';
@@ -108,8 +107,6 @@ $string['checkintour_step4_content'] = 'Click here to pull a new random card fro
 $string['checkintour_step4_title']   = 'Next question';
 $string['checkintour_step5_content'] = 'For presentations via screen share: fullscreen (large on the whole screen) or popup (in its own lean window). Both work perfectly well in video calls.';
 $string['checkintour_step5_title']   = 'Fullscreen & popup';
-$string['contentlang']        = 'Content language';
-$string['contentlang_help']   = 'Language of the questions shown in this activity. "User language" uses the language the learner is currently viewing Moodle in; "Course language" uses the course default. Pick a specific language to pin the activity to that bundle.';
 $string['contenterror_bundleinvalid'] = 'The bundled default content does not conform to the expected schema.';
 $string['contenterror_bundlemissing'] = 'The bundled default content was not found. Please check the plugin installation.';
 $string['contenterror_bundleparse']   = 'The bundled default content contains invalid JSON.';
@@ -122,11 +119,13 @@ $string['contenterror_eledia_rejected']  = 'The license server rejected the prov
 $string['contenterror_eledia_schema']       = 'The premium bundle does not conform to the expected schema.';
 $string['contenterror_eledia_sigfailed']    = 'ED25519 signature verification for the premium bundle failed against the hardcoded public key. Import aborted.';
 $string['contenterror_eledia_sigmalformed'] = 'The premium bundle signature is malformed.';
-$string['contenterror_githttp']    = 'The configured repository URL could not be fetched over HTTPS.';
 $string['contenterror_gitempty']   = 'The repository returned an empty response.';
+$string['contenterror_githttp']    = 'The configured repository URL could not be fetched over HTTPS.';
 $string['contenterror_gitinvalid'] = 'The repository bundle does not conform to the expected schema.';
 $string['contenterror_gitnourl']   = 'No repository URL is configured for the Git content source.';
 $string['contenterror_gitparse']   = 'The repository response contains invalid JSON.';
+$string['contentlang']        = 'Content language';
+$string['contentlang_help']   = 'Language of the questions shown in this activity. "User language" uses the language the learner is currently viewing Moodle in; "Course language" uses the course default. Pick a specific language to pin the activity to that bundle.';
 $string['contentsource']      = 'Active content source';
 $string['contentsource_bundled']   = 'Bundled default questions';
 $string['contentsource_desc'] = 'Which source the scheduled synchronisation task uses. Change this and run the sync task to load a new bundle.';
@@ -137,8 +136,8 @@ $string['dashboard_current']     = 'Current state';
 $string['dashboard_heading']     = 'Sync status';
 $string['dashboard_heading_desc'] = 'Current state of the active content source, manual actions and most recent sync runs at a glance.';
 $string['dashboard_recent']      = 'Recent sync runs';
-$string['dashboard_runnow']      = 'Run sync now';
 $string['dashboard_runfailed']   = 'Sync failed: {$a}';
+$string['dashboard_runnow']      = 'Run sync now';
 $string['dashboard_runsuccess']  = 'Sync completed: imported {$a->count} questions from bundle "{$a->bundle}".';
 $string['dashboard_saveFirstHint'] = 'After changing any configuration, click "Save changes" first, then trigger the sync.';
 $string['dashboard_savehint']    = 'Click to save all settings on this page.';
@@ -178,18 +177,11 @@ $string['licenseserverurl']      = 'License server URL';
 $string['licenseserverurl_desc'] = 'Base URL of the eLeDia license server, no trailing slash. Production: <code>https://licenses.eledia.de</code>. For local tests the MVP server at <code>/license_server/</code> typically runs on e.g. <code>http://host.docker.internal:8787</code>.';
 $string['modulename']         = 'Check-In';
 $string['modulename_help']    = 'The "Check-in" activity shows short didactic impulses, questions and cards — for example check-in rounds at the beginning of a session, check-out reflections at the end, retrospective prompts, quotes or fun facts.
-
-For each activity you can select which goals (check-in, check-out, retro, impulse, learning reflection, fun-fact, quote) and which categories are drawn from. Optionally, you can narrow down by audience (e.g. team, leaders) and context (work, school, higher education, personal). Participants then see a randomly matching card from the configured pool on every page load.
-
-Content is synchronised centrally by the site administration from a content repository. Teachers only decide how the cards are used in their activity; they can additionally add their own questions per activity.
-
-<a href="https://www.eledia.de/mod_elediacheckin" target="_blank" rel="noopener">Learn more at eledia.de</a>';
 $string['modulenameplural']   = 'Check-Ins';
 $string['newquestion']        = 'Another question';
 $string['nextquestion']       = 'Next';
-// NOTE: "Close" label reuses the core string `closebuttontitle` (moodle).
-$string['noquestions']        = 'No questions are currently available for this filter.';
 $string['noinstances']        = 'There are no Check-in activities in this course.';
+$string['noquestions']        = 'No questions are currently available for this filter.';
 $string['openfullscreen']     = 'Fullscreen';
 $string['openpopup']          = 'Open as popup';
 $string['ownquestions']       = 'Own questions';

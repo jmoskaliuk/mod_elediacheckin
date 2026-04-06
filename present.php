@@ -75,7 +75,13 @@ $langcandidates[] = current_language();
 // denselben $SESSION->elediacheckin_history[$cmid]-State, d. h. ein Back-
 // Schritt im Popup wirkt auch zurück auf die embedded View und umgekehrt.
 $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
-    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback, $isnext
+    $instance,
+    (int) $cm->id,
+    $activeziel,
+    $langcandidates,
+    $qext,
+    $goback,
+    $isnext
 );
 $question  = $nav['question'];
 $hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
@@ -137,8 +143,10 @@ $templatecontext = [
     'question'        => $question ? [
         // Own questions use FORMAT_PLAIN (teacher textarea input),
         // bundle questions FORMAT_HTML (trusted JSON content).
-        'frage'     => format_text($question->frage,
-                           !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML),
+        'frage' => format_text(
+            $question->frage,
+            !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML
+        ),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
         // Autor-Attribution nur für Zitate (siehe view.php für Begründung).

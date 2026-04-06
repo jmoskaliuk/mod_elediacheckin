@@ -211,7 +211,7 @@ final class schema_validator {
         }
 
         if (!empty($decoded['language']) && is_string($decoded['language'])
-                && !preg_match('/^[a-z]{2}$/', $decoded['language'])) {
+            && !preg_match('/^[a-z]{2}$/', $decoded['language'])) {
             $this->errors[] = "Field 'language' must be a 2-letter ISO-639-1 code.";
         }
     }

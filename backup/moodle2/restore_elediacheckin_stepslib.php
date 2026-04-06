@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
  * Defines how to restore a mod_elediacheckin activity from a backup package.
  */
 class restore_elediacheckin_activity_structure_step extends restore_activity_structure_step {
-
     /**
      * Declares the paths in the backup XML that this step will process.
      *

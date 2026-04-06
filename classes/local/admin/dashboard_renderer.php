@@ -50,8 +50,7 @@ class dashboard_renderer {
         // Moodle puts it, so users who scroll to the bottom still see the familiar Moodle flow.
         $out = '<div id="elediacheckin-dashboardpanel">';
 
-        // ----- Companion-plugin health check. -----
-        //
+        // Companion-plugin health check.
         // Block_elediacheckin is a separate plugin but tightly coupled to
         // This mod. Without it, the frontpage/course-page launcher is
         // Missing. Johannes has twice now reported the block silently
@@ -63,7 +62,7 @@ class dashboard_renderer {
         // Page so the admin sees broken state immediately.
         $out .= self::render_block_health();
 
-        // ----- Summary card with action buttons. -----
+        // Summary card with action buttons.
         $activesource = get_config('mod_elediacheckin', 'contentsource') ?: 'bundled';
         $sourcekey    = 'contentsource_' . $activesource;
         $activelabel  = get_string_manager()->string_exists($sourcekey, 'elediacheckin')
@@ -81,33 +80,47 @@ class dashboard_renderer {
 
         $out .= \html_writer::start_div('card mb-3');
         $out .= \html_writer::start_div('card-body');
-        $out .= \html_writer::tag('h5',
+        $out .= \html_writer::tag(
+            'h5',
             get_string('dashboard_current', 'elediacheckin'),
-            ['class' => 'card-title']);
-        $out .= \html_writer::tag('p',
-            get_string('dashboard_activesource', 'elediacheckin', $activelabel));
+            ['class' => 'card-title']
+        );
+        $out .= \html_writer::tag(
+            'p',
+            get_string('dashboard_activesource', 'elediacheckin', $activelabel)
+        );
 
         $out .= \html_writer::start_div('d-flex gap-2 flex-wrap');
-        $out .= \html_writer::link($runurl,
+        $out .= \html_writer::link(
+            $runurl,
             get_string('dashboard_runnow', 'elediacheckin'),
-            ['class' => 'btn btn-primary btn-sm']);
+            ['class' => 'btn btn-primary btn-sm']
+        );
         if ($activesource === 'git') {
-            $out .= \html_writer::link($testurl,
+            $out .= \html_writer::link(
+                $testurl,
                 get_string('dashboard_testconnection', 'elediacheckin'),
-                ['class' => 'btn btn-outline-secondary btn-sm']);
+                ['class' => 'btn btn-outline-secondary btn-sm']
+            );
         }
         $out .= \html_writer::end_div();
 
         $out .= \html_writer::end_div();
-        $out .= \html_writer::end_div();
+        $out .= \html_writer::end_div();        // Recent log entries.
+        $records = $DB->get_records(
+            'elediacheckin_sync_log',
+            null,
+            'timestarted DESC',
+            '*',
+            0,
+            self::LIMIT
+        );
 
-        // ----- Recent log entries. -----
-        $records = $DB->get_records('elediacheckin_sync_log', null,
-            'timestarted DESC', '*', 0, self::LIMIT);
-
-        $out .= \html_writer::tag('h5',
+        $out .= \html_writer::tag(
+            'h5',
             get_string('dashboard_recent', 'elediacheckin'),
-            ['class' => 'mt-4']);
+            ['class' => 'mt-4']
+        );
 
         if (empty($records)) {
             $out .= \html_writer::div(
@@ -132,17 +145,25 @@ class dashboard_renderer {
 
         foreach ($records as $row) {
             $badgeclass = $row->result === 'success' ? 'bg-success' : 'bg-danger';
-            $resultbadge = \html_writer::tag('span', s($row->result),
-                ['class' => 'badge ' . $badgeclass]);
+            $resultbadge = \html_writer::tag(
+                'span',
+                s($row->result),
+                ['class' => 'badge ' . $badgeclass]
+            );
 
             if ($row->bundleid) {
                 $bundlecell = format_string($row->bundleid)
-                    . ' ' . \html_writer::tag('small',
+                    . ' ' . \html_writer::tag(
+                        'small',
                         s((string)$row->bundleversion),
-                        ['class' => 'text-muted']);
+                        ['class' => 'text-muted']
+                    );
             } else {
-                $bundlecell = \html_writer::tag('span', '–',
-                    ['class' => 'text-muted']);
+                $bundlecell = \html_writer::tag(
+                    'span',
+                    '–',
+                    ['class' => 'text-muted']
+                );
             }
 
             $msg = (string)$row->message;
@@ -151,8 +172,10 @@ class dashboard_renderer {
             }
 
             $table->data[] = [
-                userdate($row->timestarted,
-                    get_string('strftimedatetimeshort', 'langconfig')),
+                userdate(
+                    $row->timestarted,
+                    get_string('strftimedatetimeshort', 'langconfig')
+                ),
                 s($row->source),
                 s((string)$row->sourceid),
                 $bundlecell,
@@ -180,10 +203,14 @@ class dashboard_renderer {
      * @return string Safe HTML.
      */
     public static function render_save_bar(): string {
-        $out  = \html_writer::start_div('alert alert-light border d-flex align-items-center justify-content-between mb-3');
-        $out .= \html_writer::tag('span',
+        $out = \html_writer::start_div(
+            'alert alert-light border d-flex align-items-center justify-content-between mb-3'
+        );
+        $out .= \html_writer::tag(
+            'span',
             get_string('dashboard_savehint', 'elediacheckin'),
-            ['class' => 'text-muted me-3']);
+            ['class' => 'text-muted me-3']
+        );
         $out .= '<button type="submit" class="btn btn-primary" name="elediacheckin_earlysave">'
             . s(get_string('savechanges')) . '</button>';
         $out .= \html_writer::end_div();
@@ -198,8 +225,11 @@ class dashboard_renderer {
     private static function render_block_health(): string {
         global $DB;
 
-        $blockrec = $DB->get_record('block', ['name' => 'elediacheckin'],
-            'id, name, visible');
+        $blockrec = $DB->get_record(
+            'block',
+            ['name' => 'elediacheckin'],
+            'id, name, visible'
+        );
 
         // Block missing from mdl_block entirely.
         if (!$blockrec) {
@@ -210,8 +240,8 @@ class dashboard_renderer {
                 ['class' => 'alert-link']
             );
             return \html_writer::div(
-                '<strong>⚠ ' . s(get_string('blockhealth_title', 'elediacheckin'))
-                    . '</strong> ' . s($msg) . ' ' . $link,
+                '<strong>⚠ ' . s(get_string('blockhealth_title', 'elediacheckin')) .
+                '</strong> ' . s($msg) . ' ' . $link,
                 'alert alert-danger py-2 mb-3'
             );
         }
@@ -224,9 +254,9 @@ class dashboard_renderer {
                 ['class' => 'alert-link']
             );
             return \html_writer::div(
-                '<strong>⚠ ' . s(get_string('blockhealth_title', 'elediacheckin'))
-                    . '</strong> ' . s(get_string('blockhealth_hidden', 'elediacheckin'))
-                    . ' ' . $link,
+                '<strong>⚠ ' . s(get_string('blockhealth_title', 'elediacheckin')) .
+                '</strong> ' . s(get_string('blockhealth_hidden', 'elediacheckin')) .
+                ' ' . $link,
                 'alert alert-warning py-2 mb-3'
             );
         }
@@ -245,10 +275,9 @@ class dashboard_renderer {
             $version = '';
         }
         return \html_writer::div(
-            '<strong>✓ ' . s(get_string('blockhealth_title', 'elediacheckin'))
-                . '</strong> ' . s(get_string('blockhealth_ok', 'elediacheckin')) . $version,
+            '<strong>✓ ' . s(get_string('blockhealth_title', 'elediacheckin')) .
+            '</strong> ' . s(get_string('blockhealth_ok', 'elediacheckin')) . $version,
             'alert alert-success py-2 mb-3'
         );
     }
-
 }

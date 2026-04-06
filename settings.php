@@ -48,7 +48,6 @@ defined('MOODLE_INTERNAL') || die();
 // redirect-Ziel für actions.php-Aufrufe aus Legacy-Bookmarks.
 
 if ($ADMIN->fulltree) {
-
     // ---------------------------------------------------------------------
     // 1. Intro: short how-to for first-time admins. Purely informational.
     // ---------------------------------------------------------------------
@@ -179,10 +178,18 @@ if ($ADMIN->fulltree) {
             ''
         ));
 
-        $settings->hide_if('mod_elediacheckin/licenseserverurl',
-            'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
-        $settings->hide_if('mod_elediacheckin/licensekey',
-            'mod_elediacheckin/contentsource', 'neq', 'eledia_premium');
+        $settings->hide_if(
+            'mod_elediacheckin/licenseserverurl',
+            'mod_elediacheckin/contentsource',
+            'neq',
+            'eledia_premium'
+        );
+        $settings->hide_if(
+            'mod_elediacheckin/licensekey',
+            'mod_elediacheckin/contentsource',
+            'neq',
+            'eledia_premium'
+        );
     }
 
     // ---------------------------------------------------------------------

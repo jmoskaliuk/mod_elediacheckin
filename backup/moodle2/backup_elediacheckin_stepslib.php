@@ -31,7 +31,6 @@ defined('MOODLE_INTERNAL') || die();
  * Defines the backup structure for one activity instance.
  */
 class backup_elediacheckin_activity_structure_step extends backup_activity_structure_step {
-
     /**
      * Defines the structure of the activity backup XML.
      *

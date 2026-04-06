@@ -28,7 +28,7 @@ require_once(__DIR__ . '/lib.php');
 $id         = required_param('id', PARAM_INT);
 $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
 // Optional externalid of a specific question to lock onto on first load (used by block_elediacheckin).
-// When the block preview shows question X and the user clicks "Open Check-in", we want view.php to
+// When the block preview shows question X and the user clicks "Open Check-in", we want view.php to.
 // Show the same X instead of rolling a fresh random one. Empty means "random".
 $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
 // „Zur vorherigen Frage"-Button click: show the previously drawn card from the session history
@@ -100,7 +100,13 @@ $langcandidates[] = current_language();
 // `resolve_navigation()` wraps the pool draw with the single-step history stack that powers
 // the „Zur vorherigen Frage"-Button.
 $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
-    $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback, $isnext
+    $instance,
+    (int) $cm->id,
+    $activeziel,
+    $langcandidates,
+    $qext,
+    $goback,
+    $isnext
 );
 $question  = $nav['question'];
 $hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
@@ -154,8 +160,10 @@ $templatecontext = [
     'question'        => $question ? [
         // Own questions come from a teacher-filled textarea and are rendered as plain text.
         // Bundle questions come from a trusted JSON bundle and may contain simple HTML.
-        'frage'     => format_text($question->frage,
-                           !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML),
+        'frage' => format_text(
+            $question->frage,
+            !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML
+        ),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
         'lang'      => $question->lang,

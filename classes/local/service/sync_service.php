@@ -155,8 +155,12 @@ class sync_service {
         $transaction = $DB->start_delegated_transaction();
         try {
             $DB->delete_records(self::TBL_QUESTION, ['stage' => self::STAGE_LIVE]);
-            $DB->set_field(self::TBL_QUESTION, 'stage', self::STAGE_LIVE,
-                ['stage' => self::STAGE_STAGING]);
+            $DB->set_field(
+                self::TBL_QUESTION,
+                'stage',
+                self::STAGE_LIVE,
+                ['stage' => self::STAGE_STAGING]
+            );
             $transaction->allow_commit();
         } catch (\Throwable $e) {
             $transaction->rollback($e);

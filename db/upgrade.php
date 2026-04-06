@@ -50,7 +50,6 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     // production site, the upgrade simply drops & recreates the affected
     // tables. Any dev-only sync data will be re-populated on the next sync.
     if ($oldversion < 2026040501) {
-
         // Drop the old per-question category link table.
         $tablelink = new xmldb_table('elediacheckin_question_cat');
         if ($dbman->table_exists($tablelink)) {
@@ -69,28 +68,28 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
             $dbman->drop_table($tablequestion);
         }
 
-        $tablequestion->add_field('id',            XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $tablequestion->add_field('stage',         XMLDB_TYPE_INTEGER, '1',  null, XMLDB_NOTNULL, null, '0');
-        $tablequestion->add_field('bundleid',      XMLDB_TYPE_CHAR,    '64', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('bundleversion', XMLDB_TYPE_CHAR,    '64', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('externalid',    XMLDB_TYPE_CHAR,    '128', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('ziel',          XMLDB_TYPE_CHAR,    '16', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('categories',    XMLDB_TYPE_CHAR,    '255', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('frage',         XMLDB_TYPE_TEXT,    null, null, XMLDB_NOTNULL, null, null);
-        $tablequestion->add_field('hasanswer',     XMLDB_TYPE_INTEGER, '1',  null, XMLDB_NOTNULL, null, '0');
-        $tablequestion->add_field('antwort',       XMLDB_TYPE_TEXT,    null, null, null,          null, null);
-        $tablequestion->add_field('lang',          XMLDB_TYPE_CHAR,    '10', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('author',        XMLDB_TYPE_CHAR,    '255', null, null,         null, null);
-        $tablequestion->add_field('quelle',        XMLDB_TYPE_CHAR,    '255', null, null,         null, null);
-        $tablequestion->add_field('license',       XMLDB_TYPE_CHAR,    '64', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('qversion',      XMLDB_TYPE_CHAR,    '32', null, XMLDB_NOTNULL, null, '1');
-        $tablequestion->add_field('qstatus',       XMLDB_TYPE_CHAR,    '16', null, XMLDB_NOTNULL, null, 'published');
-        $tablequestion->add_field('link',          XMLDB_TYPE_CHAR,    '1333', null, null,        null, null);
-        $tablequestion->add_field('media',         XMLDB_TYPE_CHAR,    '1333', null, null,        null, null);
-        $tablequestion->add_field('extcreated',    XMLDB_TYPE_INTEGER, '10', null, null,          null, null);
-        $tablequestion->add_field('extmodified',   XMLDB_TYPE_INTEGER, '10', null, null,          null, null);
-        $tablequestion->add_field('timecreated',   XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
-        $tablequestion->add_field('timemodified',  XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $tablequestion->add_field('stage', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('bundleid', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('bundleversion', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('externalid', XMLDB_TYPE_CHAR, '128', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('ziel', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('categories', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('frage', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $tablequestion->add_field('hasanswer', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('antwort', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $tablequestion->add_field('lang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('author', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $tablequestion->add_field('quelle', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $tablequestion->add_field('license', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('qversion', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, '1');
+        $tablequestion->add_field('qstatus', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'published');
+        $tablequestion->add_field('link', XMLDB_TYPE_CHAR, '1333', null, null, null, null);
+        $tablequestion->add_field('media', XMLDB_TYPE_CHAR, '1333', null, null, null, null);
+        $tablequestion->add_field('extcreated', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $tablequestion->add_field('extmodified', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $tablequestion->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $tablequestion->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $tablequestion->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $tablequestion->add_index('stage_ext_lang', XMLDB_INDEX_UNIQUE, ['stage', 'externalid', 'lang']);
         $tablequestion->add_index('stage_ziel_lang_status', XMLDB_INDEX_NOTUNIQUE, ['stage', 'ziel', 'lang', 'qstatus']);
@@ -185,8 +184,16 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         }
 
         // Widen contentlang and change its default to the auto sentinel.
-        $fieldcontentlang = new xmldb_field('contentlang', XMLDB_TYPE_CHAR, '16', null,
-            null, null, '_auto_', 'categories');
+        $fieldcontentlang = new xmldb_field(
+            'contentlang',
+            XMLDB_TYPE_CHAR,
+            '16',
+            null,
+            null,
+            null,
+            '_auto_',
+            'categories'
+        );
         if ($dbman->field_exists($tableinstance, $fieldcontentlang)) {
             $dbman->change_field_precision($tableinstance, $fieldcontentlang);
             $dbman->change_field_default($tableinstance, $fieldcontentlang);
@@ -211,14 +218,30 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         // Activity instance: optional CSV filter columns.
         $tableinstance = new xmldb_table('elediacheckin');
 
-        $fieldzg = new xmldb_field('zielgruppe', XMLDB_TYPE_CHAR, '255', null,
-            null, null, null, 'categories');
+        $fieldzg = new xmldb_field(
+            'zielgruppe',
+            XMLDB_TYPE_CHAR,
+            '255',
+            null,
+            null,
+            null,
+            null,
+            'categories'
+        );
         if (!$dbman->field_exists($tableinstance, $fieldzg)) {
             $dbman->add_field($tableinstance, $fieldzg);
         }
 
-        $fieldkx = new xmldb_field('kontext', XMLDB_TYPE_CHAR, '255', null,
-            null, null, null, 'zielgruppe');
+        $fieldkx = new xmldb_field(
+            'kontext',
+            XMLDB_TYPE_CHAR,
+            '255',
+            null,
+            null,
+            null,
+            null,
+            'zielgruppe'
+        );
         if (!$dbman->field_exists($tableinstance, $fieldkx)) {
             $dbman->add_field($tableinstance, $fieldkx);
         }
@@ -227,14 +250,30 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         // provider can treat empty-string as "untagged".
         $tablequestion = new xmldb_table('elediacheckin_question');
 
-        $qzg = new xmldb_field('zielgruppe', XMLDB_TYPE_CHAR, '255', null,
-            XMLDB_NOTNULL, null, '', 'categories');
+        $qzg = new xmldb_field(
+            'zielgruppe',
+            XMLDB_TYPE_CHAR,
+            '255',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '',
+            'categories'
+        );
         if (!$dbman->field_exists($tablequestion, $qzg)) {
             $dbman->add_field($tablequestion, $qzg);
         }
 
-        $qkx = new xmldb_field('kontext', XMLDB_TYPE_CHAR, '255', null,
-            XMLDB_NOTNULL, null, '', 'zielgruppe');
+        $qkx = new xmldb_field(
+            'kontext',
+            XMLDB_TYPE_CHAR,
+            '255',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '',
+            'zielgruppe'
+        );
         if (!$dbman->field_exists($tablequestion, $qkx)) {
             $dbman->add_field($tablequestion, $qkx);
         }
@@ -263,8 +302,16 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     if ($oldversion < 2026040509) {
         $tableinstance = new xmldb_table('elediacheckin');
 
-        $fieldown = new xmldb_field('ownquestions', XMLDB_TYPE_TEXT, null, null,
-            null, null, null, 'avoidrepeat');
+        $fieldown = new xmldb_field(
+            'ownquestions',
+            XMLDB_TYPE_TEXT,
+            null,
+            null,
+            null,
+            null,
+            null,
+            'avoidrepeat'
+        );
         if (!$dbman->field_exists($tableinstance, $fieldown)) {
             $dbman->add_field($tableinstance, $fieldown);
         }
@@ -281,8 +328,16 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     // keine Forward-/Backward-Pfeile — siehe Konzept §10.14).
     if ($oldversion < 2026040515) {
         $tableinstance = new xmldb_table('elediacheckin');
-        $fieldprev = new xmldb_field('showprevbutton', XMLDB_TYPE_INTEGER, '1', null,
-            XMLDB_NOTNULL, null, '0', 'ownquestions');
+        $fieldprev = new xmldb_field(
+            'showprevbutton',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'ownquestions'
+        );
         if (!$dbman->field_exists($tableinstance, $fieldprev)) {
             $dbman->add_field($tableinstance, $fieldprev);
         }
@@ -297,8 +352,16 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     // `parse_own_questions()`. Siehe Konzept §10.15.
     if ($oldversion < 2026040516) {
         $tableinstance = new xmldb_table('elediacheckin');
-        $fieldonly = new xmldb_field('onlyownquestions', XMLDB_TYPE_INTEGER, '1', null,
-            XMLDB_NOTNULL, null, '0', 'showprevbutton');
+        $fieldonly = new xmldb_field(
+            'onlyownquestions',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'showprevbutton'
+        );
         if (!$dbman->field_exists($tableinstance, $fieldonly)) {
             $dbman->add_field($tableinstance, $fieldonly);
         }
@@ -312,8 +375,16 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     // rename_field umbenannt, damit bestehende 0/1-Werte erhalten bleiben.
     if ($oldversion < 2026040524) {
         $tableinstance = new xmldb_table('elediacheckin');
-        $fieldold = new xmldb_field('onlyownquestions', XMLDB_TYPE_INTEGER, '1', null,
-            XMLDB_NOTNULL, null, '0', 'showprevbutton');
+        $fieldold = new xmldb_field(
+            'onlyownquestions',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'showprevbutton'
+        );
         if ($dbman->field_exists($tableinstance, $fieldold)) {
             $dbman->rename_field($tableinstance, $fieldold, 'ownquestionsmode');
         }
@@ -425,8 +496,16 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     // sicherzustellen, dass die neue activity_settings_tour.json importiert wird.
     if ($oldversion < 2026040538) {
         $tableinstance = new xmldb_table('elediacheckin');
-        $fieldex = new xmldb_field('exhaustedbehavior', XMLDB_TYPE_CHAR, '16', null,
-            XMLDB_NOTNULL, null, 'restart', 'showprevbutton');
+        $fieldex = new xmldb_field(
+            'exhaustedbehavior',
+            XMLDB_TYPE_CHAR,
+            '16',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            'restart',
+            'showprevbutton'
+        );
         if (!$dbman->field_exists($tableinstance, $fieldex)) {
             $dbman->add_field($tableinstance, $fieldex);
         }

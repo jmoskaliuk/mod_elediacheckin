@@ -71,8 +71,8 @@ class tour_installer {
                 \tool_usertours\manager::import_tour_from_json($json);
             } catch (\Throwable $e) {
                 debugging(
-                    'mod_elediacheckin: could not import tour '
-                        . basename($file) . ': ' . $e->getMessage(),
+                    'mod_elediacheckin: could not import tour ' .
+                    basename($file) . ': ' . $e->getMessage(),
                     DEBUG_DEVELOPER
                 );
             }
@@ -130,9 +130,9 @@ class tour_installer {
                     $tour->remove();
                 } catch (\Throwable $e) {
                     debugging(
-                        'mod_elediacheckin: could not remove old tour '
-                            . ($record->name ?? $record->id) . ': '
-                            . $e->getMessage(),
+                        'mod_elediacheckin: could not remove old tour ' .
+                        ($record->name ?? $record->id) . ': ' .
+                        $e->getMessage(),
                         DEBUG_DEVELOPER
                     );
                 }
