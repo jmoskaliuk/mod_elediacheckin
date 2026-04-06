@@ -33,6 +33,43 @@ bündelt verwandte Punkte und setzt sie um.
 
 _(leer)_
 
+## 🔎 Nach Deploy verifizieren
+
+### Behat 9/9 — finaler Lauf (v2026040604)
+
+Deploy `~/moodle-update.sh checkin` bringt commit `8943891`. Danach:
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php /var/www/site/moodle/admin/tool/behat/cli/init.php 2>&1 | tail -5
+
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php /var/www/site/vendor/bin/behat \
+    --config /var/www/behatdata/behatrun/behat/behat.yml \
+    --suite mod_elediacheckin 2>&1 | tail -20
+```
+
+Erwartetes Ergebnis: **9 scenarios, 9 passed**.
+
+### Deinstallation (nie getestet)
+
+Nach erfolgreichem Behat-Lauf, als nächster Schritt:
+
+1. Plugin deinstallieren via _Site administration → Plugins → Manage activities_.
+2. Prüfen, dass die drei User-Tours entfernt wurden
+   (_Site administration → Server → User tours_ — keine „Check-in"-Tours mehr).
+3. Prüfen, dass keine `elediacheckin`-Tabellen übrig bleiben:
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php -r "define('CLI_SCRIPT', true); require '/var/www/site/moodle/config.php';
+  global \$DB; \$tables = \$DB->get_tables();
+  foreach (\$tables as \$t) { if (strpos(\$t,'elediacheckin') !== false) echo \$t.PHP_EOL; }"
+```
+
+Wenn leer → sauber. Danach Plugin neu installieren (damit die Demo-Instanz
+wieder nutzbar ist).
+
 ## 🔬 PreCheck-Verifizierung (v2026040541, auf Docker)
 
 Die folgenden Kommandos brauchen PHP und laufen deshalb im Docker-Container.
