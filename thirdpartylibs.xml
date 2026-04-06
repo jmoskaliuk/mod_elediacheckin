@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<libraries>
+    <!--
+        mod_elediacheckin does not bundle any third-party libraries.
+        All JavaScript is authored by eLeDia GmbH or uses Moodle core AMD modules.
+    -->
+</libraries>
