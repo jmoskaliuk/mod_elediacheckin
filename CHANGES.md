@@ -3,6 +3,17 @@
 All notable changes to this plugin are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## v2026040607 — 2026-04-06
+
+### Fixed
+- `amd/src/category_filter.js`: rewritten to ES6 module syntax (`export const
+  init`). The old `define([], function() { … var … })` pattern triggered
+  ESLint `no-var` warnings that fail CI with `--max-lint-warnings 0`. All
+  `var` declarations replaced with `const`/`let`; `for` loops replaced with
+  `Array.from().forEach` / `.filter().map()`.
+- AMD build (`amd/build/category_filter.min.js`) rebuilt via Grunt to match
+  the updated source.
+
 ## v2026040606 — 2026-04-06
 
 ### Added

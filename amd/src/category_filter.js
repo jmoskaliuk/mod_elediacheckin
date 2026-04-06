@@ -28,89 +28,75 @@
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([], function() {
-    'use strict';
 
-    return {
-        /**
-         * @param {String} zieleId   id of the underlying ziele <select>
-         * @param {String} catsId    id of the underlying categories <select>
-         * @param {String} mapId     id of the <script type="application/json">
-         *                           element holding the category→ziel map
-         */
-        init: function(zieleId, catsId, mapId) {
-            var ziele = document.getElementById(zieleId);
-            var cats = document.getElementById(catsId);
-            var mapNode = document.getElementById(mapId);
-            if (!ziele || !cats || !mapNode) {
-                return;
+/**
+ * Initialise the category filter on the activity form.
+ *
+ * @param {String} zieleId  id of the underlying ziele <select>
+ * @param {String} catsId   id of the underlying categories <select>
+ * @param {String} mapId    id of the <script type="application/json"> element
+ *                          holding the category→ziel map
+ */
+export const init = (zieleId, catsId, mapId) => {
+    const ziele = document.getElementById(zieleId);
+    const cats = document.getElementById(catsId);
+    const mapNode = document.getElementById(mapId);
+    if (!ziele || !cats || !mapNode) {
+        return;
+    }
+
+    let catZielMap;
+    try {
+        catZielMap = JSON.parse(mapNode.textContent || '{}');
+    } catch (e) {
+        return;
+    }
+
+    let applying = false;
+
+    /**
+     * Re-evaluate which category options are visible/disabled based on the
+     * currently selected ziele.
+     */
+    const apply = () => {
+        if (applying) {
+            return;
+        }
+        applying = true;
+
+        const selectedZiele = Array.from(ziele.options)
+            .filter(o => o.selected)
+            .map(o => o.value);
+        const showAll = selectedZiele.length === 0;
+        let changed = false;
+
+        Array.from(cats.options).forEach(opt => {
+            const mapped = catZielMap[opt.value] || [];
+            const visible = showAll || mapped.some(z => selectedZiele.includes(z));
+
+            if (opt.disabled === visible) {
+                opt.disabled = !visible;
+                changed = true;
             }
-
-            var catZielMap;
-            try {
-                catZielMap = JSON.parse(mapNode.textContent || '{}');
-            } catch (e) {
-                return;
+            if (opt.hidden !== !visible) {
+                opt.hidden = !visible;
+                changed = true;
             }
-
-            var applying = false;
-
-            /**
-             * Re-evaluate which category checkboxes are visible based on the
-             * currently selected ziele.
-             */
-            function apply() {
-                if (applying) {
-                    return;
-                }
-                applying = true;
-
-                var selectedZiele = [];
-                for (var i = 0; i < ziele.options.length; i++) {
-                    if (ziele.options[i].selected) {
-                        selectedZiele.push(ziele.options[i].value);
-                    }
-                }
-                var showAll = selectedZiele.length === 0;
-                var changed = false;
-
-                for (var j = 0; j < cats.options.length; j++) {
-                    var opt = cats.options[j];
-                    var mapped = catZielMap[opt.value] || [];
-                    var visible = showAll;
-                    if (!visible) {
-                        for (var k = 0; k < mapped.length; k++) {
-                            if (selectedZiele.indexOf(mapped[k]) !== -1) {
-                                visible = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (opt.disabled === visible) {
-                        opt.disabled = !visible;
-                        changed = true;
-                    }
-                    if (opt.hidden !== !visible) {
-                        opt.hidden = !visible;
-                        changed = true;
-                    }
-                    if (!visible && opt.selected) {
-                        opt.selected = false;
-                        changed = true;
-                    }
-                }
-
-                applying = false;
-
-                if (changed) {
-                    // Notify Moodle's form-autocomplete to re-read the source
-                    // select and update its pill list.
-                    cats.dispatchEvent(new Event('change', {bubbles: true}));
-                }
+            if (!visible && opt.selected) {
+                opt.selected = false;
+                changed = true;
             }
+        });
 
-            ziele.addEventListener('change', apply);
-            setTimeout(apply, 150);
+        applying = false;
+
+        if (changed) {
+            // Notify Moodle's form-autocomplete to re-read the source
+            // select and update its pill list.
+            cats.dispatchEvent(new Event('change', {bubbles: true}));
         }
     };
-});
+
+    ziele.addEventListener('change', apply);
+    setTimeout(apply, 150);
+};
