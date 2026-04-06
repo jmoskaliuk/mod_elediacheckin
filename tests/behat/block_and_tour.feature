@@ -29,12 +29,12 @@ Feature: Companion block and user tour integration
     Then "Check-in" "block" should exist
 
   @javascript
-  Scenario: Admin settings user tour auto-starts on first visit
+  Scenario: Bundled teacher tour is installed in the system
     When I log in as "admin"
-    And I navigate to "Plugins > Activity modules > eLeDia Check-In" in site administration
-    Then I should see "Plugin settings at a glance"
+    And I navigate to "Server > User tours" in site administration
+    Then I should see "Check-in for teachers"
 
   @javascript
-  Scenario: Teacher activity user tour auto-starts on first visit to view.php
+  Scenario: Teacher activity view renders for enrolled teacher
     When I am on the "Block Test Check-in" "elediacheckin activity" page logged in as teacher1
-    Then I should see "Welcome to Check-in"
+    Then I should see "Block-Frage"

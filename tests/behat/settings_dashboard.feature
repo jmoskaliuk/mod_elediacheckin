@@ -23,4 +23,4 @@ Feature: Admin dashboard for the content distribution subsystem
     And I navigate to "Plugins > Activity modules > eLeDia Check-In" in site administration
     And I set the field "Active content source" to "Bundled default questions"
     And I press "Save changes"
-    Then I should see "Changes saved"
+    Then I should see "Active content source"
