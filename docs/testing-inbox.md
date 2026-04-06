@@ -153,6 +153,23 @@ räumt dann ggf. nach.
   fehlt: Upgrade-Step hat nicht gegriffen — dann bitte den vollen Output
   von `php admin/cli/upgrade.php` schicken.
 
+- **v2026040542 — 4 UX-Fixes aus dem 2026-04-06-Test.** Vier Punkte,
+  alle im Bundle. Deploy: `~/moodle-update.sh checkin` UND
+  `~/moodle-update.sh checkinblock`.
+  (1) **Block-Fragenvorschau.** `showpreview`-Default von 0 auf 1
+  geändert. Neue Blöcke zeigen die Vorschau sofort. Bestehende
+  Block-Instanzen einmal in der Block-Konfiguration „Vorschau anzeigen"
+  auf Ja umstellen.
+  (2) **Popup zeigt gleiche Frage.** Popup-URL enthält jetzt `?q=<id>`
+  mit der aktuellen Frage aus der View. „Open as popup" darf keine
+  andere Frage zeigen.
+  (3) **Frage bleibt stabil beim Zurückkehren.** `resolve_navigation()`
+  verwendet die Session-Frage weiter statt bei jedem frischen
+  Seitenaufruf eine neue zu ziehen. Erst „Weiter" holt eine neue Frage.
+  (4) **Leerer Block-Titel = kein Titel.** `specialization()` +
+  `hide_header()` im Block: wenn der Titel in der Block-Konfiguration
+  leer gelassen wird, verschwindet die Block-Kopfzeile komplett.
+
 - **v2026040540 — Vollbild-Weiter-Fix + DE-Sie-Audit.** Zwei kleine
   Folgefixes aus dem 2026-04-05-Feedback.
   (1) **Vollbild bleibt beim Weiter-Klick offen.** Auf einer Check-in-

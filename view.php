@@ -140,11 +140,17 @@ $prevurl = new moodle_url('/mod/elediacheckin/view.php', [
     'prev'       => 1,
     'r'          => time(),
 ]);
-$popupurl = new moodle_url('/mod/elediacheckin/present.php', [
+// Pin the popup to the same question the user is looking at, so
+// "Open as popup" does not roll a fresh random card (issue #2/#3).
+$popupparams = [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
     'layout'     => 'popup',
-]);
+];
+if ($question && !empty($question->externalid)) {
+    $popupparams['q'] = (string) $question->externalid;
+}
+$popupurl = new moodle_url('/mod/elediacheckin/present.php', $popupparams);
 
 $templatecontext = [
     'cmid'            => $cm->id,

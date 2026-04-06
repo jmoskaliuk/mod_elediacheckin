@@ -267,17 +267,38 @@ final class activity_pool {
                 }
             }
         } else {
-            // Fresh page load: reset the whole navigation state.
-            $question = self::pick_random($instance, $activeziel, $langcandidates);
-            if ($question) {
-                $extid = (string) $question->externalid;
-                $history = [$extid];
-                $pos = 0;
-                $seen = [$extid => true];
-            } else {
-                $history = [];
-                $pos = 0;
-                $seen = [];
+            // Fresh page load (no ?q=, ?next=, ?prev=). If the session
+            // already holds a question for this cmid, keep showing it —
+            // the card should stay stable until the user explicitly
+            // clicks "Weiter". Only reset the history stack so the
+            // Previous-button stays hidden until Weiter is clicked.
+            $reused = false;
+            if (!empty($history) && isset($history[$pos])) {
+                $question = self::pick_by_externalid(
+                    $instance, (string) $history[$pos], $activeziel, $langcandidates
+                );
+                if ($question) {
+                    // Keep the same card; just flatten history to one entry
+                    // so Previous is hidden.
+                    $extid = (string) $question->externalid;
+                    $history = [$extid];
+                    $pos = 0;
+                    $seen = [$extid => true];
+                    $reused = true;
+                }
+            }
+            if (!$reused) {
+                $question = self::pick_random($instance, $activeziel, $langcandidates);
+                if ($question) {
+                    $extid = (string) $question->externalid;
+                    $history = [$extid];
+                    $pos = 0;
+                    $seen = [$extid => true];
+                } else {
+                    $history = [];
+                    $pos = 0;
+                    $seen = [];
+                }
             }
         }
 
