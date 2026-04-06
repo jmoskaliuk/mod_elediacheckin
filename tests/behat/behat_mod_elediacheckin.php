@@ -1,0 +1,52 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Custom Behat step definitions for mod_elediacheckin.
+ *
+ * @package    mod_elediacheckin
+ * @category   test
+ * @copyright  2026 eLeDia GmbH <info@eledia.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
+
+/**
+ * Step definitions for mod_elediacheckin Behat tests.
+ *
+ * @package    mod_elediacheckin
+ * @category   test
+ * @copyright  2026 eLeDia GmbH <info@eledia.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class behat_mod_elediacheckin extends behat_base {
+
+    /**
+     * Ensures the bundled eLeDia Check-in user tours are present in the DB.
+     *
+     * This is needed because mod_* plugins install before tool_usertours in
+     * Moodle's plugin-type order, so the tool_usertours_tours table does not
+     * exist when mod_elediacheckin's db/install.php runs. The install hook
+     * bails out silently; this step explicitly imports the tours so tour-
+     * related Behat scenarios can proceed without depending on install order.
+     *
+     * @Given the elediacheckin bundled tours are installed
+     */
+    public function the_elediacheckin_bundled_tours_are_installed(): void {
+        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
+    }
+}

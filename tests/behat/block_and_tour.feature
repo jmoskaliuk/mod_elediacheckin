@@ -30,6 +30,7 @@ Feature: Companion block and user tour integration
 
   @javascript
   Scenario: Bundled teacher tour is installed in the system
+    Given the elediacheckin bundled tours are installed
     When I log in as "admin"
     And I visit "/admin/tool/usertours/index.php"
     Then I should see "Check-in for teachers"
