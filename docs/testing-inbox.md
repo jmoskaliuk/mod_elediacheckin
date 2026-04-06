@@ -31,7 +31,15 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-_(leer)_
+- (5) **Block: Autor bei Zitaten anzeigen.** Wenn die Preview-Karte im
+  Block ein Zitat zeigt, soll der Autor klein darunter stehen.
+- (6) **Popup-Close: View zeigt alten Text.** Wenn das Popup geschlossen
+  wird, zeigt die normale Darstellung noch den vorherigen Text statt der
+  aktuellen Frage.
+- (7) **Popup-Fernsteuerung aus der Aktivität.** Konzept-Idee: Lehrkraft
+  teilt das Popup mit den TN und steuert es trotzdem von der Moodle-
+  Aktivitätsseite aus (Weiter, Zurück, Ziel wechseln). Der Popup-Inhalt
+  aktualisiert sich live.
 
 ## 🔬 PreCheck-Verifizierung (v2026040541, auf Docker)
 
@@ -61,8 +69,8 @@ docker compose -f ~/demo/compose.yml exec -T -w /var/www/site/moodle webserver \
 
 ```
 docker compose -f ~/demo/compose.yml exec -T \
-  -w /var/www/site/moodle/public webserver \
-  npx grunt amd --root=mod/elediacheckin
+  -w /var/www/site/moodle webserver \
+  npx grunt amd --root=public/mod/elediacheckin
 ```
 
 Danach `git diff amd/build/` prüfen — wenn sich nur Whitespace oder

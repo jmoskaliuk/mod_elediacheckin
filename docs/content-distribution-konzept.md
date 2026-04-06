@@ -848,6 +848,31 @@ Lehre: Wenn ein JS-Overlay kein State-Survival über Page-Reloads hat, ist der U
 
 **2 — DE-Lang durchgängig Sie.** Audit auf `lang/de/elediacheckin.php` und `lang/de/block_elediacheckin.php`: gemischte „du"/„Sie"-Formen gefunden. Entscheidung mit Johannes: durchgängig Sie (Corporate/B2B-Zielgruppe eLeDia), EN bleibt bei neutralem „you". Betroffene Strings: `exhaustedmessage`, `contentlang_help`, alle `checkintour_step{1,2,3,4}_content`, alle `settingstour_step{1,2,3,5}_content`, alle `activitytour_step{1..7}_content`, `linkedactivity_help` im Block. Gesamt ~15 String-Edits. Als Feedback-Memory festgehalten (`feedback_eledia_german_siezen.md`), damit zukünftige Sessions die Konvention beim Anlegen neuer Strings nicht wieder aufweichen — auch in anderen eLeDia-Plugins.
 
+### §10.33 Schema-Fixes + UX-Bundle (v2026040543, 2026-04-06)
+
+Vier Themen in einem Commit:
+
+**1 — install.xml ↔ DB-Schema-Alignment.** `check_database_schema.php` zeigte 7 Abweichungen. Fix: `contentlang` auf CHAR(16) + DEFAULT='_auto_' geweitet, `showprevbutton` DEFAULT auf 1 geändert, vier Spalten in `elediacheckin_question` (categories, zielgruppe, kontext, license) auf NOTNULL=false korrigiert. Neuer Upgrade-Step 2026040543 bringt bestehende Instanzen auf den gleichen Stand.
+
+**2 — Fragen-Persistenz View ↔ Popup.** `view.php` gibt jetzt `?q=<externalid>` an die Popup-URL weiter. `resolve_navigation()` zieht bei frischen Seitenaufrufen nicht mehr zufällig neu, sondern zeigt die bestehende Session-Frage weiter. `present.js` ruft `window.opener.location.reload()` beim Schließen, damit die View-Seite die aktuelle Frage anzeigt.
+
+**3 — Block: Autor bei Zitaten.** Preview-Karte im Block zeigt bei Zitaten den Autor klein-kursiv unter dem Text (Mustache-Erweiterung + `isquote`/`hasauthor`/`author` im Template-Context).
+
+**4 — Block: Leerer Titel = kein Header.** `specialization()` + `hide_header()` im Block: wenn der Titel in der Block-Konfiguration leer gelassen wird, verschwindet die Block-Kopfzeile komplett. `showpreview`-Default auf 1 geändert (neue Blöcke zeigen Vorschau sofort).
+
+### §10.34 Popup-Fernsteuerung — offene Designfrage
+
+**Idee (Johannes, 2026-04-06):** Die Lehrkraft teilt das Popup-Fenster (present.php) per Beamer/Screenshare mit den TN. Gleichzeitig navigiert sie auf der eingebetteten View-Seite (view.php) — Weiter, Zurück, Ziel wechseln. Das Popup soll sich live mitbewegen, ohne dass die Lehrkraft im Popup-Fenster klicken muss.
+
+**Offene Fragen:**
+1. Soll das über `window.postMessage()` zwischen Opener und Popup laufen (rein clientseitig), oder brauchen wir einen Server-Channel (AJAX-Polling, SSE, WebSocket)?
+2. Wenn nur Opener→Popup: reicht es, bei Weiter/Zurück in view.js dem Popup-Fenster die neue URL per `postMessage` zu schicken, und present.js macht `location.href = newUrl`?
+3. Soll das Feature auch umgekehrt wirken (Popup steuert View)?
+4. Soll es auch im Fullscreen-Modus funktionieren (statt nur im separaten Popup-Fenster)?
+5. Ist das Phase 1 oder Phase 2?
+
+→ Entscheidung abwarten, bevor Implementierung beginnt.
+
 ---
 
 ## Zusammenfassung in einem Satz

@@ -511,5 +511,66 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040538, 'elediacheckin');
     }
 
+    // 2026040543 — Align DB schema with install.xml.
+    //
+    // Fixes reported by admin/cli/check_database_schema.php:
+    //  - contentlang: widen to CHAR(16), set DEFAULT '_auto_'.
+    //  - showprevbutton: change DEFAULT from 0 to 1.
+    //  - elediacheckin_question: categories/zielgruppe/kontext/license → allow NULL.
+    if ($oldversion < 2026040543) {
+        $table = new xmldb_table('elediacheckin');
+
+        // Widen contentlang CHAR(10) → CHAR(16) and set default to '_auto_'.
+        $field = new xmldb_field(
+            'contentlang',
+            XMLDB_TYPE_CHAR,
+            '16',
+            null,
+            null,
+            null,
+            '_auto_',
+            'kontext'
+        );
+        $dbman->change_field_precision($table, $field);
+        $dbman->change_field_default($table, $field);
+
+        // showprevbutton: change column default from 0 to 1.
+        $field = new xmldb_field(
+            'showprevbutton',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '1',
+            'ownquestionsmode'
+        );
+        $dbman->change_field_default($table, $field);
+
+        // elediacheckin_question: make four columns nullable.
+        $qtable = new xmldb_table('elediacheckin_question');
+        $nullcols = [
+            'categories' => ['type' => XMLDB_TYPE_CHAR, 'len' => '255', 'after' => 'ziel'],
+            'zielgruppe' => ['type' => XMLDB_TYPE_CHAR, 'len' => '255', 'after' => 'categories'],
+            'kontext'    => ['type' => XMLDB_TYPE_CHAR, 'len' => '255', 'after' => 'zielgruppe'],
+            'license'    => ['type' => XMLDB_TYPE_CHAR, 'len' => '64', 'after' => 'quelle'],
+        ];
+        foreach ($nullcols as $colname => $spec) {
+            $field = new xmldb_field(
+                $colname,
+                $spec['type'],
+                $spec['len'],
+                null,
+                null,
+                null,
+                null,
+                $spec['after']
+            );
+            $dbman->change_field_notnull($qtable, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026040543, 'elediacheckin');
+    }
+
     return true;
 }

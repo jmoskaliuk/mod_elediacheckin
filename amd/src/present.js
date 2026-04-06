@@ -16,6 +16,21 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Reload the opener window so it picks up the current session question.
+ * Called before closing the popup so the embedded view does not show a
+ * stale card.
+ */
+const reloadOpener = () => {
+    try {
+        if (window.opener && !window.opener.closed) {
+            window.opener.location.reload();
+        }
+    } catch (err) {
+        // Cross-origin — nothing we can do.
+    }
+};
+
 export const init = (rootSelector) => {
     const root = document.querySelector(rootSelector);
     if (!root) {
@@ -27,6 +42,7 @@ export const init = (rootSelector) => {
     root.addEventListener('click', (e) => {
         if (e.target.closest('[data-action="close-present"]')) {
             e.preventDefault();
+            reloadOpener();
             window.close();
             return;
         }
@@ -40,6 +56,7 @@ export const init = (rootSelector) => {
     // Esc closes the popup.
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            reloadOpener();
             window.close();
         }
     });
