@@ -32,6 +32,7 @@ use mod_elediacheckin\content\schema_validator;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(schema_validator::class)]
 final class schema_validator_test extends \basic_testcase {
+    // phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing
     /**
      * Build a minimally valid bundle with a single well-formed question.
      *

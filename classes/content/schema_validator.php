@@ -191,7 +191,7 @@ final class schema_validator {
     /**
      * Validate the bundle header fields.
      *
-     * @param array<string, mixed> $decoded The decoded bundle.
+     * @param array $decoded The decoded bundle.
      * @return void
      */
     private function validate_bundle_header(array $decoded): void {
@@ -221,7 +221,7 @@ final class schema_validator {
     /**
      * Validate a single question object.
      *
-     * @param array<string, mixed> $q The question object to validate.
+     * @param array $q The question object to validate.
      * @param int $index The index of the question in the array.
      * @return void
      */

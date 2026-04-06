@@ -30,6 +30,7 @@ namespace mod_elediacheckin;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(feature_flags::class)]
 final class feature_flags_test extends \basic_testcase {
+    // phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing
     public function test_premium_enabled_matches_constant(): void {
         $this->assertSame(feature_flags::PREMIUM_ENABLED, feature_flags::premium_enabled());
     }

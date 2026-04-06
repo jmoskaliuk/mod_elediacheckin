@@ -357,7 +357,7 @@ final class activity_pool {
      * @param \stdClass $instance Row from the {elediacheckin} table.
      * @param string $activeziel Single ziel key to draw for.
      * @param string[] $langcandidates Ordered list of lang codes.
-     * @param array<string,bool> $seen Map of externalid → true for seen questions.
+     * @param array $seen Map of externalid → true for seen questions.
      * @return \stdClass|null The randomly selected question, or null if pool is empty.
      */
     public static function pick_random_excluding(

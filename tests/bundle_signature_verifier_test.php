@@ -32,6 +32,7 @@ use mod_elediacheckin\content\bundle_signature_verifier;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(bundle_signature_verifier::class)]
 final class bundle_signature_verifier_test extends \basic_testcase {
+    // phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing
     /** @var string */
     private string $secret;
 

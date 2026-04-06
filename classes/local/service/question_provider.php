@@ -59,7 +59,7 @@ class question_provider {
     /**
      * Fetches a random live question matching the given filter.
      *
-     * @param array<string, mixed> $filter Filter criteria (see get_questions_by_filter()).
+     * @param array $filter Filter criteria (see get_questions_by_filter()).
      * @return \stdClass|null The randomly selected question, or null if no matches.
      */
     public function get_random_question(array $filter): ?\stdClass {
@@ -86,7 +86,7 @@ class question_provider {
      *  - lang       (string|null)          ISO-639-1, null = any language.
      *  - qstatus    (string|null)          Defaults to 'published'.
      *
-     * @param array<string, mixed> $filter
+     * @param array $filter
      * @return \stdClass[]
      */
     public function get_questions_by_filter(array $filter): array {

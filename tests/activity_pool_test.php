@@ -36,6 +36,7 @@ use mod_elediacheckin\local\service\activity_pool;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(activity_pool::class)]
 final class activity_pool_test extends \advanced_testcase {
+    // phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing
     /**
      * Build a fake instance row with only the fields activity_pool reads.
      *
