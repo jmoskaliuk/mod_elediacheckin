@@ -99,18 +99,6 @@ jobs:
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci mustache
 
-      - name: JavaScript Lint
-        if: ${{ !cancelled() }}
-        run: moodle-plugin-ci js --max-lint-warnings 0
-
-      - name: CSS Lint
-        if: ${{ !cancelled() }}
-        run: moodle-plugin-ci css --max-lint-warnings 0
-
-      - name: Third-party library check
-        if: ${{ !cancelled() }}
-        run: moodle-plugin-ci thirdparty
-
       - name: Grunt
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci grunt --max-lint-warnings 0

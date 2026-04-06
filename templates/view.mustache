@@ -19,16 +19,22 @@
 
     Context variables required for this template:
       * cmid              int
+      * externalid        string   unique content-pack ID for JS sync
       * hasquestion       bool
-      * question          { frage, antwort, hasanswer, lang }
+      * question          { frage, antwort, hasanswer, isquote, hasauthor, author, lang }
       * multiziel         bool
       * zielbuttons       array of { key, label, active, url }  (only used if multiziel)
+      * hasprev           bool     true when history stack has an earlier entry
+      * prevquestionurl   string
       * nextquestionurl   string
       * popupurl          string
       * presenturl        string
+      * exhausted         bool     true when all questions shown and restart=false
       * strnext           localised "Nächste Frage"
+      * strprev           localised "Zurück"
       * strshowanswer     localised "Antwort anzeigen"
       * strnone           localised "Keine Fragen verfügbar"
+      * strexhausted      localised "Alle Fragen wurden gezeigt."
       * strpopup          localised "Als Popup öffnen"
       * strfullscreen     localised "Vollbild"
       * strclose          localised "Schließen"
@@ -36,19 +42,33 @@
     Example context (json):
     {
         "cmid": 42,
+        "externalid": "abc-123",
         "hasquestion": true,
-        "question": { "frage": "Was war dein Highlight?", "antwort": null, "hasanswer": 0, "lang": "de" },
+        "question": {
+            "frage": "Was war dein Highlight?",
+            "antwort": "Mein Highlight war …",
+            "hasanswer": 1,
+            "isquote": false,
+            "hasauthor": false,
+            "author": "",
+            "lang": "de"
+        },
         "multiziel": true,
         "zielbuttons": [
             {"key":"checkin","label":"Check-in","active":true,"url":"view.php?id=42&activeziel=checkin"},
             {"key":"checkout","label":"Check-out","active":false,"url":"view.php?id=42&activeziel=checkout"}
         ],
+        "hasprev": true,
+        "prevquestionurl": "view.php?id=42&activeziel=checkin&r=0",
         "nextquestionurl": "view.php?id=42&activeziel=checkin&r=1",
         "popupurl": "present.php?id=42&activeziel=checkin",
         "presenturl": "present.php?id=42&activeziel=checkin",
+        "exhausted": false,
         "strnext": "Nächste Frage",
+        "strprev": "Zurück",
         "strshowanswer": "Antwort anzeigen",
         "strnone": "Keine Fragen verfügbar",
+        "strexhausted": "Alle Fragen wurden gezeigt.",
         "strpopup": "Als Popup öffnen",
         "strfullscreen": "Vollbild",
         "strclose": "Schließen"
