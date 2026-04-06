@@ -98,122 +98,27 @@ _(leer)_
 
 ## 🔎 Nach Deploy verifizieren
 
-Mit `~/moodle-update.sh checkin` deployen, dann der Reihe nach durchgehen.
-Häkchen oder Fehlermeldung unter den jeweiligen Punkt schreiben — Claude
-räumt dann ggf. nach.
-
-- **v2026040538 — UX-Feedback-Bundle nach v2026040537-Deploy.** Acht Punkte
-  in einem Commit, braucht ein paar Minuten Browser-Test. Konzept §10.30.
-  Zum Deployen auch Block aktualisieren: `~/moodle-update.sh checkin` UND
-  `~/moodle-update.sh checkinblock`, danach einmal `purge_caches` auf die
-  Admin-Seite.
-  (1) **Block auf Aktivitätsseite sichtbar.** Auf einer Check-in-Aktivität
-  (z.B. `/mod/elediacheckin/view.php?id=…`) muss in der rechten Spalte über
-  „Block hinzufügen" der Check-in-Block auswählbar sein. Dasselbe auf der
-  Aktivitäts-Einstellungsseite (`course/modedit.php?update=…`) — der
-  bereits platzierte Block soll dort sichtbar bleiben und nicht
-  ausgeblendet werden.
-  (2) **Block-Kartentext.** Kurseite öffnen, Check-in-Block mit
-  aktivierter Preview anzeigen lassen → der Fragetext muss wieder in der
-  Karte zu sehen sein (war nach v2026040537 leer).
-  (3) **Button-Label „Öffnen".** Im Block der primäre Launcher-Button
-  heißt jetzt nur noch „Öffnen" (DE) bzw. „Open" (EN), nicht mehr
-  „Check-in öffnen".
-  (4) **Navigation „Weiter" / „Zurück".** View-Seite einer Aktivität
-  öffnen → primäre Navigation sagt „Weiter", sekundäre (falls sichtbar)
-  „Zurück". Kein „Nächste Frage" mehr.
-  (5) **History-Stack.** Weiter, Weiter, Weiter, Weiter, Weiter → jetzt
-  mehrfach Zurück drücken. Der Zurück-Button muss bis zur ersten Karte
-  verfügbar bleiben; erst auf der allerersten Karte verschwindet er.
-  Wenn man dann wieder Weiter drückt, soll er beim Verlassen der ersten
-  Karte sofort wieder erscheinen.
-  (6) **Exhausted-Einstellung.** In den Aktivitäts-Einstellungen neue
-  Option „Wenn alle Fragen durch sind" mit zwei Werten: „Von vorne
-  beginnen" (Default) und „Leere Abschluss-Karte anzeigen". Testen: eine
-  Aktivität mit 2 eigenen Fragen und Modus „Nur eigene Fragen" anlegen.
-  Einmal auf „Leere Abschluss-Karte" stellen → nach 2× Weiter muss eine
-  Karte „Für diese Sitzung sind alle Fragen aus dem Pool durch" kommen.
-  Danach umstellen auf „Von vorne beginnen" → nach 2× Weiter muss einfach
-  wieder eine der 2 Karten gezogen werden (und zwar zufällig, nicht immer
-  dieselbe).
-  (7) **Save-Button-Größe.** Admin → Plugins → Check-in: der obere
-  Save-Button im grauen Kasten ist jetzt genauso groß wie der untere
-  Moodle-Save-Button. Kein `btn-sm`-Unterschied mehr.
-  (7b) **Save-Bar-Position (v2026040539).** Die Save-Changes-Zeile muss
-  jetzt ÜBER dem Heading „Sync status" / „Sync-Status" erscheinen, nicht
-  darunter. Reihenfolge auf der Settings-Seite von oben nach unten:
-  Save-Changes-Streifen → „Sync status"-Heading → Companion-Plugin-Zeile
-  → „Current state" → Recent log. Ohne JS.
-  (8) **Aktivitäts-Settings-Tour.** Neue Check-in-Aktivität im Kurs
-  anlegen oder eine bestehende bearbeiten. Auf `/course/modedit.php`
-  muss die Tour automatisch starten (7 Schritte: Welcome → Check-in
-  settings → Ziele → Kategorien → Zielgruppe → Eigene Fragen →
-  Speichern). In Site admin → Appearance → Tours muss „Check-In
-  Aktivitäts-Einstellungen" mit 7 Schritten gelistet sein. Wenn sie
-  fehlt: Upgrade-Step hat nicht gegriffen — dann bitte den vollen Output
-  von `php admin/cli/upgrade.php` schicken.
-
-- **v2026040545 — BroadcastChannel-Sync + PHPCS-Cleanup.** Deploy:
-  `~/moodle-update.sh checkin`. Kein Block-Update nötig.
-  (7) **View steuert Popup — gleiche Frage.** View-Seite öffnen → Popup
-  öffnen. Auf der View-Seite „Weiter" klicken → das Popup muss zur
-  **exakt selben** nächsten Frage wechseln (nicht eine andere zufällige).
-  (7b) **Popup steuert View — gleiche Frage.** Im Popup „Weiter" klicken
-  → die View-Seite zeigt danach **dieselbe** neue Frage.
-  (7c) **Ziel-Picker.** Auf der View-Seite ein anderes Ziel wählen →
-  das Popup wechselt ebenfalls das Ziel.
-  (7d) **Mehrfach Weiter.** Mindestens 5× hintereinander Weiter auf der
-  View → Popup folgt jedes Mal korrekt mit.
-
-- **v2026040543 — Schema-Fix + Popup-Close-Refresh + Block-Autor.**
-  Deploy: `~/moodle-update.sh checkin` UND `~/moodle-update.sh checkinblock`.
-  (5) **Block: Autor bei Zitaten.** Auf der Kursseite einen Block mit
-  Vorschau öffnen (showpreview=Ja). Wenn ein Zitat angezeigt wird, muss
-  der Autorname klein-kursiv unter dem Text stehen.
-  (6) **Popup-Close: View aktualisiert sich.** View-Seite öffnen → Popup
-  öffnen → im Popup „Weiter" klicken → Popup schließen (× oder Esc).
-  Die View-Seite muss jetzt die gleiche Frage zeigen wie das Popup
-  zuletzt, nicht mehr den alten Text.
-  (Schema) **check_database_schema** nochmal laufen lassen — es sollten
-  keine `elediacheckin`-Einträge mehr auftauchen.
-
-- **v2026040542 — 4 UX-Fixes aus dem 2026-04-06-Test.** Vier Punkte,
-  alle im Bundle. Deploy: `~/moodle-update.sh checkin` UND
-  `~/moodle-update.sh checkinblock`.
-  (1) **Block-Fragenvorschau.** `showpreview`-Default von 0 auf 1
-  geändert. Neue Blöcke zeigen die Vorschau sofort. Bestehende
-  Block-Instanzen einmal in der Block-Konfiguration „Vorschau anzeigen"
-  auf Ja umstellen.
-  (2) **Popup zeigt gleiche Frage.** Popup-URL enthält jetzt `?q=<id>`
-  mit der aktuellen Frage aus der View. „Open as popup" darf keine
-  andere Frage zeigen.
-  (3) **Frage bleibt stabil beim Zurückkehren.** `resolve_navigation()`
-  verwendet die Session-Frage weiter statt bei jedem frischen
-  Seitenaufruf eine neue zu ziehen. Erst „Weiter" holt eine neue Frage.
-  (4) **Leerer Block-Titel = kein Titel.** `specialization()` +
-  `hide_header()` im Block: wenn der Titel in der Block-Konfiguration
-  leer gelassen wird, verschwindet die Block-Kopfzeile komplett.
-
-- **v2026040540 — Vollbild-Weiter-Fix + DE-Sie-Audit.** Zwei kleine
-  Folgefixes aus dem 2026-04-05-Feedback.
-  (1) **Vollbild bleibt beim Weiter-Klick offen.** Auf einer Check-in-
-  Aktivität Vollbild öffnen → „Weiter" klicken → das Overlay muss
-  offen bleiben, es darf KEIN sichtbarer Flash zurück auf die View-
-  Seite passieren. Gleiches bei „Zurück" und beim Ziel-Picker im
-  Vollbild-Header. Technisch: der URL-Parameter `fs=1` wird beim Klick
-  an den Link angehängt, `view.js` liest ihn beim Laden und öffnet das
-  Overlay sofort. Esc und der Schließen-Button (×) schließen weiterhin
-  wie gehabt.
-  (2) **DE-Lang durchgängig Sie.** Admin-Settings-Seite, Tour-Texte
-  (Check-in-Tour, Einstellungs-Tour, Aktivitäts-Einstellungs-Tour),
-  Exhausted-Message, Block-Hilfe — keine „du/dich/dein"-Formen mehr,
-  alles auf „Sie/Ihnen/Ihre". Quick-Check: Aktivitäts-Tour starten,
-  alle Steps lesen; Settings-Tour starten, alle 5 Steps lesen;
-  Aktivitäts-Einstellungs-Tour auf modedit.php starten, alle 7 Steps
-  lesen. Wenn noch irgendwo ein „du" steht, bitte Stichwort in die
-  Neu-Section.
+_(leer)_
 
 ## ✅ Erledigt
+
+- **v2026040538 — UX-Feedback-Bundle (8 Punkte, verifiziert 2026-04-06).**
+  Alle 8 Punkte bestanden: Block sichtbar, Kartentext, Button-Label,
+  Weiter/Zurück-Navigation, History-Stack, Exhausted-Einstellung,
+  Save-Button, Aktivitäts-Tour.
+- **v2026040540 — Vollbild-Weiter + DE-Sie-Audit (verifiziert 2026-04-06).**
+  Fullscreen bleibt bei Weiter/Zurück offen. Alle Tour-Texte durchgängig
+  Sie-Form.
+- **v2026040542 — 4 UX-Fixes (verifiziert 2026-04-06).** Block-Preview,
+  Popup gleiche Frage, stabile Frage bei Reload (PRG-Fix `2538adf`),
+  leerer Block-Titel.
+- **v2026040543 — Schema + Popup-Close + Block-Autor (verifiziert
+  2026-04-06).** Autor bei Zitaten, Popup-Close aktualisiert View,
+  check_database_schema sauber.
+- **v2026040545 — BroadcastChannel-Sync (verifiziert 2026-04-06).**
+  View↔Popup bidirektional synchron, Ziel-Picker, mehrfach Weiter.
+- **PreChecks (verifiziert 2026-04-06).** PHPCS 0/0, Grunt AMD rebuild
+  committet (`c18b6c8`), check_database_schema clean.
 
 - **v2026040544 — Popup-Fernsteuerung (bidirektional, bestätigt
   2026-04-06).** Grundmechanismus funktioniert (View↔Popup Navigation
