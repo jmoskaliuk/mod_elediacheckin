@@ -26,7 +26,7 @@ For a compact sidebar launcher, see the companion plugin
 
 ## Requirements
 
-- Moodle 4.5 or later (tested up to 5.0)
+- Moodle 4.5 or later (tested up to 5.1)
 - PHP 8.1+
 - PostgreSQL or MySQL/MariaDB
 
