@@ -318,16 +318,16 @@ final class activity_pool {
     }
 
     /**
-     * Like `pick_random()` but filters out every question whose externalid
-     * already sits in `$seen`. Returns null when the remaining pool is
-     * empty — the caller is responsible for applying the configured
-     * exhausted-behavior (restart vs. empty card).
+     * Like `pick_random()` but filters out every question whose externalid already sits in `$seen`.
      *
-     * @param \stdClass $instance
-     * @param string    $activeziel
-     * @param string[]  $langcandidates
-     * @param array<string,bool> $seen  Map of externalid → true.
-     * @return \stdClass|null
+     * Returns null when the remaining pool is empty. The caller is responsible for applying the
+     * configured exhausted-behavior (restart vs. empty card).
+     *
+     * @param \stdClass $instance Row from the {elediacheckin} table.
+     * @param string $activeziel Single ziel key to draw for.
+     * @param string[] $langcandidates Ordered list of lang codes.
+     * @param array<string,bool> $seen Map of externalid → true for seen questions.
+     * @return \stdClass|null The randomly selected question, or null if pool is empty.
      */
     public static function pick_random_excluding(
         \stdClass $instance,
@@ -357,11 +357,11 @@ final class activity_pool {
 
     /**
      * Reads and normalises the instance-level exhausted-behavior selector.
-     * Falls back to the documented default 'restart' on unknown or empty
-     * values so an upgrade from an older schema never produces a broken
-     * runtime state.
      *
-     * @param \stdClass $instance
+     * Falls back to the documented default 'restart' on unknown or empty values so an upgrade
+     * from an older schema never produces a broken runtime state.
+     *
+     * @param \stdClass $instance The activity instance.
      * @return string One of self::EXHAUSTED_RESTART | self::EXHAUSTED_EMPTY.
      */
     public static function normalise_exhausted_behavior(\stdClass $instance): string {
@@ -373,13 +373,14 @@ final class activity_pool {
     }
 
     /**
-     * Builds the merged pool without sampling — exposed for tests and
-     * potential future "avoid repeat" logic that needs the full list.
+     * Builds the merged pool without sampling.
      *
-     * @param \stdClass $instance
-     * @param string $activeziel
-     * @param string[] $langcandidates
-     * @return \stdClass[]
+     * Exposed for tests and potential future "avoid repeat" logic that needs the full list.
+     *
+     * @param \stdClass $instance The activity instance.
+     * @param string $activeziel Single ziel key to filter by.
+     * @param string[] $langcandidates Ordered language fallback chain.
+     * @return \stdClass[] Array of question records.
      */
     public static function build_pool(
         \stdClass $instance,

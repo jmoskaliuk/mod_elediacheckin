@@ -57,18 +57,20 @@ class sync_service {
 
     /**
      * Constructor.
+     *
+     * @return void
      */
     public function __construct() {
         $this->config = new config_service();
     }
 
     /**
-     * Runs a full sync cycle. Records a row in elediacheckin_sync_log and returns the result.
+     * Runs a full sync cycle and records result.
      *
      * Contract: a failing sync MUST leave the existing dataset untouched.
      *
      * @param string $source Either 'manual' or 'scheduled'.
-     * @return \stdClass Log row (also persisted).
+     * @return \stdClass Log row (also persisted to database).
      */
     public function run(string $source): \stdClass {
         global $DB;
@@ -168,12 +170,12 @@ class sync_service {
     }
 
     /**
-     * Map a validated question array from the bundle to a DB row.
+     * Map a validated question array from the bundle to a database row.
      *
-     * @param array<string, mixed> $q
-     * @param content_bundle $bundle
-     * @param int $now
-     * @return \stdClass
+     * @param array<string, mixed> $q The question array.
+     * @param content_bundle $bundle The content bundle.
+     * @param int $now Current Unix timestamp.
+     * @return \stdClass Database record object.
      */
     private function question_to_record(array $q, content_bundle $bundle, int $now): \stdClass {
         $categories = array_values($q['kategorie'] ?? []);

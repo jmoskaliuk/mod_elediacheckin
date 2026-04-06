@@ -78,7 +78,7 @@ final class content_source_registry {
     }
 
     /**
-     * Reset the cached registry — for unit tests only.
+     * Reset the cached registry for unit tests only.
      *
      * @return void
      */

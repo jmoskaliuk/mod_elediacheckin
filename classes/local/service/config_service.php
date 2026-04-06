@@ -37,9 +37,9 @@ class config_service {
     /**
      * Returns a single setting value, or the supplied default if unset.
      *
-     * @param string $name
-     * @param mixed $default
-     * @return mixed
+     * @param string $name The setting name.
+     * @param mixed $default The default value if not configured.
+     * @return mixed The setting value or default.
      */
     public function get(string $name, $default = null) {
         $value = get_config(self::COMPONENT, $name);
@@ -49,8 +49,9 @@ class config_service {
     /**
      * Persists a setting value.
      *
-     * @param string $name
-     * @param mixed $value
+     * @param string $name The setting name.
+     * @param mixed $value The value to set.
+     * @return void
      */
     public function set(string $name, $value): void {
         set_config($name, $value, self::COMPONENT);

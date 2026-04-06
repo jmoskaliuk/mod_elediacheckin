@@ -183,14 +183,19 @@ final class schema_validator {
     }
 
     /**
-     * @return string[]
+     * Get the accumulated validation error messages.
+     *
+     * @return string[] Array of human-readable error messages.
      */
     public function get_errors(): array {
         return $this->errors;
     }
 
     /**
-     * @param array<string, mixed> $decoded
+     * Validate the bundle header fields.
+     *
+     * @param array<string, mixed> $decoded The decoded bundle.
+     * @return void
      */
     private function validate_bundle_header(array $decoded): void {
         foreach (['schema_version', 'bundle_id', 'bundle_version', 'language'] as $field) {
@@ -215,8 +220,11 @@ final class schema_validator {
     }
 
     /**
-     * @param array<string, mixed> $q
-     * @param int $index
+     * Validate a single question object.
+     *
+     * @param array<string, mixed> $q The question object to validate.
+     * @param int $index The index of the question in the array.
+     * @return void
      */
     private function validate_question(array $q, int $index): void {
         $required = [

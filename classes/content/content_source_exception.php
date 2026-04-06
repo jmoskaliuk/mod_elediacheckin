@@ -35,6 +35,8 @@ defined('MOODLE_INTERNAL') || die();
 class content_source_exception extends \moodle_exception {
 
     /**
+     * Create a new content source exception.
+     *
      * @param string $errorcode Language string identifier.
      * @param string $debuginfo Additional debug detail (not shown to users).
      */

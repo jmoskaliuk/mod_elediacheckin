@@ -34,8 +34,8 @@ class category_provider {
     /**
      * Returns all categories available for a given language, keyed by external id.
      *
-     * @param string $lang
-     * @return \stdClass[]
+     * @param string $lang The language code.
+     * @return \stdClass[] Array of category records.
      */
     public function get_all(string $lang): array {
         global $DB;

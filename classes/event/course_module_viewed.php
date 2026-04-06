@@ -33,6 +33,8 @@ class course_module_viewed extends \core\event\course_module_viewed {
 
     /**
      * Initialises the event data.
+     *
+     * @return void
      */
     protected function init(): void {
         $this->data['crud']        = 'r';

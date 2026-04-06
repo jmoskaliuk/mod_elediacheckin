@@ -35,7 +35,7 @@ class backup_elediacheckin_activity_structure_step extends backup_activity_struc
     /**
      * Defines the structure of the activity backup XML.
      *
-     * @return backup_nested_element
+     * @return backup_nested_element The root backup element.
      */
     protected function define_structure(): backup_nested_element {
         $elediacheckin = new backup_nested_element('elediacheckin', ['id'], [

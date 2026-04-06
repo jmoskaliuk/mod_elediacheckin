@@ -291,7 +291,8 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
     /**
      * DB → form: split CSV fields into arrays for the multi-selects.
      *
-     * @param array $defaultvalues
+     * @param array $defaultvalues The values from the database.
+     * @return void
      */
     public function data_preprocessing(&$defaultvalues): void {
         if (isset($defaultvalues['ziele']) && is_string($defaultvalues['ziele'])) {
@@ -324,7 +325,7 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
     /**
      * Form → DB: fold the arrays back into CSV strings.
      *
-     * @return \stdClass|null
+     * @return \stdClass|null The form data as an object, or null if not submitted.
      */
     public function get_data() {
         $data = parent::get_data();

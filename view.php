@@ -27,17 +27,15 @@ require_once(__DIR__ . '/lib.php');
 
 $id         = required_param('id', PARAM_INT);
 $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
-// Optional externalid of a specific question to lock onto on first load.
-// Used by block_elediacheckin: when the block preview shows question X and
-// the user clicks "Open Check-in", we want view.php to show the same X
-// instead of rolling a fresh random one. Empty means "random".
+// Optional externalid of a specific question to lock onto on first load (used by block_elediacheckin).
+// When the block preview shows question X and the user clicks "Open Check-in", we want view.php to
+// show the same X instead of rolling a fresh random one. Empty means "random".
 $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
-// „Zur vorherigen Frage"-Button click: show the previously drawn card
-// from the session history stack instead of a fresh random.
+// „Zur vorherigen Frage"-Button click: show the previously drawn card from the session history
+// stack instead of a fresh random.
 $goback     = (bool) optional_param('prev', 0, PARAM_BOOL);
-// Explicit „Nächste Frage"-click: pushes on the history stack. Fresh
-// page loads (without this flag) reset the stack so the back-button
-// only appears once the user has actively moved forward at least once.
+// Explicit „Nächste Frage"-click: pushes on the history stack. Fresh page loads (without this
+// flag) reset the stack so the back-button only appears once the user has actively moved forward.
 $isnext     = (bool) optional_param('next', 0, PARAM_BOOL);
 
 $cm       = get_coursemodule_from_id('elediacheckin', $id, 0, false, MUST_EXIST);
@@ -66,8 +64,8 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
 $PAGE->requires->js_call_amd('mod_elediacheckin/view', 'init', ['#mod-elediacheckin-root']);
 
-// Resolve active ziel: if instance has multiple ziele, honour query param,
-// otherwise default to the first configured ziel. Invalid values fall back.
+// Resolve active ziel: if instance has multiple ziele, honour query param, otherwise
+// default to the first configured ziel. Invalid values fall back.
 $ziele = array_values(array_filter(array_map('trim', explode(',', (string)$instance->ziele))));
 if (empty($ziele)) {
     $ziele = ['checkin'];
@@ -77,17 +75,15 @@ if (!$multiziel || !in_array($activeziel, $ziele, true)) {
     $activeziel = $ziele[0];
 }
 
-// Resolve a question through the service layer — only for the active ziel.
-// Language resolution tries: (1) the activity's configured lang, resolving
-// the sentinels '_auto_' → current user language and '_course_' → course
-// language; (2) the user's current language; (3) any language. This keeps
-// the UX friendly on dev sites where the bundle language may not match
-// the site language yet.
-// Build language candidate chain. The sentinels '_auto_' → user language
-// and '_course_' → course language are kept as string literals so this
-// hot-path resolves without loading mod_form.php; the canonical
-// definitions live in mod_form::LANG_AUTO / LANG_COURSE and must stay
-// in sync.
+// Resolve a question through the service layer for the active ziel only.
+// Language resolution tries: (1) the activity's configured lang, resolving the sentinels
+// '_auto_' → current user language and '_course_' → course language; (2) the user's
+// current language; (3) any language. This keeps the UX friendly on dev sites where the
+// bundle language may not match the site language yet.
+// Build language candidate chain. The sentinels '_auto_' → user language and '_course_' →
+// course language are kept as string literals so this hot-path resolves without loading
+// mod_form.php; the canonical definitions live in mod_form::LANG_AUTO / LANG_COURSE and
+// must stay in sync.
 $langcandidates = [];
 $configured = (string) ($instance->contentlang ?? '');
 if ($configured === '_auto_') {
@@ -99,11 +95,10 @@ if ($configured === '_auto_') {
 }
 $langcandidates[] = current_language();
 
-// The activity_pool helper merges bundle questions (filtered via
-// question_provider) with the teacher's per-activity own questions
-// additively — see concept doc §10.13. `resolve_navigation()` wraps the
-// pool draw with the single-step history stack that powers the „Zur
-// vorherigen Frage"-Button.
+// The activity_pool helper merges bundle questions (filtered via question_provider) with
+// the teacher's per-activity own questions additively — see concept doc §10.13.
+// `resolve_navigation()` wraps the pool draw with the single-step history stack that powers
+// the „Zur vorherigen Frage"-Button.
 $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
     $instance, (int) $cm->id, $activeziel, $langcandidates, $qext, $goback, $isnext
 );
@@ -140,8 +135,8 @@ $prevurl = new moodle_url('/mod/elediacheckin/view.php', [
     'prev'       => 1,
     'r'          => time(),
 ]);
-// Pin the popup to the same question the user is looking at, so
-// "Open as popup" does not roll a fresh random card (issue #2/#3).
+// Pin the popup to the same question the user is looking at so "Open as popup" does not
+// roll a fresh random card (issue #2/#3).
 $popupparams = [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
@@ -156,18 +151,16 @@ $templatecontext = [
     'cmid'            => $cm->id,
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
-        // Own questions come from a teacher-filled textarea and are
-        // rendered as plain text; bundle questions come from a trusted
-        // JSON bundle and may contain simple HTML.
+        // Own questions come from a teacher-filled textarea and are rendered as plain text.
+        // Bundle questions come from a trusted JSON bundle and may contain simple HTML.
         'frage'     => format_text($question->frage,
                            !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML),
         'antwort'   => $question->antwort ? format_text($question->antwort, FORMAT_HTML) : '',
         'hasanswer' => (bool)$question->hasanswer,
         'lang'      => $question->lang,
-        // Ziel-abhängige Metadaten für das Template: nur Zitate bekommen
-        // die Autor-Attribution unter dem Text. Für andere Ziele ist das
-        // Feld zwar möglicherweise gesetzt (z. B. "eLeDia Redaktion" bei
-        // learning-Fragen), gehört aber didaktisch NICHT auf die Karte.
+        // Ziel-abhängige Metadaten für das Template: nur Zitate bekommen die Autor-Attribution
+        // unter dem Text. Für andere Ziele ist das Feld zwar möglicherweise gesetzt
+        // (z. B. "eLeDia Redaktion" bei learning-Fragen), gehört aber didaktisch NICHT auf die Karte.
         'isquote'   => !empty($question->ziel) && $question->ziel === 'zitat',
         'hasauthor' => !empty($question->ziel) && $question->ziel === 'zitat'
                         && !empty($question->author),
@@ -193,9 +186,9 @@ $templatecontext = [
 
 echo $OUTPUT->header();
 
-// NOTE: In Moodle 4.x+ the activity header ($PAGE->activityheader) auto-
-// renders the module intro, so an explicit generalbox here would duplicate
-// the description. We intentionally do NOT echo a second intro box.
+// NOTE: In Moodle 4.x+ the activity header ($PAGE->activityheader) auto-renders the module
+// intro, so an explicit generalbox here would duplicate the description. We intentionally do NOT
+// echo a second intro box.
 
 echo $OUTPUT->render_from_template('mod_elediacheckin/view', $templatecontext);
 

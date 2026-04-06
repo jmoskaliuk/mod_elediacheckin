@@ -47,8 +47,8 @@ class question_provider {
     /**
      * Fetches a single live question by its internal id.
      *
-     * @param int $id
-     * @return \stdClass|null
+     * @param int $id The question internal id.
+     * @return \stdClass|null The question record, or null if not found.
      */
     public function get_question_by_id(int $id): ?\stdClass {
         global $DB;
@@ -62,8 +62,8 @@ class question_provider {
     /**
      * Fetches a random live question matching the given filter.
      *
-     * @param array<string, mixed> $filter See get_questions_by_filter().
-     * @return \stdClass|null
+     * @param array<string, mixed> $filter Filter criteria (see get_questions_by_filter()).
+     * @return \stdClass|null The randomly selected question, or null if no matches.
      */
     public function get_random_question(array $filter): ?\stdClass {
         $questions = $this->get_questions_by_filter($filter);
@@ -154,13 +154,14 @@ class question_provider {
     }
 
     /**
-     * Safe accessor for a CSV tag column on a question row. Older sync runs
-     * (pre-2026040508) may not have populated the column yet, so treat a
+     * Safe accessor for a CSV tag column on a question row.
+     *
+     * Older sync runs (pre-2026040508) may not have populated the column yet, so treat a
      * missing property the same as an empty string.
      *
-     * @param \stdClass $row
-     * @param string $column
-     * @return string[]
+     * @param \stdClass $row The question row.
+     * @param string $column The column name to extract tags from.
+     * @return string[] Array of tag values.
      */
     private function row_tags(\stdClass $row, string $column): array {
         $raw = (string) ($row->{$column} ?? '');
@@ -173,8 +174,8 @@ class question_provider {
     /**
      * Normalise a CSV string or array of strings into a clean string array.
      *
-     * @param mixed $value
-     * @return string[]
+     * @param mixed $value The value to normalise (CSV string or array).
+     * @return string[] Array of normalised strings.
      */
     private function normalise_csv($value): array {
         if ($value === null || $value === '' || $value === []) {

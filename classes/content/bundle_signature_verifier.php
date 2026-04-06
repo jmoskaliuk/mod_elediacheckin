@@ -104,11 +104,10 @@ final class bundle_signature_verifier {
     }
 
     /**
-     * Accepts a base64- or hex-encoded signature string and returns the raw
-     * binary form, or null if the input is malformed.
+     * Accepts a base64- or hex-encoded signature string and returns the raw binary form, or null if malformed.
      *
-     * @param string $encoded
-     * @return string|null
+     * @param string $encoded The encoded signature string.
+     * @return string|null The decoded binary signature, or null if malformed.
      */
     public static function decode_signature(string $encoded): ?string {
         $encoded = trim($encoded);
@@ -134,8 +133,10 @@ final class bundle_signature_verifier {
     }
 
     /**
-     * @param string $hex
-     * @return bool
+     * Check if a string is a valid 64-character hex string.
+     *
+     * @param string $hex The hex string to validate.
+     * @return bool True if the string is valid hex.
      */
     private static function is_valid_hex_key(string $hex): bool {
         return preg_match('#^[0-9a-fA-F]{64}$#', $hex) === 1;

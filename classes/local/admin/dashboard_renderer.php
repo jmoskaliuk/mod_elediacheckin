@@ -34,23 +34,21 @@ class dashboard_renderer {
     private const LIMIT = 15;
 
     /**
+     * Render the sync-status dashboard panel.
+     *
      * @return string HTML, safe for echoing inside an admin settings page.
      */
     public static function render(): string {
         global $DB;
 
-        // Wrap the entire panel in a div with a stable id. Previous versions
-        // Used this as an anchor for a DOM-reorder script that tried to move
-        // The Moodle save button above the panel, but that was fragile and
-        // Produced visible layout glitches (v2026040532—v2026040536).
-        //
-        // New approach (v2026040537): keep the panel in its natural position
-        // At the bottom of the settings form, but inject a secondary
-        // <button type="submit"> at the TOP of the panel. Because this
-        // Button lives inside the same admin settings <form>, clicking it
-        // Submits the form — no JS, no reorder, no race conditions. The
-        // Original bottom save button stays where Moodle puts it, so users
-        // Who scroll to the bottom still see the familiar Moodle flow.
+        // Wrap the entire panel in a div with a stable id. Previous versions used this as an anchor
+        // for a DOM-reorder script that tried to move the Moodle save button above the panel, but
+        // that was fragile and produced visible layout glitches (v2026040532—v2026040536).
+        // New approach (v2026040537): keep the panel in its natural position at the bottom of the
+        // settings form, but inject a secondary <button type="submit"> at the TOP of the panel.
+        // Because this button lives inside the same admin settings <form>, clicking it submits the
+        // form — no JS, no reorder, no race conditions. The original bottom save button stays where
+        // Moodle puts it, so users who scroll to the bottom still see the familiar Moodle flow.
         $out = '<div id="elediacheckin-dashboardpanel">';
 
         // ----- Companion-plugin health check. -----
@@ -244,8 +242,7 @@ class dashboard_renderer {
                     . s((string)$plugininfo->versiondb) . '</span>';
             }
         } catch (\Throwable $e) {
-            // Core_plugin_manager should never fail here; if it does, we
-            // Just skip the version badge and still show the green strip.
+            // Core_plugin_manager should never fail here; if it does skip the version badge.
             $version = '';
         }
         return \html_writer::div(

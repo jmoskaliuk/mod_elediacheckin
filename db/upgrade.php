@@ -308,14 +308,10 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     }
 
     // 2026040524 — Tri-state „Eigene Fragen": rename onlyownquestions → ownquestionsmode.
-    //
-    // Das Yes/No-Feld war missverständlich: „Nein" heißt NICHT „keine
-    // eigenen Fragen", sondern „gemischt mit Bundle". Die neue Spalte
-    // `ownquestionsmode` hält drei klare Zustände: 0 = mixed (default,
-    // bisheriges „Nein"), 1 = only_own (bisheriges „Ja"), 2 = none
-    // (neu — eigene Fragen werden komplett ignoriert, auch wenn das
-    // Textfeld gefüllt ist). Spalte wird per rename_field umbenannt,
-    // damit bestehende 0/1-Werte erhalten bleiben.
+    // Das Yes/No-Feld war missverständlich: „Nein" heißt NICHT „keine eigenen Fragen",
+    // sondern „gemischt mit Bundle". Die neue Spalte `ownquestionsmode` hält drei klare
+    // Zustände: 0 = mixed (default), 1 = only_own, 2 = none (neu). Spalte wird per
+    // rename_field umbenannt, damit bestehende 0/1-Werte erhalten bleiben.
     if ($oldversion < 2026040524) {
         $tableinstance = new xmldb_table('elediacheckin');
         $fieldold = new xmldb_field('onlyownquestions', XMLDB_TYPE_INTEGER, '1', null,
@@ -327,31 +323,18 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     }
 
     // 2026040525 — Teacher user tour + misc UX polish.
-    //
-    // Kein Schema-Change, aber bestehende Installationen sollen die neue
-    // Lehrkräfte-Tour nachträglich importieren. install.php ruft den
-    // Import nur bei fresh installs; für Upgrades wiederholen wir den
-    // Aufruf hier idempotent (manager::import_tour_from_json erlaubt
-    // identisches Mehrfach-Importieren, legt bei Kollision einen neuen
-    // Datensatz an — die Tour ist nur aktiv, wenn enabled=true, und
-    // der Admin kann Duplikate bei Bedarf manuell löschen).
+    // Kein Schema-Change, aber bestehende Installationen sollen die neue Lehrkräfte-Tour
+    // nachträglich importieren. install.php ruft den Import nur bei fresh installs; für
+    // Upgrades wiederholen wir den Aufruf hier idempotent.
     if ($oldversion < 2026040525) {
         \mod_elediacheckin\local\tour_installer::install_bundled_tours();
         upgrade_mod_savepoint(true, 2026040525, 'elediacheckin');
     }
 
     // 2026040529 — Tour-JSON repariert.
-    //
-    // Die in 2026040525 importierte Lehrkräfte-Tour war leer (0 Schritte im
-    // Admin-UI), weil das JSON `configdata` als verschachteltes Objekt statt
-    // als JSON-String enthielt. tool_usertours ruft aber intern
-    // `json_decode($record->configdata)` auf — ein stdClass-Input wirft in
-    // PHP 8 einen TypeError, was den Step-Insert stumm scheitern lässt.
-    // Siehe docs/content-distribution-konzept.md §10.23.
-    //
-    // Fix: kaputte Tour(s) per pathmatch löschen und neu importieren. Der
-    // pathmatch ist eindeutig genug (/mod/elediacheckin/view.php%), dass wir
-    // nicht versehentlich fremde Tours treffen.
+    // Die in 2026040525 importierte Lehrkräfte-Tour war leer, weil das JSON `configdata`
+    // als verschachteltes Objekt statt als JSON-String enthielt. Fix: kaputte Tour(s) per
+    // pathmatch löschen und neu importieren.
     if ($oldversion < 2026040529) {
         if (class_exists('\\tool_usertours\\tour')) {
             $brokentours = $DB->get_records_select(
@@ -377,14 +360,9 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     }
 
     // 2026040531 — Tour nochmal neu laden.
-    //
-    // Zwei Gründe: (a) der Rollen-Filter enthielt kein `-1` (Site-Admin-
-    // Sentinel), wodurch Site-Admins die Tour nicht angezeigt bekamen; und
-    // (b) die Texte lagen hartcodiert auf Deutsch im JSON, statt als
-    // lang-string-Referenzen (`stringid,component`), sodass die englische
-    // Oberfläche dieselben deutschen Schritte sah. Beide Änderungen wirken
-    // nur, wenn die Tour vollständig neu importiert wird — `persist()` auf
-    // einer bestehenden Tour würde die Schritte nicht neu anlegen.
+    // Zwei Gründe: (a) der Rollen-Filter enthielt kein `-1` (Site-Admin-Sentinel); (b) die
+    // Texte lagen hartcodiert auf Deutsch im JSON, statt als lang-string-Referenzen. Beide
+    // Änderungen wirken nur, wenn die Tour vollständig neu importiert wird.
     if ($oldversion < 2026040531) {
         if (class_exists('\\tool_usertours\\tour')) {
             $oldtours = $DB->get_records_select(
@@ -410,19 +388,9 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     }
 
     // 2026040534 — Neue Admin-Settings-User-Tour importieren.
-    //
-    // Mit dieser Version wird eine zweite User-Tour ausgeliefert, die den
-    // Admin durch die Plugin-Einstellungsseite führt (Inhaltsquelle wählen,
-    // Speichern, Sync-Status, Log). Sie liegt in
-    // db/tours/settings_checkin_tour.json und matcht
-    // /admin/settings.php?section=modsettingelediacheckin%.
-    //
-    // Vorgehen: ALLE von diesem Plugin ausgelieferten Tours löschen (Teacher
-    // *und* Settings), danach reimportieren. Grund: `mod_elediacheckin_
-    // install_bundled_tours()` iteriert über alle JSONs im db/tours/-Ordner
-    // und ruft `tool_usertours\manager::import_tour_from_json()` für jede
-    // — das legt stets einen neuen Record an, niemals update. Würden wir
-    // nur die Settings-Tour löschen, entstünde eine doppelte Teacher-Tour.
+    // Mit dieser Version wird eine zweite User-Tour ausgeliefert, die den Admin durch die
+    // Plugin-Einstellungsseite führt. Vorgehen: ALLE von diesem Plugin ausgelieferten Tours
+    // löschen, danach reimportieren, um Duplikate zu vermeiden.
     if ($oldversion < 2026040534) {
         if (class_exists('\\tool_usertours\\tour')) {
             $patterns = [
@@ -453,19 +421,10 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040534, 'elediacheckin');
     }
 
-    // 2026040538 — Neues Feld exhaustedbehavior + dritte User-Tour
-    // (activity_settings_tour) importieren.
-    //
-    // Johannes' Feedback v2026040537→v2026040538: Bei Wiederholt-Nutzung der
-    // Check-in-Aktivität sollen Lehrkräfte pro Aktivität festlegen können,
-    // was passiert, wenn alle Fragen einmal gezogen wurden — entweder still
-    // von vorne beginnen (Default) oder eine „Alle Fragen durch"-Karte
-    // zeigen. Das neue CHAR-Feld `exhaustedbehavior` hält genau diesen
-    // Selector. Außerdem: die in v2026040537 neu dazugekommene
-    // `activity_settings_tour.json` wurde bei bestehenden Installationen
-    // nie nachinstalliert, weil der install.php-Helper nur bei fresh
-    // installs läuft. Deshalb hier zusätzlich alle Plugin-Tours löschen und
-    // neu importieren — idempotent und betrifft nur vom Plugin bundled Tours.
+    // 2026040538 — Neues Feld exhaustedbehavior + dritte User-Tour importieren.
+    // Neues CHAR-Feld `exhaustedbehavior` hält den Selector für das Verhalten wenn alle
+    // Fragen gezogen wurden. Außerdem: alle Plugin-Tours löschen und neu importieren, um
+    // sicherzustellen, dass die neue activity_settings_tour.json importiert wird.
     if ($oldversion < 2026040538) {
         $tableinstance = new xmldb_table('elediacheckin');
         $fieldex = new xmldb_field('exhaustedbehavior', XMLDB_TYPE_CHAR, '16', null,
@@ -487,9 +446,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
                     ['path' => $pattern]
                 );
                 foreach ($oldtours as $record) {
-                    // Nur Tours mit eindeutigem eLeDia-Prefix im Namen
-                    // entfernen — `/course/modedit.php%` ist zu generisch,
-                    // könnte fremde Tours treffen.
+                    // Nur Tours mit eindeutigem eLeDia-Prefix im Namen entfernen.
                     if (strpos((string) $record->name, 'Check-In') === false
                         && strpos((string) $record->name, 'Check-in') === false) {
                         continue;
@@ -512,11 +469,8 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     }
 
     // 2026040543 — Align DB schema with install.xml.
-    //
-    // Fixes reported by admin/cli/check_database_schema.php:
-    //  - contentlang: widen to CHAR(16), set DEFAULT '_auto_'.
-    //  - showprevbutton: change DEFAULT from 0 to 1.
-    //  - elediacheckin_question: categories/zielgruppe/kontext/license → allow NULL.
+    // Fixes reported by admin/cli/check_database_schema.php: contentlang, showprevbutton,
+    // and elediacheckin_question columns.
     if ($oldversion < 2026040543) {
         $table = new xmldb_table('elediacheckin');
 

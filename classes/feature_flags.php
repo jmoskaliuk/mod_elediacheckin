@@ -62,10 +62,9 @@ final class feature_flags {
     public const PREMIUM_ENABLED = false;
 
     /**
-     * Convenience wrapper — kept as a method so call sites can be found
-     * via grep without matching the constant definition itself.
+     * Convenience wrapper — kept as a method so call sites can be found via grep without matching the constant definition itself.
      *
-     * @return bool
+     * @return bool True if the premium content source is enabled.
      */
     public static function premium_enabled(): bool {
         return self::PREMIUM_ENABLED;

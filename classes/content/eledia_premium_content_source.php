@@ -66,7 +66,9 @@ final class eledia_premium_content_source implements content_source_interface {
     private $config;
 
     /**
-     * @param config_service|null $config injectable for tests
+     * Constructor.
+     *
+     * @param config_service|null $config Injectable config service for tests.
      */
     public function __construct(?config_service $config = null) {
         $this->config = $config ?? new config_service();
@@ -74,6 +76,8 @@ final class eledia_premium_content_source implements content_source_interface {
 
     /**
      * Returns the unique identifier for this content source.
+     *
+     * @return string The source identifier.
      */
     public function get_id(): string {
         return 'eledia_premium';
@@ -81,6 +85,8 @@ final class eledia_premium_content_source implements content_source_interface {
 
     /**
      * Returns a human-readable name for this content source.
+     *
+     * @return string The human-readable display name.
      */
     public function get_display_name(): string {
         return get_string('contentsource_eledia', 'elediacheckin');
@@ -88,6 +94,8 @@ final class eledia_premium_content_source implements content_source_interface {
 
     /**
      * Probes connectivity to the license server without downloading the bundle.
+     *
+     * @return bool True if the license server is reachable.
      */
     public function test_connection(): bool {
         try {
@@ -100,6 +108,9 @@ final class eledia_premium_content_source implements content_source_interface {
 
     /**
      * Fetches and validates a signed premium bundle from the eLeDia license server.
+     *
+     * @return content_bundle The validated content bundle.
+     * @throws content_source_exception If verification, signature, or validation fails.
      */
     public function fetch_bundle(): content_bundle {
         $ticket = $this->verify_license();
@@ -256,11 +267,11 @@ final class eledia_premium_content_source implements content_source_interface {
     /**
      * Simple authenticated GET that throws on non-2xx.
      *
-     * @param string $url
-     * @param string $token  Bearer token from /verify
-     * @param string $accept Accept header value
+     * @param string $url The URL to fetch.
+     * @param string $token Bearer token from /verify endpoint.
+     * @param string $accept Accept header value.
      * @return string Raw response body.
-     * @throws content_source_exception
+     * @throws content_source_exception On HTTP error or empty response.
      */
     private function http_get_authenticated(string $url, string $token, string $accept): string {
         global $CFG;
@@ -306,12 +317,11 @@ final class eledia_premium_content_source implements content_source_interface {
     }
 
     /**
-     * Stable SHA-256 of the site, used by the license server to enforce
-     * `max_installs` without storing the raw wwwroot. Derived from
-     * wwwroot + siteidentifier, both of which remain constant for a
-     * given Moodle installation.
+     * Stable SHA-256 of the site, used by the license server to enforce `max_installs` without storing wwwroot.
      *
-     * @return string 64 hex chars
+     * Derived from wwwroot + siteidentifier, both constant for a Moodle installation.
+     *
+     * @return string 64 hex character SHA-256 hash.
      */
     public static function compute_site_hash(): string {
         global $CFG;
@@ -320,10 +330,11 @@ final class eledia_premium_content_source implements content_source_interface {
     }
 
     /**
-     * Returns the numeric plugin version from version.php, used as
-     * User-Agent telemetry for the license server.
+     * Returns the numeric plugin version from version.php.
      *
-     * @return string
+     * Used as user-agent telemetry for the license server.
+     *
+     * @return string The plugin version as a string.
      */
     private static function current_plugin_version(): string {
         $plugin = new \stdClass();

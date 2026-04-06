@@ -32,7 +32,7 @@ class restore_elediacheckin_activity_structure_step extends restore_activity_str
     /**
      * Declares the paths in the backup XML that this step will process.
      *
-     * @return array
+     * @return array Array of restore_path_element objects.
      */
     protected function define_structure(): array {
         $paths = [];
@@ -43,7 +43,8 @@ class restore_elediacheckin_activity_structure_step extends restore_activity_str
     /**
      * Handles a restored activity instance row.
      *
-     * @param array|object $data
+     * @param array|object $data The activity instance data.
+     * @return void
      */
     protected function process_elediacheckin($data): void {
         global $DB;
@@ -60,6 +61,8 @@ class restore_elediacheckin_activity_structure_step extends restore_activity_str
 
     /**
      * Post-execute hook - re-attach intro files.
+     *
+     * @return void
      */
     protected function after_execute(): void {
         $this->add_related_files('mod_elediacheckin', 'intro', null);

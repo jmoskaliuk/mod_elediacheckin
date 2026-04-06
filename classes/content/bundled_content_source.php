@@ -42,6 +42,8 @@ final class bundled_content_source implements content_source_interface {
 
     /**
      * Returns the unique identifier for this content source.
+     *
+     * @return string The source identifier.
      */
     public function get_id(): string {
         return 'bundled';
@@ -49,6 +51,8 @@ final class bundled_content_source implements content_source_interface {
 
     /**
      * Returns a human-readable name for this content source.
+     *
+     * @return string The human-readable display name.
      */
     public function get_display_name(): string {
         return get_string('contentsource_bundled', 'elediacheckin');
@@ -56,6 +60,8 @@ final class bundled_content_source implements content_source_interface {
 
     /**
      * Probes connectivity and availability of the content source.
+     *
+     * @return bool True if the content source is available.
      */
     public function test_connection(): bool {
         return is_readable($this->get_bundle_path());
@@ -63,6 +69,9 @@ final class bundled_content_source implements content_source_interface {
 
     /**
      * Fetches and validates the current bundle from the bundled default file.
+     *
+     * @return content_bundle The validated content bundle.
+     * @throws content_source_exception If the bundle cannot be read or validated.
      */
     public function fetch_bundle(): content_bundle {
         $path = $this->get_bundle_path();
@@ -104,7 +113,7 @@ final class bundled_content_source implements content_source_interface {
     /**
      * Absolute path to the bundled default file.
      *
-     * @return string
+     * @return string The absolute path to the bundle file.
      */
     private function get_bundle_path(): string {
         global $CFG;

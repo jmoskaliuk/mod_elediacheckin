@@ -34,7 +34,7 @@ class cache_service {
     /**
      * Returns the questions cache.
      *
-     * @return \cache
+     * @return \cache The questions cache instance.
      */
     public function questions(): \cache {
         return \cache::make('mod_elediacheckin', 'questions');
@@ -43,7 +43,7 @@ class cache_service {
     /**
      * Returns the categories cache.
      *
-     * @return \cache
+     * @return \cache The categories cache instance.
      */
     public function categories(): \cache {
         return \cache::make('mod_elediacheckin', 'categories');
@@ -51,6 +51,8 @@ class cache_service {
 
     /**
      * Purges both plugin caches.
+     *
+     * @return void
      */
     public function purge_all(): void {
         $this->questions()->purge();

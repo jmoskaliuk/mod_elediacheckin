@@ -102,42 +102,54 @@ final class content_bundle {
     }
 
     /**
-     * @return string
+     * Get the schema version.
+     *
+     * @return string The schema version string.
      */
     public function get_schema_version(): string {
         return $this->schemaversion;
     }
 
     /**
-     * @return string
+     * Get the bundle identifier.
+     *
+     * @return string The bundle id.
      */
     public function get_bundle_id(): string {
         return $this->bundleid;
     }
 
     /**
-     * @return string
+     * Get the bundle version.
+     *
+     * @return string The bundle version.
      */
     public function get_bundle_version(): string {
         return $this->bundleversion;
     }
 
     /**
-     * @return string
+     * Get the language code.
+     *
+     * @return string The language code.
      */
     public function get_language(): string {
         return $this->language;
     }
 
     /**
-     * @return int|null
+     * Get the generation timestamp.
+     *
+     * @return int|null The Unix timestamp when the bundle was generated, or null.
      */
     public function get_generated_at(): ?int {
         return $this->generatedat;
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Get all questions in the bundle.
+     *
+     * @return array<int, array<string, mixed>> Array of question objects.
      */
     public function get_questions(): array {
         return $this->questions;
@@ -146,7 +158,7 @@ final class content_bundle {
     /**
      * Convenience: number of questions in the bundle.
      *
-     * @return int
+     * @return int The count of questions.
      */
     public function count_questions(): int {
         return count($this->questions);

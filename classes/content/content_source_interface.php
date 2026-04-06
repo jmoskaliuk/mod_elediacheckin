@@ -68,13 +68,11 @@ interface content_source_interface {
      * Fetch and validate the current bundle from the source.
      *
      * Contract:
-     *  - Throws content_source_exception on any failure (network, parse,
-     *    validation, signature) — the caller will treat this as a no-op sync.
-     *  - Never partially mutates global state; returning a bundle means the
-     *    caller is free to stage and swap it atomically.
+     *  - Throws content_source_exception on any failure (network, parse, validation, signature).
+     *  - Never partially mutates global state; returning a bundle means the caller can stage and swap atomically.
      *
-     * @return content_bundle
-     * @throws content_source_exception
+     * @return content_bundle The validated content bundle.
+     * @throws content_source_exception On any fetch, parse, or validation failure.
      */
     public function fetch_bundle(): content_bundle;
 }

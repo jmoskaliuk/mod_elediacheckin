@@ -50,7 +50,9 @@ final class git_content_source implements content_source_interface {
     private $config;
 
     /**
-     * @param config_service|null $config injectable for tests
+     * Constructor.
+     *
+     * @param config_service|null $config Injectable config service for tests.
      */
     public function __construct(?config_service $config = null) {
         $this->config = $config ?? new config_service();
@@ -58,6 +60,8 @@ final class git_content_source implements content_source_interface {
 
     /**
      * Returns the unique identifier for this content source.
+     *
+     * @return string The source identifier.
      */
     public function get_id(): string {
         return 'git';
@@ -65,6 +69,8 @@ final class git_content_source implements content_source_interface {
 
     /**
      * Returns a human-readable name for this content source.
+     *
+     * @return string The human-readable display name.
      */
     public function get_display_name(): string {
         return get_string('contentsource_git', 'elediacheckin');
@@ -72,6 +78,8 @@ final class git_content_source implements content_source_interface {
 
     /**
      * Probes connectivity and availability of the content source.
+     *
+     * @return bool True if the content source is available.
      */
     public function test_connection(): bool {
         try {
@@ -84,6 +92,9 @@ final class git_content_source implements content_source_interface {
 
     /**
      * Fetches and validates the bundle from the configured repository URL.
+     *
+     * @return content_bundle The validated content bundle.
+     * @throws content_source_exception If the bundle cannot be fetched or validated.
      */
     public function fetch_bundle(): content_bundle {
         $url = (string)$this->config->get('repourl', '');
@@ -122,8 +133,12 @@ final class git_content_source implements content_source_interface {
     }
 
     /**
-     * Return a short, sanitised preview of a response body for error
-     * messages. Collapses whitespace so one log-line stays readable.
+     * Return a short, sanitised preview of a response body for error messages.
+     *
+     * Collapses whitespace so one log-line stays readable.
+     *
+     * @param string $raw The response body to preview.
+     * @return string The previewed body.
      */
     private static function preview_body(string $raw): string {
         $trim = trim(preg_replace('/\s+/', ' ', (string)$raw) ?? '');
@@ -134,14 +149,16 @@ final class git_content_source implements content_source_interface {
     }
 
     /**
-     * Produce a targeted hint when a URL matches a common
-     * misconfiguration pattern. Empty string if no pattern matches.
+     * Produce a targeted hint when a URL matches a misconfiguration pattern.
      *
      * Typical mistakes:
      *  - GitHub "blob" URL (returns HTML page, not raw JSON).
      *  - GitHub API contents endpoint (returns {name,path,sha,content…}).
      *  - URL ending in ".git" (returns refs, not JSON).
      *  - Directory URL without the /bundle.json suffix.
+     *
+     * @param string $url The URL to check.
+     * @return string The hint string, or empty string if no pattern matches.
      */
     private static function url_hint(string $url): string {
         if ($url === '') {
@@ -176,8 +193,8 @@ final class git_content_source implements content_source_interface {
     /**
      * Downloads the configured URL and returns the raw response body.
      *
-     * @return string
-     * @throws content_source_exception
+     * @return string The raw response body.
+     * @throws content_source_exception If the URL is not configured or fetch fails.
      */
     private function fetch_raw(): string {
         $url = (string)$this->config->get('repourl', '');

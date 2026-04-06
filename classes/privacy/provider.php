@@ -38,7 +38,7 @@ class provider implements \core_privacy\local\metadata\null_provider {
     /**
      * Returns the language string identifier explaining why no data is stored.
      *
-     * @return string
+     * @return string The language string identifier for privacy reason.
      */
     public static function get_reason(): string {
         return 'privacy:metadata';

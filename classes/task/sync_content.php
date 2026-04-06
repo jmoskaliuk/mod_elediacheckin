@@ -36,7 +36,7 @@ class sync_content extends \core\task\scheduled_task {
     /**
      * Returns the human-readable name of the task.
      *
-     * @return string
+     * @return string The task name.
      */
     public function get_name(): string {
         return get_string('task_sync_content', 'elediacheckin');
@@ -44,6 +44,8 @@ class sync_content extends \core\task\scheduled_task {
 
     /**
      * Executes the synchronisation via the sync_service.
+     *
+     * @return void
      */
     public function execute(): void {
         $service = new sync_service();
