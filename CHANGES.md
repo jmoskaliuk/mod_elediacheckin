@@ -3,6 +3,45 @@
 All notable changes to this plugin are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## v2026040606 — 2026-04-06
+
+### Added
+- `db/uninstall.php` — removes all three bundled user tours from
+  `tool_usertours` when the plugin is uninstalled. Moodle drops the
+  plugin's own DB tables automatically from `install.xml`; this hook
+  handles cross-table cleanup only.
+
+### Changed
+- `block_elediacheckin/version.php`: bumped to 2026040601, maturity
+  ALPHA → BETA, release 0.9.0 (in lock-step with mod).
+
+## v2026040604 — 2026-04-06
+
+### Fixed
+- Behat `block_and_tour.feature`: replaced `"Server > User tours"` admin
+  navigation (invalid in Moodle 5.x) with direct URL
+  `/admin/tool/usertours/index.php`.
+
+## v2026040603 — 2026-04-06
+
+### Fixed
+- Behat `settings_dashboard.feature`: corrected field label
+  `"Content source"` → `"Active content source"` and heading text
+  `"Dashboard"` → `"Sync status"` to match actual EN lang strings.
+- Behat `block_and_tour.feature`: removed impossible auto-start tour
+  assertions; replaced with tour-list presence check
+  (`I should see "Check-in for teachers"`).
+
+## v2026040602 — 2026-04-06
+
+### Fixed
+- Behat `settings_dashboard.feature`: replaced `"Changes saved"`
+  assertion (unreliable Moodle redirect notification) with
+  `"Active content source"` (stable page-content check).
+- Behat `block_and_tour.feature`: simplified block scenario to remove
+  content assertion (block needs manual linked-activity config after
+  adding); corrected block name from `"eLeDia Check-in"` → `"Check-in"`.
+
 ## v2026040601 — 2026-04-06
 
 ### Fixed
