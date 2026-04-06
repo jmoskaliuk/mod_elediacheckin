@@ -1,6 +1,6 @@
 {
     "version": "2026040501",
-    "name": "checkintour_name,mod_elediacheckin",
+    "name": "Check-in for teachers",
     "description": "checkintour_description,mod_elediacheckin",
     "pathmatch": "/mod/elediacheckin/view.php%",
     "enabled": "1",

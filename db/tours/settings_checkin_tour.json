@@ -1,6 +1,6 @@
 {
     "version": "2026040533",
-    "name": "settingstour_name,mod_elediacheckin",
+    "name": "Check-In settings",
     "description": "settingstour_description,mod_elediacheckin",
     "pathmatch": "/admin/settings.php?section=modsettingelediacheckin%",
     "enabled": "1",

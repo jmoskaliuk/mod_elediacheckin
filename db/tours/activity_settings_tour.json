@@ -1,6 +1,6 @@
 {
     "version": "2026040537",
-    "name": "activitytour_name,mod_elediacheckin",
+    "name": "Check-In activity settings",
     "description": "activitytour_description,mod_elediacheckin",
     "pathmatch": "/course/modedit.php%",
     "enabled": "1",
