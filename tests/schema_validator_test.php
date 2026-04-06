@@ -26,12 +26,11 @@
 namespace mod_elediacheckin;
 
 use mod_elediacheckin\content\schema_validator;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for the schema_validator class.
  */
-#[CoversClass(schema_validator::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(schema_validator::class)]
 final class schema_validator_test extends \basic_testcase {
     /**
      * Build a minimally valid bundle with a single well-formed question.

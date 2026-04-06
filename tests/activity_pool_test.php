@@ -27,17 +27,20 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_elediacheckin\local\service;
+namespace mod_elediacheckin;
 
-use PHPUnit\Framework\Attributes\CoversClass;
+use mod_elediacheckin\local\service\activity_pool;
 
 /**
  * Tests for the activity_pool service class.
  */
-#[CoversClass(activity_pool::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(activity_pool::class)]
 final class activity_pool_test extends \advanced_testcase {
     /**
      * Build a fake instance row with only the fields activity_pool reads.
+     *
+     * @param array $overrides Optional field overrides keyed by property name.
+     * @return \stdClass
      */
     private function fake_instance(array $overrides = []): \stdClass {
         $i = new \stdClass();

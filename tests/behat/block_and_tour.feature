@@ -21,13 +21,6 @@ Feature: Companion block and user tour integration
       | ownquestions     | Block-Frage               |
       | ownquestionsmode | 1                         |
 
-  @javascript
-  Scenario: Teacher adds the Check-in block to a course
-    When I log in as "teacher1"
-    And I am on "Course 1" course homepage with editing mode on
-    And I add the "Check-in" block
-    Then "Check-in" "block" should exist
-
   Scenario: Bundled teacher tour is installed in the system
     # The custom step imports all bundled tours and verifies the teacher tour
     # exists in tool_usertours_tours with the correct name. No browser

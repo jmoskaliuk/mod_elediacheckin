@@ -26,12 +26,11 @@
 namespace mod_elediacheckin;
 
 use mod_elediacheckin\content\bundle_signature_verifier;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for the bundle_signature_verifier class.
  */
-#[CoversClass(bundle_signature_verifier::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(bundle_signature_verifier::class)]
 final class bundle_signature_verifier_test extends \basic_testcase {
     /** @var string */
     private string $secret;
