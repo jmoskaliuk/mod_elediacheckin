@@ -153,17 +153,17 @@ räumt dann ggf. nach.
   fehlt: Upgrade-Step hat nicht gegriffen — dann bitte den vollen Output
   von `php admin/cli/upgrade.php` schicken.
 
-- **v2026040544 — Popup-Fernsteuerung (bidirektional).** Deploy:
+- **v2026040545 — BroadcastChannel-Sync + PHPCS-Cleanup.** Deploy:
   `~/moodle-update.sh checkin`. Kein Block-Update nötig.
-  (7) **View steuert Popup.** View-Seite öffnen → Popup öffnen. Auf der
-  View-Seite „Weiter" klicken → das Popup muss automatisch zur selben
-  nächsten Frage wechseln, ohne dass man im Popup klickt.
-  (7b) **Popup steuert View.** Umgekehrt: im Popup „Weiter" klicken →
-  die View-Seite (im Hintergrund) wechselt ebenfalls zur neuen Frage.
-  Prüfen: nach Popup-Steuerung die View-Seite anschauen — zeigt sie die
-  aktuelle Frage?
+  (7) **View steuert Popup — gleiche Frage.** View-Seite öffnen → Popup
+  öffnen. Auf der View-Seite „Weiter" klicken → das Popup muss zur
+  **exakt selben** nächsten Frage wechseln (nicht eine andere zufällige).
+  (7b) **Popup steuert View — gleiche Frage.** Im Popup „Weiter" klicken
+  → die View-Seite zeigt danach **dieselbe** neue Frage.
   (7c) **Ziel-Picker.** Auf der View-Seite ein anderes Ziel wählen →
   das Popup wechselt ebenfalls das Ziel.
+  (7d) **Mehrfach Weiter.** Mindestens 5× hintereinander Weiter auf der
+  View → Popup folgt jedes Mal korrekt mit.
 
 - **v2026040543 — Schema-Fix + Popup-Close-Refresh + Block-Autor.**
   Deploy: `~/moodle-update.sh checkin` UND `~/moodle-update.sh checkinblock`.
@@ -215,6 +215,11 @@ räumt dann ggf. nach.
 
 ## ✅ Erledigt
 
+- **v2026040544 — Popup-Fernsteuerung (bidirektional, bestätigt
+  2026-04-06).** Grundmechanismus funktioniert (View↔Popup Navigation
+  via postMessage). Externalid-Sync in v2026040545 nachgezogen
+  (BroadcastChannel statt postMessage, gleiche Frage statt unabhängiger
+  Zufallsziehung). — Commits `755ab42`, `c6be736`, `30b3dac`
 - **v2026040537 — Bundled Fixes aus dem ersten PHPUnit-Run (verifiziert
   per Test-Run am 2026-04-05).** Sechs Themen in einem Commit: (1)
   `@covers`-Docblocks in allen 4 Testklassen → `#[CoversClass]`-Attribute
