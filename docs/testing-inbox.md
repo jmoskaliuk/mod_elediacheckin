@@ -90,16 +90,7 @@ Falls Schema-Differenzen auftauchen, install.xml muss nachgezogen werden.
 
 ## ❓ Klärung notwendig
 
-- **Popup-Fernsteuerung aus der Aktivität (§10.34).** Lehrkraft teilt
-  das Popup per Beamer/Screenshare mit den TN und steuert von der
-  View-Seite aus (Weiter, Zurück, Ziel wechseln). Das Popup bewegt sich
-  live mit.
-  **Fragen:**
-  1. Reicht `window.postMessage()` (rein clientseitig, Opener→Popup),
-     oder brauchen wir einen Server-Channel (AJAX-Polling, SSE)?
-  2. Soll es auch umgekehrt wirken (Popup steuert View)?
-  3. Auch im Fullscreen-Modus, oder nur im separaten Popup-Fenster?
-  4. Phase 1 oder Phase 2?
+_(leer)_
 
 ## 🔧 In Arbeit
 
@@ -161,6 +152,18 @@ räumt dann ggf. nach.
   Aktivitäts-Einstellungen" mit 7 Schritten gelistet sein. Wenn sie
   fehlt: Upgrade-Step hat nicht gegriffen — dann bitte den vollen Output
   von `php admin/cli/upgrade.php` schicken.
+
+- **v2026040544 — Popup-Fernsteuerung (bidirektional).** Deploy:
+  `~/moodle-update.sh checkin`. Kein Block-Update nötig.
+  (7) **View steuert Popup.** View-Seite öffnen → Popup öffnen. Auf der
+  View-Seite „Weiter" klicken → das Popup muss automatisch zur selben
+  nächsten Frage wechseln, ohne dass man im Popup klickt.
+  (7b) **Popup steuert View.** Umgekehrt: im Popup „Weiter" klicken →
+  die View-Seite (im Hintergrund) wechselt ebenfalls zur neuen Frage.
+  Prüfen: nach Popup-Steuerung die View-Seite anschauen — zeigt sie die
+  aktuelle Frage?
+  (7c) **Ziel-Picker.** Auf der View-Seite ein anderes Ziel wählen →
+  das Popup wechselt ebenfalls das Ziel.
 
 - **v2026040543 — Schema-Fix + Popup-Close-Refresh + Block-Autor.**
   Deploy: `~/moodle-update.sh checkin` UND `~/moodle-update.sh checkinblock`.

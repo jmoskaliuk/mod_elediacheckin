@@ -13,8 +13,11 @@
  *  - Fullscreen launcher → show overlay + lock scroll
  *  - Fullscreen close button and Esc key
  *  - Fullscreen answer toggle
+ *  - Bidirectional remote control: view ↔ popup via postMessage.
  *
- * "Nächste Frage" is a plain <a> link and needs no JS.
+ * "Nächste Frage" is a plain <a> link and needs no JS — but when a
+ * popup is open, the click is intercepted so we can tell the popup
+ * to navigate to the same card.
  *
  * @module     mod_elediacheckin/view
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
@@ -28,14 +31,21 @@
 // tolerates both forms, so we always send `popup=yes`.
 const POPUP_FEATURES = 'popup=yes,width=1100,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
 
+/** @type {string} PostMessage type for navigation sync. */
+const MSG_NAVIGATE = 'elediacheckin:navigate';
+
 export const init = (rootSelector) => {
     const root = document.querySelector(rootSelector);
     if (!root) {
         return;
     }
 
+    /** @type {Window|null} Reference to the popup window (if open). */
+    let popupWin = null;
+
     const fullscreen = document.querySelector('[data-region="elediacheckin-fullscreen"]');
 
+    /** Open the fullscreen overlay. */
     const openFullscreen = () => {
         if (!fullscreen) {
             return;
@@ -45,6 +55,7 @@ export const init = (rootSelector) => {
         document.body.classList.add('elediacheckin-fs-locked');
     };
 
+    /** Close the fullscreen overlay. */
     const closeFullscreen = () => {
         if (!fullscreen) {
             return;
@@ -54,6 +65,40 @@ export const init = (rootSelector) => {
         document.body.classList.remove('elediacheckin-fs-locked');
     };
 
+    /**
+     * Convert a view.php URL to the equivalent present.php URL so the
+     * popup navigates to the matching card.
+     *
+     * @param {string} viewHref A view.php URL.
+     * @return {string} The equivalent present.php URL with layout=popup.
+     */
+    const viewUrlToPresent = (viewHref) => {
+        try {
+            const u = new URL(viewHref, window.location.href);
+            u.pathname = u.pathname.replace(/\/view\.php$/, '/present.php');
+            u.searchParams.set('layout', 'popup');
+            u.searchParams.delete('fs');
+            return u.toString();
+        } catch (err) {
+            return viewHref;
+        }
+    };
+
+    /**
+     * Send a navigation message to the popup window (if open).
+     *
+     * @param {string} presentUrl The present.php URL the popup should navigate to.
+     */
+    const notifyPopup = (presentUrl) => {
+        try {
+            if (popupWin && !popupWin.closed) {
+                popupWin.postMessage({type: MSG_NAVIGATE, url: presentUrl}, '*');
+            }
+        } catch (err) {
+            // Cross-origin or closed — ignore.
+        }
+    };
+
     // Launchers on the card.
     root.addEventListener('click', (e) => {
         const popupBtn = e.target.closest('[data-action="open-popup"]');
@@ -61,7 +106,7 @@ export const init = (rootSelector) => {
             e.preventDefault();
             const url = popupBtn.dataset.url;
             if (url) {
-                window.open(url, 'elediacheckin_present', POPUP_FEATURES);
+                popupWin = window.open(url, 'elediacheckin_present', POPUP_FEATURES);
             }
             return;
         }
@@ -70,23 +115,26 @@ export const init = (rootSelector) => {
         if (fsBtn) {
             e.preventDefault();
             openFullscreen();
+            return;
+        }
+
+        // Navigation links (Weiter, Zurück, Ziel-Picker) on the embedded
+        // card (outside fullscreen). If a popup is open, also tell it to
+        // navigate to the same card.
+        const navLink = e.target.closest('a[href]');
+        if (navLink && navLink.href && popupWin && !popupWin.closed) {
+            notifyPopup(viewUrlToPresent(navLink.href));
         }
     });
 
     // Helper: stamp `fs=1` onto a URL so the next page load re-opens the
-    // fullscreen overlay. Navigation links (Weiter/Zurück/Ziel-Picker)
-    // inside the overlay are plain <a href>s — without this stamp the
-    // fullscreen would silently collapse on every click, because the new
-    // page renders with fullscreen closed by default. Johannes reported
-    // this as "Wenn man im Vollbildmodus auf weiter klickt, schließt das
-    // Vollbild" on 2026-04-05.
+    // fullscreen overlay.
     const addFsFlag = (href) => {
         try {
             const u = new URL(href, window.location.href);
             u.searchParams.set('fs', '1');
             return u.toString();
         } catch (err) {
-            // Fallback for pathological hrefs: append crude query param.
             return href + (href.indexOf('?') >= 0 ? '&' : '?') + 'fs=1';
         }
     };
@@ -108,35 +156,55 @@ export const init = (rootSelector) => {
                 }
                 return;
             }
-            // Any other <a> inside the fullscreen overlay is a navigation
-            // link (Weiter, Zurück, Ziel-Picker). Stamp fs=1 on it so the
-            // next view.php/present.php render re-opens the overlay.
+            // Any <a> inside the fullscreen overlay: stamp fs=1 AND sync
+            // to popup if open.
             const nav = e.target.closest('a[href]');
-            if (nav && !nav.dataset.fsStamped) {
-                nav.dataset.fsStamped = '1';
-                nav.href = addFsFlag(nav.href);
+            if (nav) {
+                if (!nav.dataset.fsStamped) {
+                    nav.dataset.fsStamped = '1';
+                    nav.href = addFsFlag(nav.href);
+                }
+                if (popupWin && !popupWin.closed) {
+                    notifyPopup(viewUrlToPresent(nav.href));
+                }
             }
         });
     }
 
-    // If the current URL carries fs=1, auto-open the overlay immediately
-    // so sequential navigation inside fullscreen feels like a single,
-    // uninterrupted session rather than a page-reload roundtrip.
+    // If the current URL carries fs=1, auto-open the overlay immediately.
     try {
         const params = new URLSearchParams(window.location.search);
         if (params.get('fs') === '1') {
             openFullscreen();
         }
     } catch (err) {
-        // URLSearchParams is available in every browser Moodle 5.x
-        // supports; swallow defensively so a third-party polyfill bug
-        // cannot break the whole view page.
+        // Swallow defensively.
     }
 
     // Esc closes fullscreen.
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && fullscreen && fullscreen.classList.contains('is-open')) {
             closeFullscreen();
+        }
+    });
+
+    // Listen for navigation messages FROM the popup (bidirectional sync).
+    // When the teacher navigates in the popup, the view page follows.
+    window.addEventListener('message', (e) => {
+        try {
+            if (e.data && e.data.type === MSG_NAVIGATE && typeof e.data.url === 'string') {
+                // Convert present.php URL → view.php URL.
+                const u = new URL(e.data.url, window.location.href);
+                u.pathname = u.pathname.replace(/\/present\.php$/, '/view.php');
+                u.searchParams.delete('layout');
+                // Preserve fullscreen state if currently open.
+                if (fullscreen && fullscreen.classList.contains('is-open')) {
+                    u.searchParams.set('fs', '1');
+                }
+                window.location.href = u.toString();
+            }
+        } catch (err) {
+            // Malformed message — ignore.
         }
     });
 };

@@ -860,18 +860,19 @@ Vier Themen in einem Commit:
 
 **4 — Block: Leerer Titel = kein Header.** `specialization()` + `hide_header()` im Block: wenn der Titel in der Block-Konfiguration leer gelassen wird, verschwindet die Block-Kopfzeile komplett. `showpreview`-Default auf 1 geändert (neue Blöcke zeigen Vorschau sofort).
 
-### §10.34 Popup-Fernsteuerung — offene Designfrage
+### §10.34 Popup-Fernsteuerung — bidirektional (v2026040544, 2026-04-06)
 
-**Idee (Johannes, 2026-04-06):** Die Lehrkraft teilt das Popup-Fenster (present.php) per Beamer/Screenshare mit den TN. Gleichzeitig navigiert sie auf der eingebetteten View-Seite (view.php) — Weiter, Zurück, Ziel wechseln. Das Popup soll sich live mitbewegen, ohne dass die Lehrkraft im Popup-Fenster klicken muss.
+**Idee (Johannes, 2026-04-06):** Die Lehrkraft teilt das Popup-Fenster (present.php) per Beamer/Screenshare mit den TN. Gleichzeitig navigiert sie auf der eingebetteten View-Seite (view.php) — Weiter, Zurück, Ziel wechseln. Das Popup bewegt sich live mit, ohne dass die Lehrkraft im Popup-Fenster klicken muss.
 
-**Offene Fragen:**
-1. Soll das über `window.postMessage()` zwischen Opener und Popup laufen (rein clientseitig), oder brauchen wir einen Server-Channel (AJAX-Polling, SSE, WebSocket)?
-2. Wenn nur Opener→Popup: reicht es, bei Weiter/Zurück in view.js dem Popup-Fenster die neue URL per `postMessage` zu schicken, und present.js macht `location.href = newUrl`?
-3. Soll das Feature auch umgekehrt wirken (Popup steuert View)?
-4. Soll es auch im Fullscreen-Modus funktionieren (statt nur im separaten Popup-Fenster)?
-5. Ist das Phase 1 oder Phase 2?
+**Entscheidungen (Johannes, 2026-04-06):**
+1. **Rein clientseitig via `window.postMessage()`** — kein Server-Channel nötig. Opener und Popup kommunizieren direkt.
+2. **Bidirektional**: View steuert Popup UND Popup steuert View. Beide Richtungen sind gleichwertig.
+3. **Nur Popup-Fenster**, nicht Fullscreen-Modus. Das ist die konzeptuelle Unterscheidung zwischen den beiden Modi: Fullscreen = persönliches Erleben, Popup = geteiltes Erleben mit Fernsteuerung.
+4. **Phase 1** — keine Verschiebung.
 
-→ Entscheidung abwarten, bevor Implementierung beginnt.
+**Implementierung:** `view.js` speichert die Referenz auf das Popup-Fenster (`popupWin = window.open(…)`). Bei jedem Click auf Weiter/Zurück/Ziel wird die Ziel-URL per `postMessage({type: 'elediacheckin:navigate', url: '…'})` an das jeweils andere Fenster geschickt. Der Empfänger macht `window.location.href = url`. `view.js` konvertiert view.php-URLs nach present.php-URLs (und umgekehrt) automatisch. `present.js` sendet die URL an `window.opener`. Beim Schließen des Popups wird weiterhin `window.opener.location.reload()` aufgerufen.
+
+Lehre: `window.postMessage()` ist ausreichend für Opener↔Popup-Sync innerhalb desselben Origins. Kein AJAX-Polling, kein SSE, kein WebSocket nötig. Die Navigation bleibt serverseitig (Page-Reload), nur der Trigger kommt per Message. Für zukünftige Features (z. B. Live-Timer-Sync) könnte ein Upgrade auf `BroadcastChannel` oder SSE sinnvoll werden.
 
 ---
 
