@@ -220,6 +220,8 @@ $string['settingstour_step4_title']   = 'Aktueller Sync-Zustand';
 $string['settingstour_step5_content'] = 'Die Tabelle listet die letzten 15 Sync-Versuche mit Zeitstempel, Quelle, Ergebnis (grün = OK, rot = Fehler) und Anzahl importierter Fragen. Bei Rot bitte die Fehlermeldung in der letzten Spalte lesen. Der stündliche Cron-Task läuft automatisch im Hintergrund, Sie müssen nicht manuell nachsyncen.';
 $string['settingstour_step5_title']   = 'Letzte Sync-Läufe';
 $string['showanswer']         = 'Antwort anzeigen';
+$string['showprevbutton']     = '„Zurück"-Button anzeigen';
+$string['showprevbutton_help'] = 'Wenn aktiviert, erscheint ein „Zurück"-Button, sobald die Teilnehmenden mindestens einen Schritt vorwärts gegangen sind. Damit können Sie in der Sitzungshistorie zurückblättern.';
 $string['sourceheading']      = 'Inhaltsquelle';
 $string['sourceheading_desc'] = 'Legt fest, woher die Check-in-Fragen kommen. Die mitgelieferten Standardfragen stehen immer als Fallback zur Verfügung.';
 $string['syncerror_norepourl'] = 'Keine Repository-URL konfiguriert – Synchronisierung abgebrochen.';

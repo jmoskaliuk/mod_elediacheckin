@@ -220,6 +220,8 @@ $string['settingstour_step4_title']   = 'Current sync state';
 $string['settingstour_step5_content'] = 'The table lists the last 15 sync attempts with timestamp, source, result (green = OK, red = error) and the number of imported questions. On red entries, read the error message in the last column. The hourly cron task runs automatically in the background, so you do not have to sync manually.';
 $string['settingstour_step5_title']   = 'Recent sync runs';
 $string['showanswer']         = 'Show answer';
+$string['showprevbutton']     = 'Show "Previous" button';
+$string['showprevbutton_help'] = 'If enabled, a "Previous" button appears once the learner has moved forward at least one step, allowing them to step back through the session history.';
 $string['sourceheading']      = 'Content source';
 $string['sourceheading_desc'] = 'Choose where the check-in questions come from. The bundled default is always available as a fallback.';
 $string['syncerror_norepourl'] = 'No repository URL configured - aborting synchronisation.';
