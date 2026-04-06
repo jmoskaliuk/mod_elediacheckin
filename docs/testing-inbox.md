@@ -31,15 +31,7 @@ bündelt verwandte Punkte und setzt sie um.
 
 ## 🆕 Neu
 
-- (5) **Block: Autor bei Zitaten anzeigen.** Wenn die Preview-Karte im
-  Block ein Zitat zeigt, soll der Autor klein darunter stehen.
-- (6) **Popup-Close: View zeigt alten Text.** Wenn das Popup geschlossen
-  wird, zeigt die normale Darstellung noch den vorherigen Text statt der
-  aktuellen Frage.
-- (7) **Popup-Fernsteuerung aus der Aktivität.** Konzept-Idee: Lehrkraft
-  teilt das Popup mit den TN und steuert es trotzdem von der Moodle-
-  Aktivitätsseite aus (Weiter, Zurück, Ziel wechseln). Der Popup-Inhalt
-  aktualisiert sich live.
+_(leer)_
 
 ## 🔬 PreCheck-Verifizierung (v2026040541, auf Docker)
 
@@ -98,7 +90,16 @@ Falls Schema-Differenzen auftauchen, install.xml muss nachgezogen werden.
 
 ## ❓ Klärung notwendig
 
-_(leer)_
+- **Popup-Fernsteuerung aus der Aktivität (§10.34).** Lehrkraft teilt
+  das Popup per Beamer/Screenshare mit den TN und steuert von der
+  View-Seite aus (Weiter, Zurück, Ziel wechseln). Das Popup bewegt sich
+  live mit.
+  **Fragen:**
+  1. Reicht `window.postMessage()` (rein clientseitig, Opener→Popup),
+     oder brauchen wir einen Server-Channel (AJAX-Polling, SSE)?
+  2. Soll es auch umgekehrt wirken (Popup steuert View)?
+  3. Auch im Fullscreen-Modus, oder nur im separaten Popup-Fenster?
+  4. Phase 1 oder Phase 2?
 
 ## 🔧 In Arbeit
 
@@ -160,6 +161,18 @@ räumt dann ggf. nach.
   Aktivitäts-Einstellungen" mit 7 Schritten gelistet sein. Wenn sie
   fehlt: Upgrade-Step hat nicht gegriffen — dann bitte den vollen Output
   von `php admin/cli/upgrade.php` schicken.
+
+- **v2026040543 — Schema-Fix + Popup-Close-Refresh + Block-Autor.**
+  Deploy: `~/moodle-update.sh checkin` UND `~/moodle-update.sh checkinblock`.
+  (5) **Block: Autor bei Zitaten.** Auf der Kursseite einen Block mit
+  Vorschau öffnen (showpreview=Ja). Wenn ein Zitat angezeigt wird, muss
+  der Autorname klein-kursiv unter dem Text stehen.
+  (6) **Popup-Close: View aktualisiert sich.** View-Seite öffnen → Popup
+  öffnen → im Popup „Weiter" klicken → Popup schließen (× oder Esc).
+  Die View-Seite muss jetzt die gleiche Frage zeigen wie das Popup
+  zuletzt, nicht mehr den alten Text.
+  (Schema) **check_database_schema** nochmal laufen lassen — es sollten
+  keine `elediacheckin`-Einträge mehr auftauchen.
 
 - **v2026040542 — 4 UX-Fixes aus dem 2026-04-06-Test.** Vier Punkte,
   alle im Bundle. Deploy: `~/moodle-update.sh checkin` UND
