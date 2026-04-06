@@ -54,11 +54,31 @@ const notifyOpener = (presentUrl) => {
 /** @type {boolean} Guard to prevent message-loop when navigating via postMessage. */
 let navigatingFromRemote = false;
 
+/**
+ * Announce this popup window to the opener so it can (re-)acquire
+ * our window reference. Called on init and retried once to handle
+ * the race where the opener page is still loading.
+ */
+const announceReady = () => {
+    try {
+        if (window.opener && !window.opener.closed) {
+            window.opener.postMessage({type: 'elediacheckin:popup-ready'}, '*');
+        }
+    } catch (err) {
+        // Cross-origin or closed — ignore.
+    }
+};
+
 export const init = (rootSelector) => {
     const root = document.querySelector(rootSelector);
     if (!root) {
         return;
     }
+
+    // Tell the opener we exist so it can store our window reference.
+    // Retry once after a short delay in case the opener is still loading.
+    announceReady();
+    setTimeout(announceReady, 800);
 
     const answerRegion = root.querySelector('[data-region="present-answer"]');
 

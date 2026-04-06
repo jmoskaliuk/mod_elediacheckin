@@ -188,10 +188,20 @@ export const init = (rootSelector) => {
         }
     });
 
-    // Listen for navigation messages FROM the popup (bidirectional sync).
-    // When the teacher navigates in the popup, the view page follows.
+    // Listen for messages FROM the popup (bidirectional sync).
+    // - 'elediacheckin:popup-ready' → popup just loaded, store its reference.
+    // - MSG_NAVIGATE → popup navigated, view should follow.
     window.addEventListener('message', (e) => {
         try {
+            // Re-acquire popup reference from any popup message.
+            // After the view reloads (e.g. Weiter click), popupWin is null.
+            // The popup announces itself on load so we can reconnect.
+            if (e.data && e.source && e.source !== window) {
+                if (e.data.type === 'elediacheckin:popup-ready' || e.data.type === MSG_NAVIGATE) {
+                    popupWin = e.source;
+                }
+            }
+
             if (e.data && e.data.type === MSG_NAVIGATE && typeof e.data.url === 'string') {
                 // Convert present.php URL → view.php URL.
                 const u = new URL(e.data.url, window.location.href);
