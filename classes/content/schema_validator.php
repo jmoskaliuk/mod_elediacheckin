@@ -24,8 +24,6 @@
 
 namespace mod_elediacheckin\content;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Validates decoded JSON against the mod_elediacheckin content schema.
  *
@@ -38,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * Supported major schema version: 1.x
  */
 final class schema_validator {
-
     /** Major schema version this validator understands. */
     public const SUPPORTED_MAJOR = 1;
 

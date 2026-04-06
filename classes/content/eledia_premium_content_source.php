@@ -26,8 +26,6 @@ namespace mod_elediacheckin\content;
 
 use mod_elediacheckin\local\service\config_service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Fetches signed premium content from the eLeDia license server.
  *
@@ -55,7 +53,6 @@ defined('MOODLE_INTERNAL') || die();
  * string id so the sync_service can log and fall back cleanly.
  */
 final class eledia_premium_content_source implements content_source_interface {
-
     /** HTTP timeout for each call (verify, bundle, signature) in seconds. */
     private const TIMEOUT_SECONDS = 30;
 

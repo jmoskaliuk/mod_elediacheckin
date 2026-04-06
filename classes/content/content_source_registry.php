@@ -26,8 +26,6 @@ namespace mod_elediacheckin\content;
 
 use mod_elediacheckin\feature_flags;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Maps source IDs to content_source_interface implementations.
  *
@@ -36,7 +34,6 @@ defined('MOODLE_INTERNAL') || die();
  * out of scope for the first release.
  */
 final class content_source_registry {
-
     /** @var array<string, content_source_interface>|null */
     private static ?array $sources = null;
 

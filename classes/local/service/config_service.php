@@ -24,13 +24,10 @@
 
 namespace mod_elediacheckin\local\service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Reads plugin-level settings.
  */
 class config_service {
-
     /** @var string */
     public const COMPONENT = 'mod_elediacheckin';
 

@@ -24,8 +24,6 @@
 
 namespace mod_elediacheckin\content;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Verifies detached ED25519 signatures on content bundles.
  *
@@ -49,7 +47,6 @@ defined('MOODLE_INTERNAL') || die();
  * PHP 8.1+, so this is always present — no composer dependency.
  */
 final class bundle_signature_verifier {
-
     /**
      * Public key of the eLeDia content-signing key (ED25519, 32 bytes).
      *

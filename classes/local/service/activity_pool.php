@@ -32,13 +32,10 @@
 
 namespace mod_elediacheckin\local\service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Builds and samples the combined question pool for one activity.
  */
 final class activity_pool {
-
     /** Virtual category marker used for teacher-authored own questions. */
     public const VIRTUAL_CATEGORY_OWN = 'eigene';
 

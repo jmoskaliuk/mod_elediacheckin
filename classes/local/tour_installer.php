@@ -29,7 +29,6 @@ namespace mod_elediacheckin\local;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tour_installer {
-
     /**
      * Imports every JSON tour from db/tours/ via tool_usertours.
      *

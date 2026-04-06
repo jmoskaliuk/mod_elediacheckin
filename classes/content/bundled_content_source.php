@@ -24,8 +24,6 @@
 
 namespace mod_elediacheckin\content;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Reads db/content/default.json from the plugin directory and returns it as
  * a validated content_bundle.
@@ -34,7 +32,6 @@ defined('MOODLE_INTERNAL') || die();
  * the guaranteed fallback for the registry.
  */
 final class bundled_content_source implements content_source_interface {
-
     /**
      * Path to the shipped bundle, relative to the plugin root.
      */

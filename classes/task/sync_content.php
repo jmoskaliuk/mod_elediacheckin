@@ -26,13 +26,10 @@ namespace mod_elediacheckin\task;
 
 use mod_elediacheckin\local\service\sync_service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Pulls the latest question set from the configured content repository.
  */
 class sync_content extends \core\task\scheduled_task {
-
     /**
      * Returns the human-readable name of the task.
      *

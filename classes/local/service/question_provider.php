@@ -28,8 +28,6 @@
 
 namespace mod_elediacheckin\local\service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Resolves questions by filter criteria from the local Moodle database.
  *
@@ -37,7 +35,6 @@ defined('MOODLE_INTERNAL') || die();
  * are invisible to this service by construction.
  */
 class question_provider {
-
     /** Live-stage marker, kept in sync with sync_service. */
     private const STAGE_LIVE = 0;
 

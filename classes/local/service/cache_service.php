@@ -24,13 +24,10 @@
 
 namespace mod_elediacheckin\local\service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Centralises cache access so providers don't duplicate cache wiring.
  */
 class cache_service {
-
     /**
      * Returns the questions cache.
      *

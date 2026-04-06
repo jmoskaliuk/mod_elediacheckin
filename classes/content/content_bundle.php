@@ -24,15 +24,12 @@
 
 namespace mod_elediacheckin\content;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * A content bundle is the unit of synchronisation: bundle metadata plus an
  * array of question records. Instances are always schema-validated before
  * being constructed — downstream code may rely on the structure.
  */
 final class content_bundle {
-
     /** @var string */
     private string $schemaversion;
 

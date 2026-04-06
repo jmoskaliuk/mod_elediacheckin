@@ -27,8 +27,6 @@
 
 namespace mod_elediacheckin\content;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Strategy interface implemented by every content source.
  *
@@ -38,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * so the caller can log and skip them uniformly.
  */
 interface content_source_interface {
-
     /**
      * Stable identifier for this source type. Used as a key in the registry
      * and as the value stored in the plugin settings.

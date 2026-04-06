@@ -9,17 +9,15 @@
  * Present-page (popup window) interactions for mod_elediacheckin.
  *
  * Handles the close button, the optional answer toggle, and
- * bidirectional remote control with the opener (view.js) via
- * postMessage. When the teacher navigates in either window
- * (Weiter, Zurück, Ziel), the other window follows automatically.
+ * bidirectional remote control with the view page via
+ * BroadcastChannel. When the teacher navigates in either window
+ * (Weiter, Zurück, Ziel), the other window follows automatically
+ * by syncing the current question externalid.
  *
  * @module     mod_elediacheckin/present
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-/** @type {string} PostMessage type for navigation sync. */
-const MSG_NAVIGATE = 'elediacheckin:navigate';
 
 /**
  * Reload the opener window so it picks up the current session question.
@@ -36,51 +34,45 @@ const reloadOpener = () => {
     }
 };
 
-/**
- * Send a navigation message to the opener window.
- *
- * @param {string} presentUrl The present.php URL to navigate to.
- */
-const notifyOpener = (presentUrl) => {
-    try {
-        if (window.opener && !window.opener.closed) {
-            window.opener.postMessage({type: MSG_NAVIGATE, url: presentUrl}, '*');
-        }
-    } catch (err) {
-        // Cross-origin or closed — ignore.
-    }
-};
-
-/** @type {boolean} Guard to prevent message-loop when navigating via postMessage. */
-let navigatingFromRemote = false;
-
-/**
- * Announce this popup window to the opener so it can (re-)acquire
- * our window reference. Called on init and retried once to handle
- * the race where the opener page is still loading.
- */
-const announceReady = () => {
-    try {
-        if (window.opener && !window.opener.closed) {
-            window.opener.postMessage({type: 'elediacheckin:popup-ready'}, '*');
-        }
-    } catch (err) {
-        // Cross-origin or closed — ignore.
-    }
-};
-
 export const init = (rootSelector) => {
     const root = document.querySelector(rootSelector);
     if (!root) {
         return;
     }
 
-    // Tell the opener we exist so it can store our window reference.
-    // Retry once after a short delay in case the opener is still loading.
-    announceReady();
-    setTimeout(announceReady, 800);
-
+    const cmid = root.dataset.cmid || '';
+    const myExternalId = root.dataset.externalid || '';
     const answerRegion = root.querySelector('[data-region="present-answer"]');
+
+    // BroadcastChannel for question sync between popup and view.
+    let bc = null;
+    try {
+        bc = new BroadcastChannel('elediacheckin_sync_' + cmid);
+    } catch (err) {
+        // BroadcastChannel not supported — sync disabled.
+    }
+
+    if (bc && myExternalId) {
+        // Announce current question to the view page.
+        bc.postMessage({from: 'present', externalid: myExternalId});
+
+        // Listen for view question announcements.
+        bc.onmessage = (e) => {
+            if (e.data && e.data.from === 'view' && e.data.externalid
+                    && e.data.externalid !== myExternalId) {
+                // View has a different question — navigate to match it.
+                const u = new URL(window.location.href);
+                u.searchParams.set('q', e.data.externalid);
+                if (e.data.activeziel) {
+                    u.searchParams.set('activeziel', e.data.activeziel);
+                }
+                u.searchParams.delete('next');
+                u.searchParams.delete('prev');
+                u.searchParams.delete('r');
+                window.location.href = u.toString();
+            }
+        };
+    }
 
     root.addEventListener('click', (e) => {
         if (e.target.closest('[data-action="close-present"]')) {
@@ -93,15 +85,10 @@ export const init = (rootSelector) => {
         if (toggle && answerRegion) {
             e.preventDefault();
             answerRegion.hidden = !answerRegion.hidden;
-            return;
         }
-
-        // Navigation links (Weiter, Zurück, Ziel-Picker). Tell the
-        // opener to navigate to the same card (bidirectional sync).
-        const navLink = e.target.closest('a[href]');
-        if (navLink && navLink.href) {
-            notifyOpener(navLink.href);
-        }
+        // Navigation links (Weiter, Zurück, Ziel-Picker) proceed as normal
+        // <a> links. After the new page loads, BroadcastChannel sync will
+        // update the view automatically.
     });
 
     // Esc closes the popup.
@@ -109,19 +96,6 @@ export const init = (rootSelector) => {
         if (e.key === 'Escape') {
             reloadOpener();
             window.close();
-        }
-    });
-
-    // Listen for navigation messages FROM the opener (view.js).
-    // When the teacher navigates on the view page, the popup follows.
-    window.addEventListener('message', (e) => {
-        try {
-            if (e.data && e.data.type === MSG_NAVIGATE && typeof e.data.url === 'string') {
-                navigatingFromRemote = true;
-                window.location.href = e.data.url;
-            }
-        } catch (err) {
-            // Malformed message — ignore.
         }
     });
 };

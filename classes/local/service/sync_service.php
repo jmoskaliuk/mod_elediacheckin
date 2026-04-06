@@ -28,8 +28,6 @@ use mod_elediacheckin\content\content_bundle;
 use mod_elediacheckin\content\content_source_exception;
 use mod_elediacheckin\content\content_source_registry;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Orchestrates a content synchronisation run.
  *
@@ -42,7 +40,6 @@ defined('MOODLE_INTERNAL') || die();
  *   4. Invalidate the questions cache and record a log row.
  */
 class sync_service {
-
     /** Question is live and visible for fetching. */
     private const STAGE_LIVE    = 0;
 

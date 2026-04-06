@@ -28,13 +28,10 @@
 
 namespace mod_elediacheckin\privacy;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Null provider - this plugin does not store personal data.
  */
 class provider implements \core_privacy\local\metadata\null_provider {
-
     /**
      * Returns the language string identifier explaining why no data is stored.
      *

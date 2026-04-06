@@ -24,8 +24,6 @@
 
 namespace mod_elediacheckin\content;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Domain-specific exception for all content-source failures.
  *
@@ -33,7 +31,6 @@ defined('MOODLE_INTERNAL') || die();
  * failures from truly exceptional PHP errors.
  */
 class content_source_exception extends \moodle_exception {
-
     /**
      * Create a new content source exception.
      *

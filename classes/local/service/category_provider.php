@@ -24,13 +24,10 @@
 
 namespace mod_elediacheckin\local\service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Returns language-aware category labels for the filter UI.
  */
 class category_provider {
-
     /**
      * Returns all categories available for a given language, keyed by external id.
      *

@@ -29,7 +29,7 @@ $id         = required_param('id', PARAM_INT);
 $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
 // Optional externalid of a specific question to lock onto on first load (used by block_elediacheckin).
 // When the block preview shows question X and the user clicks "Open Check-in", we want view.php to
-// show the same X instead of rolling a fresh random one. Empty means "random".
+// Show the same X instead of rolling a fresh random one. Empty means "random".
 $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
 // „Zur vorherigen Frage"-Button click: show the previously drawn card from the session history
 // stack instead of a fresh random.
@@ -126,8 +126,8 @@ foreach ($ziele as $z) {
 $nexturl = new moodle_url('/mod/elediacheckin/view.php', [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
-    'next'       => 1, // marks this as an explicit "next" click → pushes on history.
-    'r'          => time(), // cache-buster so the "Nächste Frage" link is always a new request.
+    'next'       => 1, // Marks this as an explicit "next" click → pushes on history.
+    'r'          => time(), // Cache-buster so the "Nächste Frage" link is always a new request.
 ]);
 $prevurl = new moodle_url('/mod/elediacheckin/view.php', [
     'id'         => $cm->id,
@@ -136,7 +136,7 @@ $prevurl = new moodle_url('/mod/elediacheckin/view.php', [
     'r'          => time(),
 ]);
 // Pin the popup to the same question the user is looking at so "Open as popup" does not
-// roll a fresh random card (issue #2/#3).
+// Roll a fresh random card (issue #2/#3).
 $popupparams = [
     'id'         => $cm->id,
     'activeziel' => $activeziel,
@@ -149,6 +149,7 @@ $popupurl = new moodle_url('/mod/elediacheckin/present.php', $popupparams);
 
 $templatecontext = [
     'cmid'            => $cm->id,
+    'externalid'      => $question && !empty($question->externalid) ? (string) $question->externalid : '',
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
         // Own questions come from a teacher-filled textarea and are rendered as plain text.

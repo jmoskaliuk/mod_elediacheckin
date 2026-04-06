@@ -132,6 +132,7 @@ $PAGE->requires->js_call_amd('mod_elediacheckin/present', 'init', ['#mod-elediac
 
 $templatecontext = [
     'cmid'            => $cm->id,
+    'externalid'      => $question && !empty($question->externalid) ? (string) $question->externalid : '',
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
         // Own questions use FORMAT_PLAIN (teacher textarea input),

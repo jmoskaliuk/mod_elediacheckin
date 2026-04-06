@@ -47,13 +47,10 @@
 
 namespace mod_elediacheckin;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Single source of truth for compile-time feature toggles.
  */
 final class feature_flags {
-
     /**
      * When true, the "eLeDia Premium" content source is registered and its
      * admin settings are visible. Flipped to false in release builds until

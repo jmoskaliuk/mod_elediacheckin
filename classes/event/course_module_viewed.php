@@ -24,13 +24,10 @@
 
 namespace mod_elediacheckin\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Fired when a user views an elediacheckin activity page.
  */
 class course_module_viewed extends \core\event\course_module_viewed {
-
     /**
      * Initialises the event data.
      *

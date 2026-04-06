@@ -27,8 +27,6 @@ namespace mod_elediacheckin\content;
 
 use mod_elediacheckin\local\service\config_service;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Pulls bundle.json from a configured HTTPS URL, validates it against the
  * content schema and returns it as a content_bundle.
@@ -42,7 +40,6 @@ defined('MOODLE_INTERNAL') || die();
  * (GitHub raw, GitLab raw, any static webserver).
  */
 final class git_content_source implements content_source_interface {
-
     /** HTTP timeout for the fetch, in seconds. */
     private const TIMEOUT_SECONDS = 30;
 
@@ -167,23 +164,23 @@ final class git_content_source implements content_source_interface {
         if (strpos($url, '/blob/') !== false && strpos($url, 'github.com') !== false) {
             return ' — Hinweis: Die URL enthält `/blob/` und liefert deshalb'
                 . ' eine HTML-Seite statt der rohen Datei. Ersetze'
-                . ' `github.com/<owner>/<repo>/blob/<branch>/bundle.json` durch'
-                . ' `raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json`.';
+                . ' github.com/<owner>/<repo>/blob/<branch>/bundle.json durch'
+                . ' raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json.';
         }
         if (strpos($url, 'api.github.com') !== false && strpos($url, '/contents/') !== false) {
             return ' — Hinweis: Die URL zeigt auf den GitHub-API-Contents-'
                 . 'Endpoint und liefert ein Metadaten-Objekt'
                 . ' ({name, path, sha, content: base64…}), nicht die rohe bundle.json.'
                 . ' Setze stattdessen die raw-URL ein'
-                . ' (`raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json`).';
+                . ' (raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json).';
         }
         if (substr($url, -4) === '.git') {
-            return ' — Hinweis: Die URL endet auf `.git` (Clone-URL).'
+            return ' — Hinweis: Die URL endet auf .git (Clone-URL).'
                 . ' Der Plugin-Sync fetcht eine einzelne Datei via HTTPS, kein'
                 . ' git-clone. Setze die raw-URL der bundle.json ein.';
         }
         if (substr(strtolower($url), -5) !== '.json') {
-            return ' — Hinweis: Die URL endet nicht auf `.json`. Prüfe, ob sie'
+            return ' — Hinweis: Die URL endet nicht auf .json. Prüfe, ob sie'
                 . ' wirklich auf die rohe bundle.json zeigt und nicht auf ein'
                 . ' Verzeichnis oder eine HTML-Seite.';
         }

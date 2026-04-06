@@ -29,7 +29,6 @@ namespace mod_elediacheckin\local\admin;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class dashboard_renderer {
-
     /** Max log rows shown inside the embedded panel. */
     private const LIMIT = 15;
 
@@ -54,7 +53,7 @@ class dashboard_renderer {
         // ----- Companion-plugin health check. -----
         //
         // Block_elediacheckin is a separate plugin but tightly coupled to
-        // This mod — without it, the frontpage/course-page launcher is
+        // This mod. Without it, the frontpage/course-page launcher is
         // Missing. Johannes has twice now reported the block silently
         // Disappearing from the "Add block" dropdown (cache race after
         // Upgrades, or manual "hide" in Site admin → Plugins → Blocks).
