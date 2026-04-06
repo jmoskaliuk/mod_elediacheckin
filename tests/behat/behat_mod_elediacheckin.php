@@ -79,5 +79,18 @@ class behat_mod_elediacheckin extends behat_base {
             }
             \tool_usertours\manager::import_tour_from_json($json);
         }
+
+        // Purge all caches so the browser request sees the freshly imported
+        // tours and does not serve a stale empty list from a persistent cache.
+        purge_all_caches();
+
+        // Verify at least the teacher tour was actually stored in the DB.
+        $exists = $DB->record_exists('tool_usertours_tours', ['name' => 'Check-in for teachers']);
+        if (!$exists) {
+            throw new \Exception(
+                'Tour "Check-in for teachers" was not found in tool_usertours_tours after import. ' .
+                'Check that db/tours/teacher_checkin_tour.json has "name": "Check-in for teachers".'
+            );
+        }
     }
 }
