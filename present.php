@@ -87,6 +87,20 @@ $question  = $nav['question'];
 $hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
 $exhausted = !empty($nav['exhausted']);
 
+// PRG redirect: same pattern as view.php — prevent F5 from re-triggering
+// next/prev navigation. Redirects to a clean URL with ?q=<externalid>.
+if (($isnext || $goback) && $question && !empty($question->externalid)) {
+    $cleanparams = [
+        'id'     => $cm->id,
+        'q'      => (string) $question->externalid,
+        'layout' => 'popup',
+    ];
+    if ($multiziel) {
+        $cleanparams['activeziel'] = $activeziel;
+    }
+    redirect(new moodle_url('/mod/elediacheckin/present.php', $cleanparams));
+}
+
 $zielbuttons = [];
 foreach ($ziele as $z) {
     $zielbuttons[] = [

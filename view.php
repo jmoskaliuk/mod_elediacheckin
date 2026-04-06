@@ -112,6 +112,20 @@ $question  = $nav['question'];
 $hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
 $exhausted = !empty($nav['exhausted']);
 
+// PRG redirect: after processing ?next=1 or ?prev=1, redirect to a clean
+// URL so that F5 does not re-trigger the navigation action. The resulting
+// question's externalid is pinned via ?q= so the page shows the same card.
+if (($isnext || $goback) && $question && !empty($question->externalid)) {
+    $cleanparams = ['id' => $cm->id, 'q' => (string) $question->externalid];
+    if ($multiziel) {
+        $cleanparams['activeziel'] = $activeziel;
+    }
+    if (optional_param('fs', 0, PARAM_BOOL)) {
+        $cleanparams['fs'] = 1;
+    }
+    redirect(new moodle_url('/mod/elediacheckin/view.php', $cleanparams));
+}
+
 // Build ziel-picker buttons (only used if $multiziel).
 $zielbuttons = [];
 foreach ($ziele as $z) {
