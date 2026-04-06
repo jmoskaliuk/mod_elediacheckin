@@ -55,6 +55,10 @@ define([], function() {
 
             var applying = false;
 
+            /**
+             * Re-evaluate which category checkboxes are visible based on the
+             * currently selected ziele.
+             */
             function apply() {
                 if (applying) {
                     return;
