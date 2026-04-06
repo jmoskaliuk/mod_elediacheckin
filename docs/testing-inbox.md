@@ -35,6 +35,37 @@ _(leer)_
 
 ## 🔎 Nach Deploy verifizieren
 
+### Grunt AMD rebuild nach category_filter.js ES6-Umbau (v2026040607)
+
+`category_filter.js` wurde auf ES6 umgeschrieben.
+Das `amd/build/` muss nach `~/moodle-update.sh checkin` neu gebaut werden:
+
+```
+docker compose -f ~/demo/compose.yml exec -T \
+  -w /var/www/site/moodle webserver \
+  npx grunt amd --root=public/mod/elediacheckin
+```
+
+Danach im Mac-Checkout prüfen (`~/demo/site/moodle/public/mod/elediacheckin/`):
+
+```
+git diff amd/build/
+```
+
+Falls geändert: `git add amd/build/ && git commit -m "rebuild: AMD for ES6 category_filter"` und `git push`.
+
+### PHPCS — muss grün sein vor Plugin Directory Submission
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  bash -c 'cd /var/www/site/moodle && vendor/bin/phpcs \
+    --standard=moodle --extensions=php \
+    --ignore="*/vendor/*,*/node_modules/*,*/tests/*" \
+    public/mod/elediacheckin/ 2>&1 | tail -20'
+```
+
+Ziel: 0 errors, 0 warnings (CI nutzt `--max-warnings 0`).
+
 ### Behat 9/9 — finaler Lauf (v2026040604)
 
 Deploy `~/moodle-update.sh checkin` bringt commit `8943891`. Danach:
