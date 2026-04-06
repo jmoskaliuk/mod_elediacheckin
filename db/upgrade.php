@@ -336,10 +336,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     // Datensatz an — die Tour ist nur aktiv, wenn enabled=true, und
     // der Admin kann Duplikate bei Bedarf manuell löschen).
     if ($oldversion < 2026040525) {
-        require_once(__DIR__ . '/install.php');
-        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
-            mod_elediacheckin_install_bundled_tours();
-        }
+        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
         upgrade_mod_savepoint(true, 2026040525, 'elediacheckin');
     }
 
@@ -375,10 +372,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
                 }
             }
         }
-        require_once(__DIR__ . '/install.php');
-        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
-            mod_elediacheckin_install_bundled_tours();
-        }
+        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
         upgrade_mod_savepoint(true, 2026040529, 'elediacheckin');
     }
 
@@ -411,10 +405,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
                 }
             }
         }
-        require_once(__DIR__ . '/install.php');
-        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
-            mod_elediacheckin_install_bundled_tours();
-        }
+        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
         upgrade_mod_savepoint(true, 2026040531, 'elediacheckin');
     }
 
@@ -458,10 +449,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
                 }
             }
         }
-        require_once(__DIR__ . '/install.php');
-        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
-            mod_elediacheckin_install_bundled_tours();
-        }
+        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
         upgrade_mod_savepoint(true, 2026040534, 'elediacheckin');
     }
 
@@ -519,10 +507,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
                 }
             }
         }
-        require_once(__DIR__ . '/install.php');
-        if (function_exists('mod_elediacheckin_install_bundled_tours')) {
-            mod_elediacheckin_install_bundled_tours();
-        }
+        \mod_elediacheckin\local\tour_installer::install_bundled_tours();
         upgrade_mod_savepoint(true, 2026040538, 'elediacheckin');
     }
 

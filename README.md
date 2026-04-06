@@ -1,37 +1,63 @@
-# mod_elediacheckin
+# eLeDia Check-In (mod_elediacheckin)
 
-Activity module by eLeDia GmbH that displays didactic Check-in and Check-out questions
-in Moodle courses. Questions are sourced from an external, Git-managed content repository
-and synchronised into Moodle on a schedule — not fetched live at runtime.
+Activity module for Moodle 4.5+ that displays didactic Check-in and Check-out
+impulse cards — short questions, reflections, or quotes — in courses. Ideal
+for session openers, retrospectives, or learning reflections.
 
-This plugin provides the full activity experience. For a compact sidebar variant, see the
-companion plugin `block_elediacheckin`, which depends on this module.
+Questions are sourced from a bundled content pack or a custom Git repository
+and synchronised into Moodle on a schedule (not fetched live at runtime).
 
-## Status
+For a compact sidebar launcher, see the companion plugin
+[block_elediacheckin](https://github.com/jmoskaliuk/block_elediacheckin).
 
-Scaffold only. See `doc/fach-und-technikkonzept.md` for the specification this plugin
-is being built against.
+## Features
 
-## Features (planned, per concept)
+- Random impulse cards drawn from a configurable pool per activity
+- Multiple content goals: Check-in, Check-out, Retrospective, Learning
+  reflection, Quotes
+- Category and audience filters per activity
+- Teacher-authored questions alongside or instead of the bundled pool
+- Fullscreen and popup presentation modes for screen-sharing
+- Cursor-based session history with back/forward navigation
+- Configurable behaviour when all cards have been shown (restart or stop)
+- Three bundled user tours (activity view, activity settings, admin settings)
+- Companion block for course and frontpage sidebar launchers
+- Bundled default content source or custom Git repository
 
-- Separate Check-in and Check-out question modes
-- Category filtering
-- Random question selection with "avoid repeat" option
-- Keyboard / swipe navigation on mobile
-- Multi-language question content (resolved via activity → course → user → fallback)
-- Git-based content source with manual and scheduled synchronisation
-- Staging import with rollback on validation failure
+## Requirements
 
-## Dependencies
-
-None. `block_elediacheckin` depends on this plugin (not the other way round).
+- Moodle 4.5 or later (tested up to 5.1)
+- PHP 8.1+
+- PostgreSQL or MySQL/MariaDB
 
 ## Installation
 
-Copy the `elediacheckin` directory (i.e. the contents of this scaffold folder) to
-`mod/elediacheckin/` in your Moodle installation and visit
-*Site administration → Notifications* to trigger the install.
+1. Download the latest release ZIP from
+   [GitHub Releases](https://github.com/jmoskaliuk/mod_elediacheckin/releases).
+2. In Moodle, go to *Site administration → Plugins → Install plugins* and
+   upload the ZIP.
+3. Follow the on-screen upgrade prompts.
+4. Optionally install the companion block plugin
+   (`block_elediacheckin`) for sidebar launchers.
+
+## Configuration
+
+After installation, visit *Site administration → Plugins → Activity modules →
+eLeDia Check-In* to configure the content source (bundled default or custom
+Git repository) and run the initial content sync.
+
+## Dependencies
+
+None. `block_elediacheckin` depends on this plugin, not the other way round.
+
+## Bug tracker
+
+[GitHub Issues](https://github.com/jmoskaliuk/mod_elediacheckin/issues)
 
 ## License
 
-GNU GPL v3 or later — see file headers.
+GNU GPL v3 or later — see [COPYING](https://www.gnu.org/licenses/gpl-3.0.html).
+
+## Credits
+
+Developed by [eLeDia GmbH](https://www.eledia.de) (info@eledia.de).
