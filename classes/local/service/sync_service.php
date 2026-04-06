@@ -43,8 +43,10 @@ defined('MOODLE_INTERNAL') || die();
  */
 class sync_service {
 
-    /** Staging flag constants — keep in sync with the DB column defaults. */
+    /** Question is live and visible for fetching. */
     private const STAGE_LIVE    = 0;
+
+    /** Question is staged for activation and not yet live. */
     private const STAGE_STAGING = 1;
 
     /** Questions table, central enough to avoid repeating the literal. */

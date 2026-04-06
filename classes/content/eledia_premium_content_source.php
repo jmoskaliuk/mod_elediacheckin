@@ -73,24 +73,21 @@ final class eledia_premium_content_source implements content_source_interface {
     }
 
     /**
-     * @inheritDoc
+     * Returns the unique identifier for this content source.
      */
     public function get_id(): string {
         return 'eledia_premium';
     }
 
     /**
-     * @inheritDoc
+     * Returns a human-readable name for this content source.
      */
     public function get_display_name(): string {
         return get_string('contentsource_eledia', 'elediacheckin');
     }
 
     /**
-     * Cheap connectivity probe: hits /verify and checks the server replies
-     * with a syntactically valid token payload. Does NOT download the bundle.
-     *
-     * @inheritDoc
+     * Probes connectivity to the license server without downloading the bundle.
      */
     public function test_connection(): bool {
         try {
@@ -102,10 +99,7 @@ final class eledia_premium_content_source implements content_source_interface {
     }
 
     /**
-     * Full sync: verify → fetch bundle → fetch signature → verify signature
-     * → schema-validate → return content_bundle.
-     *
-     * @inheritDoc
+     * Fetches and validates a signed premium bundle from the eLeDia license server.
      */
     public function fetch_bundle(): content_bundle {
         $ticket = $this->verify_license();

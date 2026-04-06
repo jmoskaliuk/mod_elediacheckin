@@ -74,8 +74,8 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->setExpanded('checkinsettings');
 
         // Ziele: multi-select over all available content types. Persisted
-        // as a CSV string; conversion happens in data_preprocessing() and
-        // get_data() below.
+        // As a CSV string; conversion happens in data_preprocessing() and
+        // Get_data() below.
         $zieloptions = [
             'impuls'   => get_string('ziel_impuls', 'elediacheckin'),
             'checkin'  => get_string('ziel_checkin', 'elediacheckin'),
@@ -95,7 +95,7 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
 
         // Categories: autocomplete multi-select of bare category ids.
         // The visible option set is filtered client-side based on the
-        // currently selected ziele (see mod_elediacheckin/category_filter).
+        // Currently selected ziele (see mod_elediacheckin/category_filter).
         $categoryoptions = $this->build_category_options();
         $mform->addElement('autocomplete', 'categories',
             get_string('categories', 'elediacheckin'),
@@ -105,12 +105,12 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             ]);
         $mform->addHelpButton('categories', 'categories', 'elediacheckin');
 
-        // Zielgruppe: Single-Select-Dropdown mit „Alle Zielgruppen" als
-        // erstem, explizit wählbarem Eintrag (leerer Wert = keine
-        // Einschränkung, „oder untagged" in question_provider). War früher
-        // ein Multi-Select-Autocomplete; aus UX-Gründen umgebaut — der
-        // häufige Fall „Alle" soll sofort sichtbar sein, statt durch das
-        // noselectionstring-Label in Autocomplete versteckt zu werden.
+        // Zielgruppe: Single-Select-Dropdown mit "Alle Zielgruppen" als
+        // Erstem, explizit wählbarem Eintrag (leerer Wert = keine
+        // Einschränkung, "oder untagged" in question_provider). War früher
+        // Ein Multi-Select-Autocomplete; aus UX-Gründen umgebaut — der
+        // Häufige Fall "Alle" soll sofort sichtbar sein, statt durch das
+        // Noselectionstring-Label in Autocomplete versteckt zu werden.
         // Siehe docs/testing-inbox.md Kommentar vom 2026-04-05.
         $zgoptions = ['' => get_string('zielgruppe_all', 'elediacheckin')];
         foreach (schema_validator::get_zielgruppe_enum() as $zg) {
@@ -122,7 +122,7 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->addHelpButton('zielgruppe', 'zielgruppe', 'elediacheckin');
 
         // Kontext: gleiches Pattern wie Zielgruppe — Single-Select mit
-        // „Alle Kontexte" als erstem Eintrag.
+        // "Alle Kontexte" als erstem Eintrag.
         $kxoptions = ['' => get_string('kontext_all', 'elediacheckin')];
         foreach (schema_validator::get_kontext_enum() as $kx) {
             $kxoptions[$kx] = get_string('kontext_' . $kx, 'elediacheckin');
@@ -133,10 +133,10 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->addHelpButton('kontext', 'kontext', 'elediacheckin');
 
         // Wire the dynamic filter: hides categories that do not belong to
-        // any of the currently selected ziele. The category→ziel map can be
-        // fairly large (> 1 KB) so we stash it in a hidden JSON <script>
-        // element instead of passing it as js_call_amd argument (Moodle warns
-        // above 1024 chars). The AMD module reads it from the DOM on init.
+        // Any of the currently selected ziele. The category→ziel map can be
+        // Fairly large (> 1 KB) so we stash it in a hidden JSON <script>
+        // Element instead of passing it as js_call_amd argument (Moodle warns
+        // Above 1024 chars). The AMD module reads it from the DOM on init.
         $mapjson = json_encode($this->build_category_ziel_map());
         $mform->addElement('html',
             '<script type="application/json" id="elediacheckin_catziel_map">'
@@ -150,7 +150,7 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         );
 
         // Content language: select with sentinels for user/course language
-        // plus all installed languages.
+        // Plus all installed languages.
         $langoptions = [
             self::LANG_AUTO   => get_string('lang_auto', 'elediacheckin'),
             self::LANG_COURSE => get_string('lang_course', 'elediacheckin'),
@@ -165,29 +165,29 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->addHelpButton('contentlang', 'contentlang', 'elediacheckin');
 
         // Anzeigeoptionen.
-        // Kommt VOR dem „Eigene Fragen"-Block, weil Display-Einstellungen
-        // zur Kernkonfiguration gehören, während „Eigene Fragen" ein
-        // optionales Extra sind. Siehe testing-inbox 2026-04-05
-        // („in den einstellungen eigene Fragen nach Display options").
+        // Kommt VOR dem "Eigene Fragen"-Block, weil Display-Einstellungen
+        // Zur Kernkonfiguration gehören, während "Eigene Fragen" ein
+        // Optionales Extra sind. Siehe testing-inbox 2026-04-05
+        // ("in den einstellungen eigene Fragen nach Display options").
         $mform->addElement('header', 'displaysettings', get_string('displaysettings', 'elediacheckin'));
 
         $mform->addElement('selectyesno', 'avoidrepeat', get_string('avoidrepeat', 'elediacheckin'));
         $mform->setDefault('avoidrepeat', 1);
         $mform->addHelpButton('avoidrepeat', 'avoidrepeat', 'elediacheckin');
 
-        // „Zur vorherigen Frage"-Button: single-step back, kein vor/zurück-
+        // "Zur vorherigen Frage"-Button: single-step back, kein vor/zurück-
         // Paar. Zustand pro cmid im $SESSION, siehe view.php/present.php.
         $mform->addElement('selectyesno', 'showprevbutton',
             get_string('showprevbutton', 'elediacheckin'));
         $mform->setDefault('showprevbutton', 1);
         $mform->addHelpButton('showprevbutton', 'showprevbutton', 'elediacheckin');
 
-        // „Wenn alle Fragen durch sind" — per-Aktivität einstellbares
+        // "Wenn alle Fragen durch sind" — per-Aktivität einstellbares
         // Verhalten. 'restart' = Seen-Set zurücksetzen und weiter neu
-        // ziehen (Default, weil die meisten Check-in-Pools klein sind
-        // und der Lernende sowieso zeitlich versetzt wieder auftaucht).
-        // 'empty' = eine Hinweiskarte „Alle Fragen durch" anzeigen und
-        // nicht mehr weiterziehen. Siehe activity_pool::resolve_navigation.
+        // Ziehen (Default, weil die meisten Check-in-Pools klein sind
+        // Und der Lernende sowieso zeitlich versetzt wieder auftaucht).
+        // 'empty' = eine Hinweiskarte "Alle Fragen durch" anzeigen und
+        // Nicht mehr weiterziehen. Siehe activity_pool::resolve_navigation.
         $exhausteoptions = [
             \mod_elediacheckin\local\service\activity_pool::EXHAUSTED_RESTART
                 => get_string('exhaustedbehavior_restart', 'elediacheckin'),
@@ -203,15 +203,15 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // Eigene Fragen (per-Aktivität, siehe Konzept §10.13 + §10.19).
         // Additiver Zusatzpool zu den Bundle-Fragen: eine Zeile = eine
         // Karte. Wird als TEXT-Spalte persistiert und bei jedem Draw von
-        // activity_pool zusammengemerged. Reine Impulskarten, keine
+        // Activity_pool zusammengemerged. Reine Impulskarten, keine
         // Rückseite.
         $mform->addElement('header', 'ownquestionsheader',
             get_string('ownquestions', 'elediacheckin'));
 
         // Tri-state-Dropdown statt frueherem Yes/No-Toggle. Die drei
-        // Modi sind bewusst explizit ausformuliert, weil „Nein" fuer
-        // „Nur eigene Fragen" mehrdeutig war (hiess es „eigene Fragen
-        // ignorieren" oder „mit Bundle mischen"?). Default: mixed.
+        // Modi sind bewusst explizit ausformuliert, weil "Nein" fuer
+        // "Nur eigene Fragen" mehrdeutig war (hiess es "eigene Fragen
+        // Ignorieren" oder "mit Bundle mischen"?). Default: mixed.
         $modeoptions = [
             0 => get_string('ownquestionsmode_mixed', 'elediacheckin'),
             1 => get_string('ownquestionsmode_onlyown', 'elediacheckin'),
@@ -230,10 +230,10 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
             ]);
         $mform->setType('ownquestions', PARAM_TEXT);
         $mform->addHelpButton('ownquestions', 'ownquestions', 'elediacheckin');
-        // Wenn der Modus auf „Keine eigenen Fragen" steht, ist das Textfeld
-        // nutzlos. Wir blenden es dann aus (ohne es zu loeschen), damit
-        // der Teacher jederzeit zurueck in „mixed" oder „nur eigene"
-        // wechseln kann, ohne die Eintraege neu tippen zu muessen.
+        // Wenn der Modus auf "Keine eigenen Fragen" steht, ist das Textfeld
+        // Nutzlos. Wir blenden es dann aus (ohne es zu loeschen), damit
+        // Der Teacher jederzeit zurueck in "mixed" oder "nur eigene"
+        // Wechseln kann, ohne die Eintraege neu tippen zu muessen.
         $mform->hideIf('ownquestions', 'ownquestionsmode', 'eq', 2);
 
         // Standard course module elements.
@@ -308,8 +308,8 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
 
         // Zielgruppe + Kontext sind seit 2026-04 Single-Select. Falls die
         // DB noch CSV aus der Multi-Select-Ära enthält, nehmen wir den
-        // ersten Eintrag als sinnvollen Default für den Edit-Dialog — der
-        // Teacher kann beim Speichern bewusst auf „Alle" zurückgehen.
+        // Ersten Eintrag als sinnvollen Default für den Edit-Dialog — der
+        // Teacher kann beim Speichern bewusst auf "Alle" zurückgehen.
         foreach (['zielgruppe', 'kontext'] as $tagfield) {
             if (isset($defaultvalues[$tagfield]) && is_string($defaultvalues[$tagfield])) {
                 $parts = array_values(array_filter(

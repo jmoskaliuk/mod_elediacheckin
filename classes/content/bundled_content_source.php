@@ -41,28 +41,28 @@ final class bundled_content_source implements content_source_interface {
     private const BUNDLE_RELPATH = '/db/content/default.json';
 
     /**
-     * @inheritDoc
+     * Returns the unique identifier for this content source.
      */
     public function get_id(): string {
         return 'bundled';
     }
 
     /**
-     * @inheritDoc
+     * Returns a human-readable name for this content source.
      */
     public function get_display_name(): string {
         return get_string('contentsource_bundled', 'elediacheckin');
     }
 
     /**
-     * @inheritDoc
+     * Probes connectivity and availability of the content source.
      */
     public function test_connection(): bool {
         return is_readable($this->get_bundle_path());
     }
 
     /**
-     * @inheritDoc
+     * Fetches and validates the current bundle from the bundled default file.
      */
     public function fetch_bundle(): content_bundle {
         $path = $this->get_bundle_path();

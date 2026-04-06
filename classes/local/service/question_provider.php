@@ -98,11 +98,11 @@ class question_provider {
         $where  = ['stage = :stage'];
         $params = ['stage' => self::STAGE_LIVE];
 
-        // qstatus: default to 'published' so draft/deprecated rows are hidden.
+        // Qstatus: default to 'published' so draft/deprecated rows are hidden.
         $where[]           = 'qstatus = :qstatus';
         $params['qstatus'] = (string) ($filter['qstatus'] ?? 'published');
 
-        // ziele: accept CSV string or array.
+        // Ziele: accept CSV string or array.
         $ziele = $this->normalise_csv($filter['ziele'] ?? null);
         if (!empty($ziele)) {
             [$insql, $inparams] = $DB->get_in_or_equal($ziele, SQL_PARAMS_NAMED, 'ziel');
@@ -120,9 +120,9 @@ class question_provider {
         $records = $DB->get_records_sql($sql, $params);
 
         // Category filter is post-SQL: the column is a CSV, so we can't
-        // portably intersect it in all DB backends. Since a typical activity
-        // has at most a few hundred questions per language, filtering in PHP
-        // is both simple and fast enough.
+        // Portably intersect it in all DB backends. Since a typical activity
+        // Has at most a few hundred questions per language, filtering in PHP
+        // Is both simple and fast enough.
         $categoryfilter = $this->normalise_csv($filter['categories'] ?? null);
         if (!empty($categoryfilter)) {
             $records = array_filter($records, function (\stdClass $r) use ($categoryfilter): bool {
@@ -132,8 +132,8 @@ class question_provider {
         }
 
         // Zielgruppe + Kontext: "or untagged" semantics. An empty tag column
-        // on the question means the card is universally applicable and
-        // always matches; a tagged card must share ≥1 value with the filter.
+        // On the question means the card is universally applicable and
+        // Always matches; a tagged card must share ≥1 value with the filter.
         $zgfilter = $this->normalise_csv($filter['zielgruppe'] ?? null);
         if (!empty($zgfilter)) {
             $records = array_filter($records, function (\stdClass $r) use ($zgfilter): bool {

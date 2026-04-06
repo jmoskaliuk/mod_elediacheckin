@@ -115,10 +115,10 @@ final class activity_pool {
      */
     public const HISTORY_MAX = 500;
 
-    /**
-     * Constants for the exhausted-pool behaviour selector.
-     */
+    /** Exhausted-pool behaviour: restart and re-shuffle. */
     public const EXHAUSTED_RESTART = 'restart';
+
+    /** Exhausted-pool behaviour: stop and show empty state. */
     public const EXHAUSTED_EMPTY   = 'empty';
 
     /**
@@ -230,7 +230,7 @@ final class activity_pool {
             }
         } else if ($isnext) {
             // Forward: either walk ahead in the stored history (if the
-            // learner had stepped back) or draw a fresh card.
+            // Learner had stepped back) or draw a fresh card.
             if ($pos + 1 < count($history)) {
                 $pos++;
                 $question = self::pick_by_externalid(
@@ -251,7 +251,7 @@ final class activity_pool {
                 if ($question) {
                     $extid = (string) $question->externalid;
                     // Truncate history forward of current pos (we branch
-                    // off the existing trail) then append.
+                    // Off the existing trail) then append.
                     if ($pos + 1 < count($history)) {
                         $history = array_slice($history, 0, $pos + 1);
                     }
@@ -268,9 +268,9 @@ final class activity_pool {
             }
         } else {
             // Fresh page load (no ?q=, ?next=, ?prev=). If the session
-            // already holds a question for this cmid, keep showing it —
-            // the card should stay stable until the user explicitly
-            // clicks "Weiter". Only reset the history stack so the
+            // Already holds a question for this cmid, keep showing it —
+            // The card should stay stable until the user explicitly
+            // Clicks "Weiter". Only reset the history stack so the
             // Previous-button stays hidden until Weiter is clicked.
             $reused = false;
             if (!empty($history) && isset($history[$pos])) {
@@ -279,7 +279,7 @@ final class activity_pool {
                 );
                 if ($question) {
                     // Keep the same card; just flatten history to one entry
-                    // so Previous is hidden.
+                    // So Previous is hidden.
                     $extid = (string) $question->externalid;
                     $history = [$extid];
                     $pos = 0;
@@ -386,16 +386,16 @@ final class activity_pool {
         string $activeziel,
         array $langcandidates
     ): array {
-        // „Eigene Fragen"-Modus (Konzept §10.15 + §10.19). Tri-state:
+        // "Eigene Fragen"-Modus (Konzept §10.15 + §10.19). Tri-state:
         //   0 = mixed     — Bundle + eigene additiv (Default).
         //   1 = only_own  — NUR eigene Fragen, Bundle komplett ueberspringen.
-        //   2 = none      — eigene Fragen komplett ignorieren, auch wenn das
+        //   2 = none      — Eigene Fragen komplett ignorieren, auch wenn das
         //                   Textfeld gefuellt ist (nuetzlich, wenn Teacher
-        //                   eine Aktivitaet temporaer „aus dem Mix" nehmen
-        //                   moechte, ohne die eingetragenen Fragen zu loeschen).
+        //                   Eine Aktivitaet temporaer "aus dem Mix" nehmen
+        //                   Moechte, ohne die eingetragenen Fragen zu loeschen).
         // Fallback auf 0, falls das alte Feld `onlyownquestions` noch in
-        // der DB steckt (wird durch Upgrade-Step 2026040524 umbenannt, aber
-        // defensive Programmierung schadet nicht).
+        // Der DB steckt (wird durch Upgrade-Step 2026040524 umbenannt, aber
+        // Defensive Programmierung schadet nicht.
         $mode = isset($instance->ownquestionsmode)
             ? (int) $instance->ownquestionsmode
             : (isset($instance->onlyownquestions) ? (int) $instance->onlyownquestions : 0);

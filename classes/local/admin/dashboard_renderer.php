@@ -40,30 +40,30 @@ class dashboard_renderer {
         global $DB;
 
         // Wrap the entire panel in a div with a stable id. Previous versions
-        // used this as an anchor for a DOM-reorder script that tried to move
-        // the Moodle save button above the panel, but that was fragile and
-        // produced visible layout glitches (v2026040532—v2026040536).
+        // Used this as an anchor for a DOM-reorder script that tried to move
+        // The Moodle save button above the panel, but that was fragile and
+        // Produced visible layout glitches (v2026040532—v2026040536).
         //
         // New approach (v2026040537): keep the panel in its natural position
-        // at the bottom of the settings form, but inject a secondary
+        // At the bottom of the settings form, but inject a secondary
         // <button type="submit"> at the TOP of the panel. Because this
-        // button lives inside the same admin settings <form>, clicking it
-        // submits the form — no JS, no reorder, no race conditions. The
-        // original bottom save button stays where Moodle puts it, so users
-        // who scroll to the bottom still see the familiar Moodle flow.
+        // Button lives inside the same admin settings <form>, clicking it
+        // Submits the form — no JS, no reorder, no race conditions. The
+        // Original bottom save button stays where Moodle puts it, so users
+        // Who scroll to the bottom still see the familiar Moodle flow.
         $out = '<div id="elediacheckin-dashboardpanel">';
 
         // ----- Companion-plugin health check. -----
         //
-        // block_elediacheckin is a separate plugin but tightly coupled to
-        // this mod — without it, the frontpage/course-page launcher is
-        // missing. Johannes has twice now reported the block silently
-        // disappearing from the "Add block" dropdown (cache race after
-        // upgrades, or manual "hide" in Site admin → Plugins → Blocks).
+        // Block_elediacheckin is a separate plugin but tightly coupled to
+        // This mod — without it, the frontpage/course-page launcher is
+        // Missing. Johannes has twice now reported the block silently
+        // Disappearing from the "Add block" dropdown (cache race after
+        // Upgrades, or manual "hide" in Site admin → Plugins → Blocks).
         // The symptom is invisible until someone tries to add the block,
-        // by which point diagnosis is painful. This small health strip
-        // surfaces the companion state on every visit to the settings
-        // page so the admin sees broken state immediately.
+        // By which point diagnosis is painful. This small health strip
+        // Surfaces the companion state on every visit to the settings
+        // Page so the admin sees broken state immediately.
         $out .= self::render_block_health();
 
         // ----- Summary card with action buttons. -----
@@ -172,21 +172,6 @@ class dashboard_renderer {
     }
 
     /**
-     * Renders a small status strip reporting on block_elediacheckin health.
-     *
-     * Three outcomes:
-     *   - Block installed + visible  → green one-liner with version badge.
-     *   - Block installed but hidden → yellow warning with link to
-     *                                   /admin/blocks.php to unhide.
-     *   - Block not installed        → red warning with instructions to
-     *                                   deploy + install via notifications.
-     *
-     * Kept as a flat one-line string per state to match the Bootstrap-
-     * alert pattern already used elsewhere on the page — no nested cards.
-     *
-     * @return string Safe HTML.
-     */
-    /**
      * Early-save strip rendered ABOVE the "Sync status" heading on the
      * admin settings page. Contains a native <button type="submit"> that
      * submits the parent admin settings form — no JS, no DOM reorder.
@@ -208,6 +193,11 @@ class dashboard_renderer {
         return $out;
     }
 
+    /**
+     * Renders a status strip reporting on block_elediacheckin health.
+     *
+     * @return string Safe HTML.
+     */
     private static function render_block_health(): string {
         global $DB;
 
@@ -254,8 +244,8 @@ class dashboard_renderer {
                     . s((string)$plugininfo->versiondb) . '</span>';
             }
         } catch (\Throwable $e) {
-            // core_plugin_manager should never fail here; if it does, we
-            // just skip the version badge and still show the green strip.
+            // Core_plugin_manager should never fail here; if it does, we
+            // Just skip the version badge and still show the green strip.
             $version = '';
         }
         return \html_writer::div(

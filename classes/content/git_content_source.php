@@ -57,21 +57,21 @@ final class git_content_source implements content_source_interface {
     }
 
     /**
-     * @inheritDoc
+     * Returns the unique identifier for this content source.
      */
     public function get_id(): string {
         return 'git';
     }
 
     /**
-     * @inheritDoc
+     * Returns a human-readable name for this content source.
      */
     public function get_display_name(): string {
         return get_string('contentsource_git', 'elediacheckin');
     }
 
     /**
-     * @inheritDoc
+     * Probes connectivity and availability of the content source.
      */
     public function test_connection(): bool {
         try {
@@ -83,7 +83,7 @@ final class git_content_source implements content_source_interface {
     }
 
     /**
-     * @inheritDoc
+     * Fetches and validates the bundle from the configured repository URL.
      */
     public function fetch_bundle(): content_bundle {
         $url = (string)$this->config->get('repourl', '');
@@ -103,10 +103,10 @@ final class git_content_source implements content_source_interface {
         $validator = new schema_validator();
         if (!$validator->validate($decoded)) {
             // Include the top-level keys that WERE present so admins can
-            // immediately tell whether they fetched a GitHub API contents
-            // envelope ({name, path, sha, content: base64…}), a directory
-            // listing (indexed array of file entries), or some other
-            // wrapper, rather than the flat bundle.json we expect.
+            // Immediately tell whether they fetched a GitHub API contents
+            // Envelope ({name, path, sha, content: base64…}), a directory
+            // Listing (indexed array of file entries), or some other
+            // Wrapper, rather than the flat bundle.json we expect.
             $gotkeys = array_slice(array_keys($decoded), 0, 12);
             throw new content_source_exception(
                 'contenterror_gitinvalid',
@@ -197,10 +197,10 @@ final class git_content_source implements content_source_interface {
 
         // Use Moodle's curl wrapper so proxy / cert settings are honoured.
         // `global $CFG` is required because filelib.php's top-level code
-        // references bare $CFG (e.g. require_once($CFG->libdir . '/filestorage/…')).
+        // References bare $CFG (e.g. require_once($CFG->libdir . '/filestorage/…')).
         // Inside a method scope, $GLOBALS['CFG'] only resolves the first require;
-        // the nested ones in filelib.php fail with "Undefined variable $CFG" and
-        // break the Verbindung-testen admin action.
+        // The nested ones in filelib.php fail with "Undefined variable $CFG" and
+        // Break the Verbindung-testen admin action.
         global $CFG;
         require_once($CFG->libdir . '/filelib.php');
         $curl = new \curl();
