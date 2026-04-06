@@ -33,6 +33,61 @@ bündelt verwandte Punkte und setzt sie um.
 
 _(leer)_
 
+## 🔬 PreCheck-Verifizierung (v2026040541, auf Docker)
+
+Die folgenden Kommandos brauchen PHP und laufen deshalb im Docker-Container.
+Bitte nach `~/moodle-update.sh checkin` (v2026040541 Deploy) ausführen und
+Ergebnis hier einfügen oder in der Chat-Session melden.
+
+### 1. PHPCS (Moodle Coding Standards)
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  bash -c 'cd /var/www/site/moodle && vendor/bin/phpcs \
+    --standard=moodle \
+    --extensions=php \
+    --ignore=*/vendor/*,*/node_modules/*,*/tests/* \
+    public/mod/elediacheckin/'
+```
+
+Falls `phpcs` oder der moodle-Standard fehlt:
+
+```
+docker compose -f ~/demo/compose.yml exec -T -w /var/www/site/moodle webserver \
+  composer require --dev moodlehq/moodle-cs
+```
+
+### 2. Grunt AMD-Rebuild (offizielle Moodle-Toolchain)
+
+```
+docker compose -f ~/demo/compose.yml exec -T \
+  -w /var/www/site/moodle/public webserver \
+  npx grunt amd --root=mod/elediacheckin
+```
+
+Danach `git diff amd/build/` prüfen — wenn sich nur Whitespace oder
+Kommentar-Hashes ändern, ist alles OK. Wenn Funktionslogik abweicht,
+muss der Grunt-Build committet werden.
+
+### 3. Savepoints-Check (upgrade.php Konsistenz)
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php /var/www/site/moodle/admin/cli/check_database_schema.php
+```
+
+Suche in der Ausgabe nach `elediacheckin` — keine Fehler = OK.
+
+### 4. install.xml vs. Upgrade-Endstand
+
+```
+docker compose -f ~/demo/compose.yml exec -T webserver \
+  php /var/www/site/moodle/admin/cli/check_database_schema.php 2>&1 \
+  | grep -i elediacheckin
+```
+
+Falls Schema-Differenzen auftauchen, install.xml muss nachgezogen werden.
+
 ## ❓ Klärung notwendig
 
 _(leer)_
