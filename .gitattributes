@@ -11,3 +11,4 @@ lang/de/ export-ignore
 .gitattributes export-ignore
 docs/ export-ignore
 tests/ export-ignore
+testing-inbox.md export-ignore
