@@ -49,8 +49,10 @@ class tour_installer {
         // imports plugin-bundled tours on its own install later.
         try {
             $dbman = $DB->get_manager();
-            if (!$dbman->table_exists('tool_usertours_tours')
-                || !$dbman->table_exists('tool_usertours_steps')) {
+            if (
+                !$dbman->table_exists('tool_usertours_tours')
+                || !$dbman->table_exists('tool_usertours_steps')
+            ) {
                 return;
             }
         } catch (\Throwable $e) {
@@ -121,8 +123,10 @@ class tour_installer {
             );
             foreach ($oldtours as $record) {
                 // Only remove tours with eLeDia prefix in name.
-                if (strpos((string) $record->name, 'Check-In') === false
-                    && strpos((string) $record->name, 'Check-in') === false) {
+                if (
+                    strpos((string) $record->name, 'Check-In') === false
+                    && strpos((string) $record->name, 'Check-in') === false
+                ) {
                     continue;
                 }
                 try {

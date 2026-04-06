@@ -32,23 +32,25 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     global $DB;
     $dbman = $DB->get_manager();
 
-    // 2026040501 — Content-source schema v1.0.
-    //
-    // Replaces the initial scaffold schema with the final Phase-1 layout:
-    //  - elediacheckin_question gains all fields from the content JSON
-    //    schema (ziel, categories CSV, hasanswer/antwort, license, author,
-    //    quelle, qversion, qstatus, link, media, extcreated/extmodified)
-    //    plus a 'stage' flag for the staging-swap sync pattern.
-    //  - elediacheckin (activity instance) renames 'mode' → 'ziele' so a
-    //    single activity can draw from multiple ziele.
-    //  - The separate category + question-category tables are dropped:
-    //    categories are a fixed enum validated by the schema validator, so
-    //    a CSV column on the question row is sufficient and avoids joins.
-    //  - elediacheckin_sync_log gains bundleid/bundleversion/sourceid.
-    //
-    // Because the plugin is still MATURITY_ALPHA and has never shipped to a
-    // production site, the upgrade simply drops & recreates the affected
-    // tables. Any dev-only sync data will be re-populated on the next sync.
+    /*
+     * 2026040501 — Content-source schema v1.0.
+     *
+     * Replaces the initial scaffold schema with the final Phase-1 layout:
+     * - elediacheckin_question gains all fields from the content JSON
+     *   schema (ziel, categories CSV, hasanswer/antwort, license, author,
+     *   quelle, qversion, qstatus, link, media, extcreated/extmodified)
+     *   plus a 'stage' flag for the staging-swap sync pattern.
+     * - elediacheckin (activity instance) renames 'mode' to 'ziele' so a
+     *   single activity can draw from multiple ziele.
+     * - The separate category + question-category tables are dropped:
+     *   categories are a fixed enum validated by the schema validator, so
+     *   a CSV column on the question row is sufficient and avoids joins.
+     * - elediacheckin_sync_log gains bundleid/bundleversion/sourceid.
+     *
+     * Because the plugin is still MATURITY_ALPHA and has never shipped to a
+     * production site, the upgrade simply drops & recreates the affected
+     * tables. Any dev-only sync data will be re-populated on the next sync.
+     */
     if ($oldversion < 2026040501) {
         // Drop the old per-question category link table.
         $tablelink = new xmldb_table('elediacheckin_question_cat');
@@ -202,18 +204,20 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026040503, 'elediacheckin');
     }
 
-    // 2026040508 — Zielgruppe + Kontext als optionale Tag-Dimensionen.
-    //
-    // Adds two orthogonal, optional filter dimensions to both the activity
-    // instance row and the question row:
-    //  - zielgruppe (fuehrungskraefte, team, grundschule)
-    //  - kontext    (arbeit, schule, hochschule, privat)
-    //
-    // Semantics: an empty filter means "no restriction". A non-empty filter
-    // matches a question if the question is either untagged for that
-    // dimension OR shares at least one value with the filter. This lets
-    // content authors leave generally applicable questions untagged without
-    // losing them in filtered activities.
+    /*
+     * 2026040508 — Zielgruppe + Kontext als optionale Tag-Dimensionen.
+     *
+     * Adds two orthogonal, optional filter dimensions to both the activity
+     * instance row and the question row:
+     * - zielgruppe (fuehrungskraefte, team, grundschule)
+     * - kontext    (arbeit, schule, hochschule, privat)
+     *
+     * Semantics: an empty filter means "no restriction". A non-empty filter
+     * matches a question if the question is either untagged for that
+     * dimension OR shares at least one value with the filter. This lets
+     * content authors leave generally applicable questions untagged without
+     * losing them in filtered activities.
+     */
     if ($oldversion < 2026040508) {
         // Activity instance: optional CSV filter columns.
         $tableinstance = new xmldb_table('elediacheckin');
@@ -247,7 +251,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         }
 
         // Question table: CSV columns, NOT NULL with empty default so the
-        // provider can treat empty-string as "untagged".
+        // Provider can treat empty-string as "untagged".
         $tablequestion = new xmldb_table('elediacheckin_question');
 
         $qzg = new xmldb_field(
@@ -524,8 +528,10 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
                 );
                 foreach ($oldtours as $record) {
                     // Nur Tours mit eindeutigem eLeDia-Prefix im Namen entfernen.
-                    if (strpos((string) $record->name, 'Check-In') === false
-                        && strpos((string) $record->name, 'Check-in') === false) {
+                    if (
+                        strpos((string) $record->name, 'Check-In') === false
+                        && strpos((string) $record->name, 'Check-in') === false
+                    ) {
                         continue;
                     }
                     try {
@@ -565,7 +571,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         $dbman->change_field_precision($table, $field);
         $dbman->change_field_default($table, $field);
 
-        // showprevbutton: change column default from 0 to 1.
+        // Showprevbutton: change column default from 0 to 1.
         $field = new xmldb_field(
             'showprevbutton',
             XMLDB_TYPE_INTEGER,
@@ -578,7 +584,7 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         );
         $dbman->change_field_default($table, $field);
 
-        // elediacheckin_question: make four columns nullable.
+        // Elediacheckin_question: make four columns nullable.
         $qtable = new xmldb_table('elediacheckin_question');
         $nullcols = [
             'categories' => ['type' => XMLDB_TYPE_CHAR, 'len' => '255', 'after' => 'ziel'],

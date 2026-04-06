@@ -31,7 +31,7 @@ $activeziel = optional_param('activeziel', '', PARAM_ALPHA);
 // When the block preview shows question X and the user clicks "Open Check-in", we want view.php to.
 // Show the same X instead of rolling a fresh random one. Empty means "random".
 $qext       = optional_param('q', '', PARAM_ALPHANUMEXT);
-// „Zur vorherigen Frage"-Button click: show the previously drawn card from the session history
+// Previous-question button click: show the previously drawn card from the session history
 // stack instead of a fresh random.
 $goback     = (bool) optional_param('prev', 0, PARAM_BOOL);
 // Explicit „Nächste Frage"-click: pushes on the history stack. Fresh page loads (without this

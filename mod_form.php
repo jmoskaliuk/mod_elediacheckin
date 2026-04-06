@@ -154,7 +154,8 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // Element instead of passing it as js_call_amd argument (Moodle warns
         // Above 1024 chars). The AMD module reads it from the DOM on init.
         $mapjson = json_encode($this->build_category_ziel_map());
-        $mform->addElement('html',
+        $mform->addElement(
+            'html',
             '<script type="application/json" id="elediacheckin_catziel_map">'
             . $mapjson
             . '</script>'
@@ -175,8 +176,12 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         foreach ($installed as $code => $name) {
             $langoptions[$code] = $name;
         }
-        $mform->addElement('select', 'contentlang',
-            get_string('contentlang', 'elediacheckin'), $langoptions);
+        $mform->addElement(
+            'select',
+            'contentlang',
+            get_string('contentlang', 'elediacheckin'),
+            $langoptions
+        );
         $mform->setDefault('contentlang', self::LANG_AUTO);
         $mform->addHelpButton('contentlang', 'contentlang', 'elediacheckin');
 
@@ -185,13 +190,17 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // Zur Kernkonfiguration gehören, während "Eigene Fragen" ein
         // Optionales Extra sind. Siehe testing-inbox 2026-04-05
         // ("in den einstellungen eigene Fragen nach Display options").
-        $mform->addElement('header', 'displaysettings', get_string('displaysettings', 'elediacheckin'));
+        $mform->addElement(
+            'header',
+            'displaysettings',
+            get_string('displaysettings', 'elediacheckin')
+        );
 
         $mform->addElement('selectyesno', 'avoidrepeat', get_string('avoidrepeat', 'elediacheckin'));
         $mform->setDefault('avoidrepeat', 1);
         $mform->addHelpButton('avoidrepeat', 'avoidrepeat', 'elediacheckin');
 
-        // "Zur vorherigen Frage"-Button: single-step back, kein vor/zurück-
+        // Single-step back button ("Zur vorherigen Frage"), kein vor/zurueck-
         // Paar. Zustand pro cmid im $SESSION, siehe view.php/present.php.
         $mform->addElement(
             'selectyesno',
@@ -201,7 +210,7 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         $mform->setDefault('showprevbutton', 1);
         $mform->addHelpButton('showprevbutton', 'showprevbutton', 'elediacheckin');
 
-        // "Wenn alle Fragen durch sind" — per-Aktivität einstellbares
+        // Per-activity exhausted behavior ("Wenn alle Fragen durch sind") —
         // Verhalten. 'restart' = Seen-Set zurücksetzen und weiter neu
         // Ziehen (Default, weil die meisten Check-in-Pools klein sind
         // Und der Lernende sowieso zeitlich versetzt wieder auftaucht).

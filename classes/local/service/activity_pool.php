@@ -190,10 +190,17 @@ final class activity_pool {
         if ($pinnedexternalid !== '') {
             // Pinned from block launcher: clean slate.
             $question = self::pick_by_externalid(
-                $instance, $pinnedexternalid, $activeziel, $langcandidates
+                $instance,
+                $pinnedexternalid,
+                $activeziel,
+                $langcandidates
             );
             if (!$question) {
-                $question = self::pick_random($instance, $activeziel, $langcandidates);
+                $question = self::pick_random(
+                    $instance,
+                    $activeziel,
+                    $langcandidates
+                );
             }
             if ($question) {
                 $extid = (string) $question->externalid;
@@ -212,12 +219,20 @@ final class activity_pool {
             }
             if (!empty($history[$pos])) {
                 $question = self::pick_by_externalid(
-                    $instance, (string) $history[$pos], $activeziel, $langcandidates
+                    $instance,
+                    (string) $history[$pos],
+                    $activeziel,
+                    $langcandidates
                 );
             }
             if (!$question) {
                 // Previous card disappeared (bundle resynced?). Draw fresh.
-                $question = self::pick_random_excluding($instance, $activeziel, $langcandidates, $seen);
+                $question = self::pick_random_excluding(
+                    $instance,
+                    $activeziel,
+                    $langcandidates,
+                    $seen
+                );
                 if ($question) {
                     $extid = (string) $question->externalid;
                     $history = [$extid];
@@ -231,16 +246,28 @@ final class activity_pool {
             if ($pos + 1 < count($history)) {
                 $pos++;
                 $question = self::pick_by_externalid(
-                    $instance, (string) $history[$pos], $activeziel, $langcandidates
+                    $instance,
+                    (string) $history[$pos],
+                    $activeziel,
+                    $langcandidates
                 );
             }
             if (!$question) {
-                $question = self::pick_random_excluding($instance, $activeziel, $langcandidates, $seen);
+                $question = self::pick_random_excluding(
+                    $instance,
+                    $activeziel,
+                    $langcandidates,
+                    $seen
+                );
                 if (!$question) {
                     // Pool exhausted.
                     if ($exhaustedmode === self::EXHAUSTED_RESTART) {
                         $seen = [];
-                        $question = self::pick_random($instance, $activeziel, $langcandidates);
+                        $question = self::pick_random(
+                            $instance,
+                            $activeziel,
+                            $langcandidates
+                        );
                     } else {
                         $exhausted = true;
                     }
@@ -272,7 +299,10 @@ final class activity_pool {
             $reused = false;
             if (!empty($history) && isset($history[$pos])) {
                 $question = self::pick_by_externalid(
-                    $instance, (string) $history[$pos], $activeziel, $langcandidates
+                    $instance,
+                    (string) $history[$pos],
+                    $activeziel,
+                    $langcandidates
                 );
                 if ($question) {
                     // Keep the same card; just flatten history to one entry
@@ -285,7 +315,11 @@ final class activity_pool {
                 }
             }
             if (!$reused) {
-                $question = self::pick_random($instance, $activeziel, $langcandidates);
+                $question = self::pick_random(
+                    $instance,
+                    $activeziel,
+                    $langcandidates
+                );
                 if ($question) {
                     $extid = (string) $question->externalid;
                     $history = [$extid];
@@ -384,16 +418,19 @@ final class activity_pool {
         string $activeziel,
         array $langcandidates
     ): array {
-        // "Eigene Fragen"-Modus (Konzept §10.15 + §10.19). Tri-state:
-        //   0 = mixed     — Bundle + eigene additiv (Default).
-        //   1 = only_own  — NUR eigene Fragen, Bundle komplett ueberspringen.
-        //   2 = none      — Eigene Fragen komplett ignorieren, auch wenn das
-        //                   Textfeld gefuellt ist (nuetzlich, wenn Teacher
-        //                   Eine Aktivitaet temporaer "aus dem Mix" nehmen
-        //                   Moechte, ohne die eingetragenen Fragen zu loeschen).
-        // Fallback auf 0, falls das alte Feld `onlyownquestions` noch in
-        // Der DB steckt (wird durch Upgrade-Step 2026040524 umbenannt, aber
-        // Defensive Programmierung schadet nicht.
+        /*
+         * "Eigene Fragen"-Modus (Konzept §10.15 + §10.19). Tri-state:
+         *   0 = mixed     — Bundle + eigene additiv (Default).
+         *   1 = only_own  — NUR eigene Fragen, Bundle komplett ueberspringen.
+         *   2 = none      — Eigene Fragen komplett ignorieren, auch wenn das
+         *                   Textfeld gefuellt ist (nuetzlich, wenn Teacher
+         *                   Eine Aktivitaet temporaer "aus dem Mix" nehmen
+         *                   Moechte, ohne die eingetragenen Fragen zu loeschen).
+         *
+         * Fallback auf 0, falls das alte Feld `onlyownquestions` noch in
+         * Der DB steckt (wird durch Upgrade-Step 2026040524 umbenannt, aber
+         * Defensive Programmierung schadet nicht.
+         */
         $mode = isset($instance->ownquestionsmode)
             ? (int) $instance->ownquestionsmode
             : (isset($instance->onlyownquestions) ? (int) $instance->onlyownquestions : 0);

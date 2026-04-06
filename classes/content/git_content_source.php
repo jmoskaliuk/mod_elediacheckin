@@ -162,7 +162,7 @@ final class git_content_source implements content_source_interface {
             return '';
         }
         if (strpos($url, '/blob/') !== false && strpos($url, 'github.com') !== false) {
-            return ' — Hinweis: Die URL enthält `/blob/` und liefert deshalb'
+            return ' — Hinweis: Die URL enthält "/blob/" und liefert deshalb'
                 . ' eine HTML-Seite statt der rohen Datei. Ersetze'
                 . ' github.com/<owner>/<repo>/blob/<branch>/bundle.json durch'
                 . ' raw.githubusercontent.com/<owner>/<repo>/<branch>/bundle.json.';

@@ -159,9 +159,9 @@ final class eledia_premium_content_source implements content_source_interface {
         return content_bundle::from_array($decoded);
     }
 
-    // ---------------------------------------------------------------------
-    // Internal helpers
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Internal helpers.
+    // -----------------------------------------------------------------------
 
     /**
      * POSTs {license_key, site_hash, plugin_version} to /verify and returns

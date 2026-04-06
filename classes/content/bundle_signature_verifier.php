@@ -75,7 +75,7 @@ final class bundle_signature_verifier {
      */
     public static function verify(string $payload, string $signaturebinary, ?string $publickeyhex = null): bool {
         if (!function_exists('sodium_crypto_sign_verify_detached')) {
-            // libsodium is part of core PHP since 7.2; Moodle 5 requires 8.1+.
+            // Libsodium is part of core PHP since 7.2; Moodle 5 requires 8.1+.
             // If we still end up here the host is misconfigured — fail closed.
             return false;
         }

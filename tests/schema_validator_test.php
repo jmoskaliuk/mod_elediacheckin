@@ -29,8 +29,10 @@ use mod_elediacheckin\content\schema_validator;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(schema_validator::class)]
+/**
+ * Tests for the schema_validator class.
+ */
 final class schema_validator_test extends \basic_testcase {
-
     /**
      * Build a minimally valid bundle with a single well-formed question.
      *
@@ -141,7 +143,7 @@ final class schema_validator_test extends \basic_testcase {
         $validator = new schema_validator();
         $bundle = $this->minimal_bundle([], [
             'ziel'      => 'retro',
-            'kategorie' => ['kennenlernen'], // belongs to 'checkin', not 'retro'.
+            'kategorie' => ['kennenlernen'], // Belongs to 'checkin', not 'retro'.
         ]);
         $this->assertFalse($validator->validate($bundle));
     }

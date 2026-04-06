@@ -28,8 +28,10 @@ namespace mod_elediacheckin;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(feature_flags::class)]
+/**
+ * Tests for the feature_flags utility class.
+ */
 final class feature_flags_test extends \basic_testcase {
-
     public function test_premium_enabled_matches_constant(): void {
         $this->assertSame(feature_flags::PREMIUM_ENABLED, feature_flags::premium_enabled());
     }
