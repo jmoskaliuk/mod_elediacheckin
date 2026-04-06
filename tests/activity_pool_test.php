@@ -31,10 +31,10 @@ namespace mod_elediacheckin\local\service;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(activity_pool::class)]
 /**
  * Tests for the activity_pool service class.
  */
+#[CoversClass(activity_pool::class)]
 final class activity_pool_test extends \advanced_testcase {
     /**
      * Build a fake instance row with only the fields activity_pool reads.

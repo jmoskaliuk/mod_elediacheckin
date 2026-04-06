@@ -239,8 +239,11 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // Karte. Wird als TEXT-Spalte persistiert und bei jedem Draw von
         // Activity_pool zusammengemerged. Reine Impulskarten, keine
         // Rückseite.
-        $mform->addElement('header', 'ownquestionsheader',
-            get_string('ownquestions', 'elediacheckin'));
+        $mform->addElement(
+            'header',
+            'ownquestionsheader',
+            get_string('ownquestions', 'elediacheckin')
+        );
 
         // Tri-state-Dropdown statt frueherem Yes/No-Toggle. Die drei
         // Modi sind bewusst explizit ausformuliert, weil "Nein" fuer
