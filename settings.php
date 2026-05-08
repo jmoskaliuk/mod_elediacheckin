@@ -118,14 +118,6 @@ if ($ADMIN->fulltree) {
         PARAM_URL
     ));
 
-    $settings->add(new admin_setting_configtext(
-        'mod_elediacheckin/reporef',
-        get_string('reporef', 'elediacheckin'),
-        get_string('reporef_desc', 'elediacheckin'),
-        'main',
-        PARAM_TEXT
-    ));
-
     $settings->add(new admin_setting_configpasswordunmask(
         'mod_elediacheckin/repotoken',
         get_string('repotoken', 'elediacheckin'),
@@ -139,7 +131,6 @@ if ($ADMIN->fulltree) {
     // JS-less CSS sibling rule rendered right after it. Admins that pick
     // "Default" or the Phase-2 premium source never see any repo UI at all.
     $settings->hide_if('mod_elediacheckin/repourl', 'mod_elediacheckin/contentsource', 'neq', 'git');
-    $settings->hide_if('mod_elediacheckin/reporef', 'mod_elediacheckin/contentsource', 'neq', 'git');
     $settings->hide_if('mod_elediacheckin/repotoken', 'mod_elediacheckin/contentsource', 'neq', 'git');
 
     // ---------------------------------------------------------------------

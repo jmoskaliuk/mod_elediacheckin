@@ -203,8 +203,6 @@ $string['privacy:metadata:elediacheckin:name'] = 'The activity name.';
 $string['privacy:metadata:elediacheckin:ownquestions'] = 'Teacher-authored own questions for this activity.';
 $string['repoheading']        = 'Content repository';
 $string['repoheading_desc']   = 'Configure the external Git-based content source. The bundle JSON is pulled on a schedule and cached locally. A ready-to-use example lives at <a href="https://github.com/jmoskaliuk/content_elediacheckin" target="_blank">github.com/jmoskaliuk/content_elediacheckin</a> — fork the repo, adjust <code>bundle.json</code> in the root, and paste the raw URL of your copy below.';
-$string['reporef']            = 'Branch, tag or commit';
-$string['reporef_desc']       = 'Git ref to pin the content to. Defaults to "main".';
 $string['repotoken']          = 'Access token';
 $string['repotoken_desc']     = 'Optional access token for private repositories. Stored encrypted where supported.';
 $string['repourl']            = 'Repository URL';

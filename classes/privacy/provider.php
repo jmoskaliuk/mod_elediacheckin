@@ -23,6 +23,11 @@
  * holds repository-content synced from an external source — not personal
  * data — and the sync log holds admin-side telemetry, so neither is declared.
  *
+ * Per-user navigation state (`$SESSION->elediacheckin_nav`) holds the list
+ * of externalids the learner has seen this session — it lives in the session
+ * only, is wiped on logout/session expiry, never written to the database, and
+ * therefore intentionally not declared via the Privacy API.
+ *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

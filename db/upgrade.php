@@ -76,14 +76,18 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         $tablequestion->add_field('bundleversion', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
         $tablequestion->add_field('externalid', XMLDB_TYPE_CHAR, '128', null, XMLDB_NOTNULL, null, '');
         $tablequestion->add_field('ziel', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('categories', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, '');
+        // categories is NULL allowed per install.xml — relaxed in step 2026040543.
+        // Create it that way directly so we never go through the NOT NULL DEFAULT ''
+        // intermediate state that triggers Moodle 4.5+ XMLDB warnings.
+        $tablequestion->add_field('categories', XMLDB_TYPE_CHAR, '255', null, null, null, null);
         $tablequestion->add_field('frage', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $tablequestion->add_field('hasanswer', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
         $tablequestion->add_field('antwort', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $tablequestion->add_field('lang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, '');
         $tablequestion->add_field('author', XMLDB_TYPE_CHAR, '255', null, null, null, null);
         $tablequestion->add_field('quelle', XMLDB_TYPE_CHAR, '255', null, null, null, null);
-        $tablequestion->add_field('license', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
+        // license is NULL allowed per install.xml — relaxed in step 2026040543.
+        $tablequestion->add_field('license', XMLDB_TYPE_CHAR, '64', null, null, null, null);
         $tablequestion->add_field('qversion', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, '1');
         $tablequestion->add_field('qstatus', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'published');
         $tablequestion->add_field('link', XMLDB_TYPE_CHAR, '1333', null, null, null, null);
@@ -607,6 +611,47 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         }
 
         upgrade_mod_savepoint(true, 2026040543, 'elediacheckin');
+    }
+
+    /*
+     * 2026040602 — Drop the empty-string DEFAULT '' that lingers on CHAR
+     * columns relaxed to NULL in step 2026040543 (and on the activity-table
+     * 'categories' column from older releases). Moodle 4.5+ XMLDB validation
+     * fires "CHAR NOT NULL column with '' as DEFAULT — must have a meaningful
+     * DEFAULT or none (NULL)" on every install/upgrade for these columns even
+     * after change_field_notnull() has run, because change_field_notnull()
+     * does not remove the leftover default. change_field_default() with a
+     * null default removes the DEFAULT clause and silences the warning.
+     */
+    if ($oldversion < 2026040602) {
+        $qtable = new xmldb_table('elediacheckin_question');
+        $qcols = [
+            ['categories', XMLDB_TYPE_CHAR, '255', 'ziel'],
+            ['zielgruppe', XMLDB_TYPE_CHAR, '255', 'categories'],
+            ['kontext',    XMLDB_TYPE_CHAR, '255', 'zielgruppe'],
+            ['license',    XMLDB_TYPE_CHAR, '64',  'quelle'],
+        ];
+        foreach ($qcols as [$name, $type, $len, $after]) {
+            $field = new xmldb_field($name, $type, $len, null, null, null, null, $after);
+            if ($dbman->field_exists($qtable, $field)) {
+                $dbman->change_field_default($qtable, $field);
+            }
+        }
+
+        $itable = new xmldb_table('elediacheckin');
+        $field = new xmldb_field('categories', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'ziele');
+        if ($dbman->field_exists($itable, $field)) {
+            $dbman->change_field_default($itable, $field);
+        }
+
+        // Drop the dead 'reporef' admin setting — it was rendered in the UI
+        // as "branch / tag / commit" but git_content_source only ever read
+        // 'repourl' (the raw HTTPS URL), so the setting was never honoured.
+        // Removed in 2026040602; this purges any stored value so the admin
+        // page no longer carries a leftover config row.
+        unset_config('reporef', 'mod_elediacheckin');
+
+        upgrade_mod_savepoint(true, 2026040602, 'elediacheckin');
     }
 
     return true;

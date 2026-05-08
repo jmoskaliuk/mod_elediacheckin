@@ -160,9 +160,12 @@ $templatecontext = [
     'externalid'      => $question && !empty($question->externalid) ? (string) $question->externalid : '',
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
-        // Own questions use FORMAT_PLAIN (teacher textarea input),
-        // bundle questions FORMAT_HTML (trusted JSON content, sanitised
-        // through Moodle's filter chain by format_text()).
+        // Own questions: teacher textarea, FORMAT_PLAIN.
+        // Bundle questions: defence-in-depth XSS handling. The bundle JSON is signed
+        // and verified at import time (bundle_signature_verifier), but at render time
+        // we still treat its HTML as untrusted: format_text() runs with default options
+        // (noclean=false, trusted=false) so Moodle's cleaner strips scripts and dangerous
+        // attributes even from a hypothetically compromised bundle.
         'frage' => format_text(
             $question->frage,
             !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML

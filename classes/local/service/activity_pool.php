@@ -181,7 +181,13 @@ final class activity_pool {
         $state = (isset($all[$cmid]) && is_array($all[$cmid])) ? $all[$cmid] : [];
         $history = isset($state['history']) && is_array($state['history']) ? $state['history'] : [];
         $pos     = isset($state['pos']) ? (int) $state['pos'] : 0;
-        $seen    = isset($state['seen']) && is_array($state['seen']) ? $state['seen'] : [];
+        // Honour the "avoid repeat" toggle from the activity instance: when
+        // disabled, the seen-set stays empty across calls, so pick_random_excluding
+        // never excludes anything and exhaustion never triggers.
+        $honourseen = !empty($instance->avoidrepeat ?? 1);
+        $seen = ($honourseen && isset($state['seen']) && is_array($state['seen']))
+            ? $state['seen']
+            : [];
 
         $exhaustedmode = self::normalise_exhausted_behavior($instance);
         $question = null;
@@ -336,7 +342,7 @@ final class activity_pool {
         $all[$cmid] = [
             'history'   => $history,
             'pos'       => $pos,
-            'seen'      => $seen,
+            'seen'      => $honourseen ? $seen : [],
             'exhausted' => $exhausted,
         ];
         $SESSION->{$prop} = $all;

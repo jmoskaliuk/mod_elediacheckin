@@ -153,7 +153,16 @@ class mod_elediacheckin_mod_form extends moodleform_mod {
         // Fairly large (> 1 KB) so we stash it in a hidden JSON <script>
         // Element instead of passing it as js_call_amd argument (Moodle warns
         // Above 1024 chars). The AMD module reads it from the DOM on init.
-        $mapjson = json_encode($this->build_category_ziel_map());
+        //
+        // The JSON_HEX_* flags are defence-in-depth XSS hardening: even though
+        // the map values come from the hardcoded schema (no user input), they
+        // make the embedded JSON safe against a hypothetical "</script>",
+        // "<!--", "&" or quote sequence that would otherwise break out of
+        // the script container.
+        $mapjson = json_encode(
+            $this->build_category_ziel_map(),
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        );
         $mform->addElement(
             'html',
             '<script type="application/json" id="elediacheckin_catziel_map">'
