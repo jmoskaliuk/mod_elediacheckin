@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>elediacheckin — Anzeige-Modi v2</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+    :root {
+        --el-orange: #f98012;
+        --el-orange-dark: #d96a00;
+        --el-dark-blue: #194866;
+        --el-light-blue: #e8f1f7;
+        --el-sand: #fff8ee;
+        --el-ink: #1b2a36;
+        --el-muted: #6c7a86;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        background: #f4f5f7;
+        color: var(--el-ink);
+        line-height: 1.5;
+    }
+
+    .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+        margin: 0 0 4px;
+    }
+    h2 {
+        font-size: 1.2rem;
+        margin: 32px 0 12px;
+        color: var(--el-dark-blue);
+    }
+    h2 .version-tag {
+        display: inline-block;
+        background: var(--el-orange);
+        color: #fff;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+        border-radius: 999px;
+        margin-left: 8px;
+        vertical-align: middle;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    .lead {
+        color: var(--el-muted);
+        margin: 0 0 28px;
+    }
+
+    .changes {
+        background: var(--el-sand);
+        border-left: 4px solid var(--el-orange);
+        border-radius: 8px;
+        padding: 14px 20px;
+        margin: 0 0 28px;
+        font-size: 0.92rem;
+    }
+    .changes ul { margin: 6px 0 0 20px; padding: 0; }
+    .changes li { margin: 3px 0; }
+    .changes strong { color: var(--el-orange-dark); }
+
+    .mode-switcher {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 16px 0 32px;
+    }
+    .mode-btn {
+        border: 2px solid var(--el-dark-blue);
+        background: #fff;
+        color: var(--el-dark-blue);
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all .15s ease;
+    }
+    .mode-btn:hover { background: var(--el-light-blue); }
+    .mode-btn.active {
+        background: var(--el-dark-blue);
+        color: #fff;
+    }
+
+    /* ---------- Fake Moodle chrome ---------- */
+    .moodle-frame {
+        background: #fff;
+        border: 1px solid #dcdfe4;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 6px 24px rgba(25,72,102,.07);
+        margin-bottom: 28px;
+    }
+    .moodle-topbar {
+        background: var(--el-dark-blue);
+        color: #fff;
+        padding: 10px 20px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .moodle-topbar .logo { font-weight: 800; letter-spacing: 0.5px; }
+    .moodle-topbar .crumbs { opacity: .75; }
+    .moodle-body {
+        padding: 28px;
+        min-height: 360px;
+        position: relative;
+    }
+    .moodle-body h3 {
+        margin: 0 0 6px;
+        font-size: 1.4rem;
+        color: var(--el-dark-blue);
+    }
+    .moodle-intro {
+        color: var(--el-muted);
+        margin: 0 0 20px;
+        font-size: 0.95rem;
+    }
+
+    /* ---------- Icon launchers (top-right of card / header) ---------- */
+    .launcher-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #d4d9de;
+        background: #fff;
+        color: var(--el-dark-blue);
+        font-size: 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all .15s ease;
+    }
+    .icon-btn:hover {
+        background: var(--el-light-blue);
+        border-color: var(--el-dark-blue);
+    }
+    .icon-btn svg {
+        width: 18px; height: 18px; stroke: currentColor; fill: none;
+        stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ---------- Question card (normal mode) ---------- */
+    .card {
+        background: linear-gradient(135deg, #fff 0%, var(--el-sand) 100%);
+        border: 1px solid #e5dbc9;
+        border-left: 6px solid var(--el-orange);
+        border-radius: 14px;
+        padding: 36px 40px;
+        max-width: 720px;
+        margin: 0 auto 24px;
+        box-shadow: 0 2px 10px rgba(249,128,18,.07);
+        position: relative;
+    }
+    .card .icon-row-inline {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        display: flex;
+        gap: 6px;
+    }
+    .ziel-picker {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+    .ziel-btn {
+        border: 2px solid var(--el-dark-blue);
+        background: #fff;
+        color: var(--el-dark-blue);
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        cursor: pointer;
+    }
+    .ziel-btn.active {
+        background: var(--el-dark-blue);
+        color: #fff;
+    }
+    .q-normal {
+        font-size: 1.7rem;
+        font-weight: 600;
+        margin: 6px 0 22px;
+        color: var(--el-ink);
+        line-height: 1.35;
+    }
+    .answer-box {
+        background: rgba(25,72,102,.06);
+        border-left: 3px solid var(--el-dark-blue);
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin: 0 0 20px;
+        color: var(--el-dark-blue);
+        font-size: 1rem;
+    }
+    details.answer-details {
+        margin: 0 0 20px;
+    }
+    details.answer-details summary {
+        cursor: pointer;
+        color: var(--el-dark-blue);
+        font-weight: 600;
+        font-size: 0.92rem;
+        border-bottom: 1px dashed var(--el-dark-blue);
+        display: inline-block;
+        padding-bottom: 2px;
+        list-style: none;
+    }
+    details.answer-details summary::-webkit-details-marker { display: none; }
+    details.answer-details[open] summary { margin-bottom: 10px; }
+    .controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .btn {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 24px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background: var(--el-orange);
+        color: #fff;
+    }
+    .btn-primary:hover { background: var(--el-orange-dark); }
+
+    /* ---------- Fullscreen overlay ---------- */
+    .fullscreen {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background:
+            radial-gradient(1200px 600px at 20% 10%, rgba(249,128,18,.18), transparent 70%),
+            radial-gradient(900px 500px at 80% 90%, rgba(25,72,102,.18), transparent 70%),
+            linear-gradient(180deg, #1b2a36 0%, #0c1920 100%);
+        color: #fff;
+        display: none;
+        flex-direction: column;
+        padding: 48px 72px;
+        animation: fade-in .25s ease;
+    }
+    .fullscreen.open { display: flex; }
+    @keyframes fade-in {
+        from { opacity: 0; transform: scale(.98); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+    .fs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: auto;
+    }
+    .fs-ziel-picker {
+        display: flex;
+        gap: 10px;
+    }
+    .fs-ziel-btn {
+        background: rgba(255,255,255,.08);
+        border: 2px solid rgba(255,255,255,.35);
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+    }
+    .fs-ziel-btn.active {
+        background: var(--el-orange);
+        border-color: var(--el-orange);
+    }
+    .fs-close {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.1);
+        border: 2px solid rgba(255,255,255,.35);
+        color: #fff;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+    .fs-close:hover {
+        background: rgba(255,255,255,.2);
+        transform: rotate(90deg);
+    }
+    .fs-question {
+        font-size: clamp(2.5rem, 6vw, 5.5rem);
+        font-weight: 700;
+        line-height: 1.15;
+        text-align: center;
+        max-width: 1400px;
+        margin: 0 auto;
+        align-self: center;
+        text-shadow: 0 4px 40px rgba(0,0,0,.3);
+    }
+    .fs-answer {
+        font-size: clamp(1.1rem, 2vw, 1.6rem);
+        text-align: center;
+        max-width: 1200px;
+        margin: 20px auto 0;
+        align-self: center;
+        opacity: .85;
+        line-height: 1.4;
+        display: none;
+    }
+    .fs-answer.visible { display: block; }
+    .fs-footer {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        margin-top: auto;
+    }
+    .fs-btn {
+        background: rgba(255,255,255,.1);
+        border: 2px solid rgba(255,255,255,.35);
+        color: #fff;
+        padding: 14px 32px;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .fs-btn.primary {
+        background: var(--el-orange);
+        border-color: var(--el-orange);
+    }
+    .fs-btn:hover { background: rgba(255,255,255,.2); }
+    .fs-btn.primary:hover { background: var(--el-orange-dark); }
+
+    /* ---------- Popup preview (fake browser window) ---------- */
+    .popup-wrap {
+        display: flex;
+        gap: 28px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    .popup-left { flex: 1 1 340px; min-width: 280px; }
+    .popup-window {
+        flex: 0 1 600px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 24px 60px rgba(25,72,102,.25);
+        overflow: hidden;
+        border: 1px solid #cfd4da;
+    }
+    .popup-titlebar {
+        background: linear-gradient(180deg, #f2f4f6 0%, #e6eaee 100%);
+        border-bottom: 1px solid #d4d8dc;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .traffic { width: 12px; height: 12px; border-radius: 50%; }
+    .traffic.r { background: #ff5f57; }
+    .traffic.y { background: #febc2e; }
+    .traffic.g { background: #28c840; }
+    .popup-url {
+        margin-left: 14px;
+        background: #fff;
+        border: 1px solid #d4d8dc;
+        border-radius: 6px;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        color: var(--el-muted);
+        flex: 1;
+    }
+    .popup-body {
+        background:
+            radial-gradient(600px 300px at 30% 20%, rgba(249,128,18,.08), transparent 60%),
+            linear-gradient(180deg, #fff 0%, var(--el-sand) 100%);
+        padding: 24px 40px 36px;
+        min-height: 380px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .popup-ziel-picker {
+        display: flex;
+        gap: 6px;
+    }
+    .popup-ziel-btn {
+        border: 2px solid var(--el-dark-blue);
+        background: #fff;
+        color: var(--el-dark-blue);
+        padding: 5px 14px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        cursor: pointer;
+    }
+    .popup-ziel-btn.active {
+        background: var(--el-dark-blue);
+        color: #fff;
+    }
+    .popup-close {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(25,72,102,.08);
+        color: var(--el-dark-blue);
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+    .popup-close:hover { background: rgba(25,72,102,.15); }
+    .popup-q {
+        font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+        font-weight: 700;
+        color: var(--el-dark-blue);
+        line-height: 1.2;
+        margin: auto 0;
+        text-align: center;
+    }
+    .popup-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 24px;
+    }
+    .popup-hint {
+        color: var(--el-muted);
+        font-size: 0.9rem;
+        max-width: 420px;
+    }
+
+    /* ---------- Variant toggles ---------- */
+    .variant-toggle {
+        display: inline-flex;
+        background: #fff;
+        border: 1px solid #d4d9de;
+        border-radius: 999px;
+        padding: 3px;
+        margin: 0 0 18px;
+        gap: 2px;
+    }
+    .variant-toggle button {
+        border: none;
+        background: transparent;
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--el-muted);
+        cursor: pointer;
+    }
+    .variant-toggle button.active {
+        background: var(--el-dark-blue);
+        color: #fff;
+    }
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="page">
+    <h1>mod_elediacheckin &mdash; Anzeige-Modi <span style="color:var(--el-orange)">v2</span></h1>
+    <p class="lead">Überarbeitete Version nach Feedback. Für jeden Modus gibt es zwei Varianten: <em>Ein Ziel</em> (z. B. nur Check-in) und <em>Mehrere Ziele</em> (z. B. Check-in + Check-out).</p>
+
+    <div class="changes">
+        <strong>Änderungen gegenüber v1:</strong>
+        <ul>
+            <li>Kategorien-Chips entfernt &mdash; weder in Normal noch in Popup/Vollbild</li>
+            <li>Feste Ziel-Anzeige (&bdquo;Check-in&ldquo;-Chip) entfernt &mdash; das Ziel ist in der Aktivitäts-Einstellung festgelegt</li>
+            <li><strong>Neu:</strong> Wenn mehrere Ziele konfiguriert sind, erscheinen am Kopf der Karte Umschalt-Buttons (z. B. <em>Check-in / Check-out</em>). Bei nur einem Ziel: keine Buttons.</li>
+            <li>Vor/Zurück-Pfeile entfernt</li>
+            <li>&bdquo;Andere Frage&ldquo; &rarr; <strong>&bdquo;Nächste Frage&ldquo;</strong></li>
+            <li>&bdquo;Antwort anzeigen&ldquo; erscheint nur, wenn die Frage auch eine Antwort hat (<code>hat_antwort=true</code>)</li>
+            <li>Vollbild- und Popup-Launcher sind jetzt kleine Icon-Buttons oben rechts, keine Text-Buttons mehr</li>
+        </ul>
+    </div>
+
+    <div class="mode-switcher">
+        <button class="mode-btn active" data-mode="normal">Normal</button>
+        <button class="mode-btn" data-mode="popup">Popup</button>
+        <button class="mode-btn" data-mode="fullscreen">Vollbild</button>
+    </div>
+
+    <!-- ================= NORMAL ================= -->
+    <section class="mode-section" data-mode="normal">
+        <h2>Modus 1 &mdash; Normal (eingebettet)</h2>
+
+        <div class="variant-toggle" data-variant-group="normal">
+            <button class="active" data-variant="single">Ein Ziel (Check-in)</button>
+            <button data-variant="multi">Mehrere Ziele (Check-in + Check-out)</button>
+        </div>
+
+        <!-- Variant A: single ziel, mit Antwort -->
+        <div class="moodle-frame" data-variant="single">
+            <div class="moodle-topbar">
+                <span class="logo">Moodle</span>
+                <span class="crumbs">Kursraum ▸ Team-Meeting ▸ Check-in zu Beginn</span>
+            </div>
+            <div class="moodle-body">
+                <h3>Check-in zu Beginn</h3>
+                <p class="moodle-intro">Eine kurze Frage, um im Meeting anzukommen.</p>
+
+                <div class="card">
+                    <!-- Icon launchers oben rechts -->
+                    <div class="icon-row-inline">
+                        <button class="icon-btn" title="Als Popup öffnen" onclick="alert('window.open(present.php?layout=popup)')">
+                            <svg viewBox="0 0 24 24"><path d="M14 3h7v7M21 3l-9 9M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
+                        </button>
+                        <button class="icon-btn" title="Vollbild" onclick="openFullscreen('single')">
+                            <svg viewBox="0 0 24 24"><path d="M3 9V5a2 2 0 0 1 2-2h4M21 9V5a2 2 0 0 0-2-2h-4M3 15v4a2 2 0 0 0 2 2h4M21 15v4a2 2 0 0 1-2 2h-4"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Kein Ziel-Picker bei nur einem aktiven Ziel -->
+
+                    <p class="q-normal">Auf einer Skala von 1 bis 10: Wie viel Energie bringst du heute mit?</p>
+
+                    <!-- Mit Antwort: hat_antwort=true -->
+                    <details class="answer-details">
+                        <summary>Antwort anzeigen</summary>
+                        <div class="answer-box">
+                            Notier deine Zahl kurz im Chat oder sag sie reihum. Die Zahl hilft, den Energie-Level im Team sichtbar zu machen.
+                        </div>
+                    </details>
+
+                    <div class="controls">
+                        <button class="btn btn-primary">Nächste Frage</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variant B: multi ziel, ohne Antwort -->
+        <div class="moodle-frame hidden" data-variant="multi">
+            <div class="moodle-topbar">
+                <span class="logo">Moodle</span>
+                <span class="crumbs">Kursraum ▸ Team-Meeting ▸ Check-in &amp; Check-out</span>
+            </div>
+            <div class="moodle-body">
+                <h3>Check-in &amp; Check-out</h3>
+                <p class="moodle-intro">Diese Aktivität liefert Fragen für Anfang und Ende des Meetings.</p>
+
+                <div class="card">
+                    <div class="icon-row-inline">
+                        <button class="icon-btn" title="Als Popup öffnen">
+                            <svg viewBox="0 0 24 24"><path d="M14 3h7v7M21 3l-9 9M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
+                        </button>
+                        <button class="icon-btn" title="Vollbild" onclick="openFullscreen('multi')">
+                            <svg viewBox="0 0 24 24"><path d="M3 9V5a2 2 0 0 1 2-2h4M21 9V5a2 2 0 0 0-2-2h-4M3 15v4a2 2 0 0 0 2 2h4M21 15v4a2 2 0 0 1-2 2h-4"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Ziel-Picker nur wenn mehrere Ziele aktiv sind -->
+                    <div class="ziel-picker">
+                        <button class="ziel-btn active" data-ziel="checkin">Check-in</button>
+                        <button class="ziel-btn" data-ziel="checkout">Check-out</button>
+                    </div>
+
+                    <p class="q-normal">Was war dein Highlight der letzten Woche?</p>
+
+                    <!-- Keine Antwort: hat_antwort=false → Toggle wird nicht angezeigt -->
+
+                    <div class="controls">
+                        <button class="btn btn-primary">Nächste Frage</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= POPUP ================= -->
+    <section class="mode-section hidden" data-mode="popup">
+        <h2>Modus 2 &mdash; Popup (separates Browserfenster)</h2>
+
+        <div class="variant-toggle" data-variant-group="popup">
+            <button class="active" data-variant="single">Ein Ziel</button>
+            <button data-variant="multi">Mehrere Ziele</button>
+        </div>
+
+        <!-- Variant A: single ziel -->
+        <div class="popup-wrap" data-variant="single">
+            <div class="popup-left">
+                <div class="moodle-frame" style="transform:scale(.9);transform-origin:top left">
+                    <div class="moodle-topbar">
+                        <span class="logo">Moodle</span>
+                        <span class="crumbs">Präsentationsmodus aktiv</span>
+                    </div>
+                    <div class="moodle-body" style="min-height:200px">
+                        <h3>Check-in im Präsentationsmodus</h3>
+                        <p class="moodle-intro">Die Frage läuft im separaten Fenster. Von hier aus kannst du weiter steuern.</p>
+                        <div class="controls" style="justify-content:flex-start;margin-top:8px">
+                            <button class="btn btn-primary">Nächste Frage senden</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-window">
+                <div class="popup-titlebar">
+                    <span class="traffic r"></span><span class="traffic y"></span><span class="traffic g"></span>
+                    <span class="popup-url">moodle.example.com/mod/elediacheckin/present.php?id=42&layout=popup</span>
+                </div>
+                <div class="popup-body">
+                    <div class="popup-header">
+                        <span></span><!-- spacer, kein Ziel-Picker -->
+                        <button class="popup-close" title="Fenster schließen">✕</button>
+                    </div>
+                    <p class="popup-q">Auf einer Skala von 1&nbsp;bis&nbsp;10:<br>Wie viel Energie bringst du heute mit?</p>
+                    <div class="popup-footer">
+                        <button class="btn" style="background:#fff;border:2px solid var(--el-dark-blue);color:var(--el-dark-blue)">Antwort anzeigen</button>
+                        <button class="btn btn-primary">Nächste Frage</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variant B: multi ziel -->
+        <div class="popup-wrap hidden" data-variant="multi">
+            <div class="popup-left">
+                <div class="moodle-frame" style="transform:scale(.9);transform-origin:top left">
+                    <div class="moodle-topbar">
+                        <span class="logo">Moodle</span>
+                        <span class="crumbs">Präsentationsmodus aktiv</span>
+                    </div>
+                    <div class="moodle-body" style="min-height:200px">
+                        <h3>Check-in &amp; Check-out</h3>
+                        <p class="moodle-intro">Zwei Ziele aktiv. Umschalten entweder hier oder direkt im Popup.</p>
+                        <div class="ziel-picker" style="margin-top:8px">
+                            <button class="ziel-btn active">Check-in</button>
+                            <button class="ziel-btn">Check-out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-window">
+                <div class="popup-titlebar">
+                    <span class="traffic r"></span><span class="traffic y"></span><span class="traffic g"></span>
+                    <span class="popup-url">moodle.example.com/mod/elediacheckin/present.php?id=42&layout=popup</span>
+                </div>
+                <div class="popup-body">
+                    <div class="popup-header">
+                        <div class="popup-ziel-picker">
+                            <button class="popup-ziel-btn active">Check-in</button>
+                            <button class="popup-ziel-btn">Check-out</button>
+                        </div>
+                        <button class="popup-close" title="Fenster schließen">✕</button>
+                    </div>
+                    <p class="popup-q">Was war dein Highlight der letzten Woche?</p>
+                    <div class="popup-footer">
+                        <!-- hat_antwort=false → kein Antwort-Button -->
+                        <button class="btn btn-primary">Nächste Frage</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FULLSCREEN ================= -->
+    <section class="mode-section hidden" data-mode="fullscreen">
+        <h2>Modus 3 &mdash; Vollbild</h2>
+        <p class="popup-hint">Klick auf einen Button öffnet das Overlay. Esc oder ✕ zum Schließen.</p>
+        <div style="display:flex;gap:12px;margin-top:10px">
+            <button class="btn btn-primary" onclick="openFullscreen('single')">Vollbild mit einem Ziel</button>
+            <button class="btn btn-primary" onclick="openFullscreen('multi')">Vollbild mit zwei Zielen</button>
+        </div>
+    </section>
+</div>
+
+<!-- ================= FULLSCREEN OVERLAY ================= -->
+<div class="fullscreen" id="fsOverlay">
+    <div class="fs-header">
+        <div class="fs-ziel-picker" id="fsZielPicker">
+            <!-- Wird per JS befüllt: entweder leer (single) oder 2 Buttons (multi) -->
+        </div>
+        <button class="fs-close" onclick="closeFullscreen()" title="Schließen (Esc)">✕</button>
+    </div>
+    <div>
+        <p class="fs-question" id="fsQuestion">Auf einer Skala von 1&nbsp;bis&nbsp;10:<br>Wie viel Energie bringst du heute mit?</p>
+        <p class="fs-answer" id="fsAnswer">Notier deine Zahl kurz im Chat oder sag sie reihum.</p>
+    </div>
+    <div class="fs-footer">
+        <button class="fs-btn" id="fsAnswerBtn" onclick="toggleFsAnswer()">Antwort anzeigen</button>
+        <button class="fs-btn primary">Nächste Frage</button>
+    </div>
+</div>
+
+<script>
+    // Mode switcher (top-level)
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const sections = document.querySelectorAll('.mode-section');
+    modeButtons.forEach(btn => btn.addEventListener('click', () => {
+        modeButtons.forEach(b => b.classList.toggle('active', b === btn));
+        const mode = btn.dataset.mode;
+        sections.forEach(s => s.classList.toggle('hidden', s.dataset.mode !== mode));
+    }));
+
+    // Variant toggles (single / multi ziele per section)
+    document.querySelectorAll('.variant-toggle').forEach(group => {
+        const buttons = group.querySelectorAll('button');
+        const section = group.closest('.mode-section');
+        buttons.forEach(btn => btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.toggle('active', b === btn));
+            const variant = btn.dataset.variant;
+            section.querySelectorAll('[data-variant]').forEach(el => {
+                if (el.closest('.variant-toggle')) return;
+                el.classList.toggle('hidden', el.dataset.variant !== variant);
+            });
+        }));
+    });
+
+    // Ziel-picker buttons inside cards (demo toggle only)
+    document.querySelectorAll('.ziel-picker').forEach(group => {
+        const buttons = group.querySelectorAll('.ziel-btn');
+        buttons.forEach(btn => btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.toggle('active', b === btn));
+        }));
+    });
+    document.querySelectorAll('.popup-ziel-picker').forEach(group => {
+        const buttons = group.querySelectorAll('.popup-ziel-btn');
+        buttons.forEach(btn => btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.toggle('active', b === btn));
+        }));
+    });
+
+    // Fullscreen overlay: data-driven based on variant
+    const FS_DATA = {
+        single: {
+            question: 'Auf einer Skala von 1&nbsp;bis&nbsp;10:<br>Wie viel Energie bringst du heute mit?',
+            answer: 'Notier deine Zahl kurz im Chat oder sag sie reihum.',
+            hasAnswer: true,
+            ziele: []  // single → no picker
+        },
+        multi: {
+            question: 'Was war dein Highlight der letzten Woche?',
+            answer: '',
+            hasAnswer: false,
+            ziele: ['Check-in', 'Check-out']
+        }
+    };
+
+    function openFullscreen(variant) {
+        const data = FS_DATA[variant];
+        document.getElementById('fsQuestion').innerHTML = data.question;
+        document.getElementById('fsAnswer').innerHTML = data.answer;
+        document.getElementById('fsAnswer').classList.remove('visible');
+
+        // Answer button only if hasAnswer
+        const answerBtn = document.getElementById('fsAnswerBtn');
+        answerBtn.style.display = data.hasAnswer ? '' : 'none';
+        answerBtn.textContent = 'Antwort anzeigen';
+
+        // Ziel picker only if >1 ziel
+        const picker = document.getElementById('fsZielPicker');
+        picker.innerHTML = '';
+        if (data.ziele.length > 1) {
+            data.ziele.forEach((z, i) => {
+                const b = document.createElement('button');
+                b.className = 'fs-ziel-btn' + (i === 0 ? ' active' : '');
+                b.textContent = z;
+                b.addEventListener('click', () => {
+                    picker.querySelectorAll('.fs-ziel-btn').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active');
+                });
+                picker.appendChild(b);
+            });
+        }
+
+        document.getElementById('fsOverlay').classList.add('open');
+    }
+    function closeFullscreen() {
+        document.getElementById('fsOverlay').classList.remove('open');
+    }
+    function toggleFsAnswer() {
+        const a = document.getElementById('fsAnswer');
+        const btn = document.getElementById('fsAnswerBtn');
+        a.classList.toggle('visible');
+        btn.textContent = a.classList.contains('visible') ? 'Antwort verbergen' : 'Antwort anzeigen';
+    }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeFullscreen();
+    });
+</script>
+</body>
+</html>
