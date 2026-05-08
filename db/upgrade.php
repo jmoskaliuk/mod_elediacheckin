@@ -618,44 +618,69 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
     }
 
     /*
-     * 2026040602 — Drop the empty-string DEFAULT '' that lingers on CHAR
-     * columns relaxed to NULL in step 2026040543 (and on the activity-table
-     * 'categories' column from older releases). Moodle 4.5+ XMLDB validation
-     * fires "CHAR NOT NULL column with '' as DEFAULT — must have a meaningful
-     * DEFAULT or none (NULL)" on every install/upgrade for these columns even
-     * after change_field_notnull() has run, because change_field_notnull()
-     * does not remove the leftover default. change_field_default() with a
-     * null default removes the DEFAULT clause and silences the warning.
+     * 2026040602 — Drop the dead 'reporef' admin setting (was rendered as
+     * "branch / tag / commit" but git_content_source only ever read 'repourl').
+     *
+     * The original 2026040602 step ALSO called $dbman->change_field_default()
+     * to drop the leftover DEFAULT '' on a handful of CHAR columns. That
+     * approach turned out to be self-defeating in DEBUG_DEVELOPER mode: Moodle
+     * introspects the live column state when generating the ALTER, builds an
+     * xmldb_field with notnull=true/default='', triggers the
+     * "CHAR NOT NULL with '' as DEFAULT" notice — which DEBUG_DEVELOPER
+     * escalates to a fatal ErrorException, aborting the upgrade BEFORE the
+     * ALTER runs. The column never gets fixed. Step 2026040603 uses raw SQL
+     * to bypass the introspection entirely.
      */
     if ($oldversion < 2026040602) {
-        $qtable = new xmldb_table('elediacheckin_question');
-        $qcols = [
-            ['categories', XMLDB_TYPE_CHAR, '255', 'ziel'],
-            ['zielgruppe', XMLDB_TYPE_CHAR, '255', 'categories'],
-            ['kontext', XMLDB_TYPE_CHAR, '255', 'zielgruppe'],
-            ['license', XMLDB_TYPE_CHAR, '64', 'quelle'],
-        ];
-        foreach ($qcols as [$name, $type, $len, $after]) {
-            $field = new xmldb_field($name, $type, $len, null, null, null, null, $after);
-            if ($dbman->field_exists($qtable, $field)) {
-                $dbman->change_field_default($qtable, $field);
-            }
-        }
-
-        $itable = new xmldb_table('elediacheckin');
-        $field = new xmldb_field('categories', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'ziele');
-        if ($dbman->field_exists($itable, $field)) {
-            $dbman->change_field_default($itable, $field);
-        }
-
-        // Drop the dead 'reporef' admin setting — it was rendered in the UI
-        // as "branch / tag / commit" but git_content_source only ever read
-        // 'repourl' (the raw HTTPS URL), so the setting was never honoured.
-        // Removed in 2026040602; this purges any stored value so the admin
-        // page no longer carries a leftover config row.
         unset_config('reporef', 'mod_elediacheckin');
 
         upgrade_mod_savepoint(true, 2026040602, 'elediacheckin');
+    }
+
+    /*
+     * 2026040603 — Raw-SQL escape hatch for the XMLDB CHAR NOT NULL DEFAULT ''
+     * warning. Step 2026040602 used $dbman->change_field_default(), but Moodle
+     * internally constructs an xmldb_field representing the LIVE column state
+     * before applying the change. If that live state is CHAR NOT NULL DEFAULT
+     * '', the xmldb_field auto-fix logs an E_USER_NOTICE — which DEBUG_DEVELOPER
+     * sites escalate to a fatal ErrorException, aborting the upgrade BEFORE
+     * the ALTER actually runs. The column never gets fixed and the loop repeats
+     * on every install/upgrade attempt.
+     *
+     * Raw SQL via $DB->execute() bypasses the xmldb introspection entirely.
+     * Both MySQL/MariaDB and PostgreSQL accept ALTER TABLE ... ALTER COLUMN ...
+     * DROP NOT NULL / DROP DEFAULT. We tolerate per-statement failures (column
+     * may already be in the correct state on a clean install) so the step is
+     * idempotent.
+     */
+    if ($oldversion < 2026040603) {
+        // Both MySQL/MariaDB (5.7+/10.6+) and PostgreSQL accept ALTER TABLE
+        // ... ALTER COLUMN ... DROP DEFAULT. Step 2026040543 already relaxed
+        // the columns to NULL via change_field_notnull(), so DROP DEFAULT is
+        // the only piece of cleanup left.
+        $family = $DB->get_dbfamily();
+        if ($family === 'mysql' || $family === 'postgres') {
+            $cleanups = [
+                ['elediacheckin_question', 'categories'],
+                ['elediacheckin_question', 'zielgruppe'],
+                ['elediacheckin_question', 'kontext'],
+                ['elediacheckin_question', 'license'],
+                ['elediacheckin', 'categories'],
+            ];
+            foreach ($cleanups as [$table, $column]) {
+                try {
+                    $DB->execute("ALTER TABLE {{$table}} ALTER COLUMN {$column} DROP DEFAULT");
+                } catch (\Throwable $e) {
+                    // Column may already lack a default — idempotent step.
+                    // Stay silent: a debugging() call here would itself trip
+                    // the DEBUG_DEVELOPER notice-to-fatal escalation we are
+                    // trying to escape from.
+                    unset($e);
+                }
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2026040603, 'elediacheckin');
     }
 
     return true;
