@@ -17,9 +17,11 @@
 /**
  * Privacy API provider for mod_elediacheckin.
  *
- * The plugin does not store any user-identifiable data on its own: question content
- * comes from an external repository and is rendered read-only. No answers are captured
- * in the MVP. We therefore implement the null provider to declare "no personal data".
+ * The plugin does not store learner answers. It does store the activity
+ * configuration entered by a teacher (name, intro, own questions); those
+ * are the only fields declared here. The bundle table (elediacheckin_question)
+ * holds repository-content synced from an external source — not personal
+ * data — and the sync log holds admin-side telemetry, so neither is declared.
  *
  * @package    mod_elediacheckin
  * @copyright  2026 eLeDia GmbH <info@eledia.de>
@@ -28,16 +30,29 @@
 
 namespace mod_elediacheckin\privacy;
 
+use core_privacy\local\metadata\collection;
+
 /**
- * Null provider - this plugin does not store personal data.
+ * Privacy metadata provider.
  */
-class provider implements \core_privacy\local\metadata\null_provider {
+class provider implements \core_privacy\local\metadata\provider {
     /**
-     * Returns the language string identifier explaining why no data is stored.
+     * Returns metadata about stored plugin data.
      *
-     * @return string The language string identifier for privacy reason.
+     * @param collection $collection The metadata collection to add to.
+     * @return collection Updated metadata collection.
      */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
+    public static function get_metadata(collection $collection): collection {
+        $collection->add_database_table(
+            'elediacheckin',
+            [
+                'name' => 'privacy:metadata:elediacheckin:name',
+                'intro' => 'privacy:metadata:elediacheckin:intro',
+                'ownquestions' => 'privacy:metadata:elediacheckin:ownquestions',
+            ],
+            'privacy:metadata:elediacheckin'
+        );
+
+        return $collection;
     }
 }

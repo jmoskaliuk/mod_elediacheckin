@@ -37,8 +37,9 @@ class backup_elediacheckin_activity_structure_step extends backup_activity_struc
     protected function define_structure(): backup_nested_element {
         $elediacheckin = new backup_nested_element('elediacheckin', ['id'], [
             'name', 'intro', 'introformat',
-            'ziele', 'categories', 'contentlang',
-            'randomstart', 'shownav', 'showother', 'showfilter', 'avoidrepeat',
+            'ziele', 'categories', 'zielgruppe', 'kontext', 'contentlang',
+            'avoidrepeat', 'ownquestions', 'ownquestionsmode',
+            'showprevbutton', 'exhaustedbehavior',
             'timecreated', 'timemodified',
         ]);
 

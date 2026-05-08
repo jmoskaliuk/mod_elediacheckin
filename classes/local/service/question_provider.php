@@ -49,17 +49,27 @@ class question_provider {
      */
     public function get_question_by_id(int $id): ?\stdClass {
         global $DB;
+        $cache = (new cache_service())->questions();
+        $cachekey = 'id_' . $id;
+        $cached = $cache->get($cachekey);
+        if ($cached !== false) {
+            return $this->array_to_record($cached);
+        }
+
         $record = $DB->get_record(self::TBL_QUESTION, [
             'id'    => $id,
             'stage' => self::STAGE_LIVE,
         ]);
+        if ($record) {
+            $cache->set($cachekey, (array) $record);
+        }
         return $record ?: null;
     }
 
     /**
      * Fetches a random live question matching the given filter.
      *
-     * @param array $filter Filter criteria (see get_questions_by_filter()).
+     * @param array<string, mixed> $filter Filter criteria (see get_questions_by_filter()).
      * @return \stdClass|null The randomly selected question, or null if no matches.
      */
     public function get_random_question(array $filter): ?\stdClass {
@@ -86,11 +96,18 @@ class question_provider {
      *  - lang       (string|null)          ISO-639-1, null = any language.
      *  - qstatus    (string|null)          Defaults to 'published'.
      *
-     * @param array $filter
+     * @param array<string, mixed> $filter
      * @return \stdClass[]
      */
     public function get_questions_by_filter(array $filter): array {
         global $DB;
+
+        $cache = (new cache_service())->questions();
+        $cachekey = 'filter_' . sha1(json_encode($this->normalise_filter_for_cache($filter)));
+        $cached = $cache->get($cachekey);
+        if ($cached !== false) {
+            return array_map([$this, 'array_to_record'], $cached);
+        }
 
         $where  = ['stage = :stage'];
         $params = ['stage' => self::STAGE_LIVE];
@@ -147,7 +164,23 @@ class question_provider {
             });
         }
 
-        return array_values($records);
+        $records = array_values($records);
+        $cache->set($cachekey, array_map(
+            static fn(\stdClass $record): array => (array) $record,
+            $records
+        ));
+
+        return $records;
+    }
+
+    /**
+     * Converts a cached array row back into a Moodle-style record object.
+     *
+     * @param array<string, mixed> $row Cached record array.
+     * @return \stdClass Record object.
+     */
+    private function array_to_record(array $row): \stdClass {
+        return (object) $row;
     }
 
     /**
@@ -185,5 +218,26 @@ class question_provider {
             return [];
         }
         return array_values(array_filter(array_map('trim', $value), static fn($v) => $v !== ''));
+    }
+
+    /**
+     * Normalises filters into a deterministic cache-key payload.
+     *
+     * @param array<string, mixed> $filter Raw filter.
+     * @return array<string, mixed> Normalised filter.
+     */
+    private function normalise_filter_for_cache(array $filter): array {
+        $normalised = [
+            'ziele' => $this->normalise_csv($filter['ziele'] ?? null),
+            'categories' => $this->normalise_csv($filter['categories'] ?? null),
+            'zielgruppe' => $this->normalise_csv($filter['zielgruppe'] ?? null),
+            'kontext' => $this->normalise_csv($filter['kontext'] ?? null),
+            'lang' => $filter['lang'] ?? null,
+            'qstatus' => (string) ($filter['qstatus'] ?? 'published'),
+        ];
+        foreach (['ziele', 'categories', 'zielgruppe', 'kontext'] as $key) {
+            sort($normalised[$key]);
+        }
+        return $normalised;
     }
 }

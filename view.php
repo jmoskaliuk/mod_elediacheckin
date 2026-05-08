@@ -111,6 +111,11 @@ $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
 $question  = $nav['question'];
 $hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
 $exhausted = !empty($nav['exhausted']);
+$poolinfo = \mod_elediacheckin\local\service\activity_pool::describe_pool(
+    $instance,
+    $activeziel,
+    $langcandidates
+);
 
 // PRG redirect: after processing ?next=1 or ?prev=1, redirect to a clean
 // URL so that F5 does not re-trigger the navigation action. The resulting
@@ -173,7 +178,9 @@ $templatecontext = [
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
         // Own questions come from a teacher-filled textarea and are rendered as plain text.
-        // Bundle questions come from a trusted JSON bundle and may contain simple HTML.
+        // Bundle questions come from a trusted JSON bundle and may contain simple HTML;
+        // format_text() with noclean=false (the default) sanitises bundle HTML through Moodle's
+        // standard filter chain — wrapping with clean_text() on top would just clean twice.
         'frage' => format_text(
             $question->frage,
             !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML
@@ -195,6 +202,8 @@ $templatecontext = [
     'prevquestionurl' => $prevurl->out(false),
     'hasprev'         => $hasprev,
     'exhausted'       => $exhausted,
+    'hasfilterwarning' => !empty($poolinfo['bundlefilteredout']),
+    'filterwarning'   => get_string('filterwarning_bundlefilteredout', 'elediacheckin'),
     'strexhausted'    => get_string('exhaustedmessage', 'elediacheckin'),
     'popupurl'        => $popupurl->out(false),
     'presenturl'      => $popupurl->out(false),

@@ -56,7 +56,7 @@ final class content_bundle {
      * @param string $bundleversion
      * @param string $language
      * @param int|null $generatedat Unix timestamp or null if missing.
-     * @param array $questions
+     * @param array<int, array<string, mixed>> $questions
      */
     public function __construct(
         string $schemaversion,
@@ -78,7 +78,7 @@ final class content_bundle {
      * Build a bundle from a decoded JSON array. Does NOT validate — call the
      * schema_validator first.
      *
-     * @param array $decoded
+     * @param array<string, mixed> $decoded
      * @return self
      */
     public static function from_array(array $decoded): self {

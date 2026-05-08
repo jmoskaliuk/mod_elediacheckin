@@ -357,7 +357,7 @@ final class activity_pool {
      * @param \stdClass $instance Row from the {elediacheckin} table.
      * @param string $activeziel Single ziel key to draw for.
      * @param string[] $langcandidates Ordered list of lang codes.
-     * @param array $seen Map of externalid → true for seen questions.
+     * @param array<string,bool> $seen Map of externalid → true for seen questions.
      * @return \stdClass|null The randomly selected question, or null if pool is empty.
      */
     public static function pick_random_excluding(
@@ -418,63 +418,133 @@ final class activity_pool {
         string $activeziel,
         array $langcandidates
     ): array {
-        /*
-         * "Eigene Fragen"-Modus (Konzept §10.15 + §10.19). Tri-state:
-         *   0 = mixed     — Bundle + eigene additiv (Default).
-         *   1 = only_own  — NUR eigene Fragen, Bundle komplett ueberspringen.
-         *   2 = none      — Eigene Fragen komplett ignorieren, auch wenn das
-         *                   Textfeld gefuellt ist (nuetzlich, wenn Teacher
-         *                   Eine Aktivitaet temporaer "aus dem Mix" nehmen
-         *                   Moechte, ohne die eingetragenen Fragen zu loeschen).
-         *
-         * Fallback auf 0, falls das alte Feld `onlyownquestions` noch in
-         * Der DB steckt (wird durch Upgrade-Step 2026040524 umbenannt, aber
-         * Defensive Programmierung schadet nicht.
-         */
+        return self::analyze_pool($instance, $activeziel, $langcandidates)['pool'];
+    }
+
+    /**
+     * Returns a small explanation of the current bundle/own-question pool.
+     *
+     * Used by the views to explain the otherwise surprising case where
+     * target-group/context filters remove every bundle card but own questions
+     * still appear in mixed mode.
+     *
+     * @param \stdClass $instance The activity instance.
+     * @param string $activeziel Single ziel key to filter by.
+     * @param string[] $langcandidates Ordered language fallback chain.
+     * @return array<string, mixed> Pool diagnostic data.
+     */
+    public static function describe_pool(
+        \stdClass $instance,
+        string $activeziel,
+        array $langcandidates
+    ): array {
+        $analysis = self::analyze_pool($instance, $activeziel, $langcandidates);
+        unset($analysis['pool']);
+        return $analysis;
+    }
+
+    /**
+     * Builds the merged pool and the diagnostic counts in a single pass.
+     *
+     * "Eigene Fragen"-Modus (Konzept §10.15 + §10.19) is tri-state:
+     *   0 = mixed     — Bundle + eigene additiv (Default).
+     *   1 = only_own  — NUR eigene Fragen, Bundle komplett überspringen.
+     *   2 = none      — Eigene Fragen ignorieren.
+     * Fallback to the legacy `onlyownquestions` column (renamed to
+     * `ownquestionsmode` in upgrade step 2026040524) for safety.
+     *
+     * The without-audience-filter query is only run when an audience filter is
+     * actually set — otherwise its result equals the with-filter result and we
+     * skip the second SQL trip.
+     *
+     * @param \stdClass $instance The activity instance.
+     * @param string $activeziel Single ziel key.
+     * @param string[] $langcandidates Ordered language fallback chain.
+     * @return array<string, mixed> {pool, owncount, bundlecount, bundlecountbeforeaudience, bundlefilteredout}.
+     */
+    private static function analyze_pool(
+        \stdClass $instance,
+        string $activeziel,
+        array $langcandidates
+    ): array {
         $mode = isset($instance->ownquestionsmode)
             ? (int) $instance->ownquestionsmode
             : (isset($instance->onlyownquestions) ? (int) $instance->onlyownquestions : 0);
-
         $own = $mode === 2 ? [] : self::parse_own_questions($instance);
 
         if ($mode === 1) {
-            return $own;
+            return [
+                'pool' => $own,
+                'owncount' => count($own),
+                'bundlecount' => 0,
+                'bundlecountbeforeaudience' => 0,
+                'bundlefilteredout' => false,
+            ];
         }
 
-        $provider = new question_provider();
+        $audiencefilteractive = !empty(trim((string) ($instance->zielgruppe ?? '')))
+            || !empty(trim((string) ($instance->kontext ?? '')));
 
-        $bundle = [];
+        $bundlewithallfilters = self::first_bundle_hits($instance, $activeziel, $langcandidates, true);
+        $bundlewithoutaudience = $audiencefilteractive
+            ? self::first_bundle_hits($instance, $activeziel, $langcandidates, false)
+            : $bundlewithallfilters;
+
+        return [
+            'pool' => array_merge($bundlewithallfilters, $own),
+            'owncount' => count($own),
+            'bundlecount' => count($bundlewithallfilters),
+            'bundlecountbeforeaudience' => count($bundlewithoutaudience),
+            'bundlefilteredout' => $mode === 0
+                && $audiencefilteractive
+                && !empty($own)
+                && !empty($bundlewithoutaudience)
+                && empty($bundlewithallfilters),
+        ];
+    }
+
+    /**
+     * Finds bundle hits for the first matching language candidate.
+     *
+     * @param \stdClass $instance The activity instance.
+     * @param string $activeziel Single ziel key.
+     * @param string[] $langcandidates Ordered language fallback chain.
+     * @param bool $includeaudiencefilters Whether zielgruppe/kontext should be applied.
+     * @return \stdClass[] Matching bundle questions.
+     */
+    private static function first_bundle_hits(
+        \stdClass $instance,
+        string $activeziel,
+        array $langcandidates,
+        bool $includeaudiencefilters
+    ): array {
+        $provider = new question_provider();
         $candidates = array_values(
             array_unique(
-                array_filter(
-                    $langcandidates,
-                    static fn($v) => $v !== ''
-                ),
+                array_filter($langcandidates, static fn($v) => $v !== ''),
                 SORT_REGULAR
             )
         );
-        // Always keep a final "any language" fallback.
         if (!in_array(null, $candidates, true)) {
             $candidates[] = null;
         }
 
         foreach ($candidates as $lang) {
-            $hits = $provider->get_questions_by_filter(
-                [
-                    'ziele' => [$activeziel],
-                    'categories' => $instance->categories,
-                    'zielgruppe' => $instance->zielgruppe ?? null,
-                    'kontext' => $instance->kontext ?? null,
-                    'lang' => $lang,
-                ]
-            );
+            $filter = [
+                'ziele' => [$activeziel],
+                'categories' => $instance->categories,
+                'lang' => $lang,
+            ];
+            if ($includeaudiencefilters) {
+                $filter['zielgruppe'] = $instance->zielgruppe ?? null;
+                $filter['kontext'] = $instance->kontext ?? null;
+            }
+            $hits = $provider->get_questions_by_filter($filter);
             if (!empty($hits)) {
-                $bundle = $hits;
-                break;
+                return $hits;
             }
         }
-
-        return array_merge($bundle, $own);
+        return [];
     }
 
     /**

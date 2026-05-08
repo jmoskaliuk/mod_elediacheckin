@@ -36,6 +36,23 @@ class category_provider {
      */
     public function get_all(string $lang): array {
         global $DB;
-        return $DB->get_records('elediacheckin_category', ['lang' => $lang], 'label ASC');
+        $cache = (new cache_service())->categories();
+        $cachekey = 'lang_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $lang);
+        $cached = $cache->get($cachekey);
+        if ($cached !== false) {
+            $records = [];
+            foreach ($cached as $key => $row) {
+                $records[$key] = (object) $row;
+            }
+            return $records;
+        }
+
+        $records = $DB->get_records('elediacheckin_category', ['lang' => $lang], 'label ASC');
+        $cachedrecords = [];
+        foreach ($records as $key => $record) {
+            $cachedrecords[$key] = (array) $record;
+        }
+        $cache->set($cachekey, $cachedrecords);
+        return $records;
     }
 }

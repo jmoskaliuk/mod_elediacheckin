@@ -52,6 +52,30 @@ class restore_elediacheckin_activity_structure_step extends restore_activity_str
         $data->timecreated  = time();
         $data->timemodified = time();
 
+        // Keep old backup packages restoreable while ensuring current fields
+        // never silently fall back to missing DB defaults.
+        $defaults = [
+            'ziele'             => 'checkin,checkout',
+            'categories'        => '',
+            'zielgruppe'        => '',
+            'kontext'           => '',
+            'contentlang'       => '_auto_',
+            'avoidrepeat'       => 1,
+            'ownquestions'      => '',
+            'ownquestionsmode'  => 0,
+            'showprevbutton'    => 1,
+            'exhaustedbehavior' => 'restart',
+        ];
+        foreach ($defaults as $field => $default) {
+            if (!property_exists($data, $field) || $data->{$field} === null) {
+                $data->{$field} = $default;
+            }
+        }
+
+        // These fields existed in early backup definitions but no longer exist
+        // in the activity table. Remove them defensively for old backup XML.
+        unset($data->randomstart, $data->shownav, $data->showother, $data->showfilter);
+
         $newid = $DB->insert_record('elediacheckin', $data);
         $this->apply_activity_instance($newid);
     }

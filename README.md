@@ -54,6 +54,11 @@ None. `block_elediacheckin` depends on this plugin, not the other way round.
 
 [GitHub Issues](https://github.com/jmoskaliuk/mod_elediacheckin/issues)
 
+## DevFlow
+
+Project documentation follows `eLeDia.OS_DevFlow` and lives in `docs/`:
+start with [`docs/00-master.md`](docs/00-master.md).
+
 ## License
 
 GNU GPL v3 or later — see [COPYING](https://www.gnu.org/licenses/gpl-3.0.html).

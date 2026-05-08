@@ -30,6 +30,8 @@
       * popupurl          string
       * presenturl        string
       * exhausted         bool     true when all questions shown and restart=false
+      * hasfilterwarning  bool     true when audience filters mask the entire bundle pool
+      * filterwarning     string   localised hint shown above the question when hasfilterwarning
       * strnext           localised "Nächste Frage"
       * strprev           localised "Zurück"
       * strshowanswer     localised "Antwort anzeigen"
@@ -64,6 +66,8 @@
         "popupurl": "present.php?id=42&activeziel=checkin",
         "presenturl": "present.php?id=42&activeziel=checkin",
         "exhausted": false,
+        "hasfilterwarning": false,
+        "filterwarning": "",
         "strnext": "Nächste Frage",
         "strprev": "Zurück",
         "strshowanswer": "Antwort anzeigen",
@@ -116,6 +120,11 @@
         {{/multiziel}}
 
         {{#hasquestion}}
+            {{#hasfilterwarning}}
+                <div class="alert alert-info elediacheckin-filter-warning" role="status">
+                    {{filterwarning}}
+                </div>
+            {{/hasfilterwarning}}
             <p class="elediacheckin-question-text {{#question.isquote}}elediacheckin-question-text--quote{{/question.isquote}}">{{question.frage}}</p>
             {{#question.hasauthor}}
                 <p class="elediacheckin-question-author">— {{question.author}}</p>

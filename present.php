@@ -86,6 +86,11 @@ $nav = \mod_elediacheckin\local\service\activity_pool::resolve_navigation(
 $question  = $nav['question'];
 $hasprev   = !empty($instance->showprevbutton) && !empty($nav['hasprev']);
 $exhausted = !empty($nav['exhausted']);
+$poolinfo = \mod_elediacheckin\local\service\activity_pool::describe_pool(
+    $instance,
+    $activeziel,
+    $langcandidates
+);
 
 // PRG redirect: same pattern as view.php — prevent F5 from re-triggering
 // next/prev navigation. Redirects to a clean URL with ?q=<externalid>.
@@ -156,7 +161,8 @@ $templatecontext = [
     'hasquestion'     => !empty($question),
     'question'        => $question ? [
         // Own questions use FORMAT_PLAIN (teacher textarea input),
-        // bundle questions FORMAT_HTML (trusted JSON content).
+        // bundle questions FORMAT_HTML (trusted JSON content, sanitised
+        // through Moodle's filter chain by format_text()).
         'frage' => format_text(
             $question->frage,
             !empty($question->isown) ? FORMAT_PLAIN : FORMAT_HTML
@@ -175,6 +181,8 @@ $templatecontext = [
     'prevquestionurl' => $prevurl->out(false),
     'hasprev'         => $hasprev,
     'exhausted'       => $exhausted,
+    'hasfilterwarning' => !empty($poolinfo['bundlefilteredout']),
+    'filterwarning'   => get_string('filterwarning_bundlefilteredout', 'elediacheckin'),
     'strexhausted'    => get_string('exhaustedmessage', 'elediacheckin'),
     'strnext'         => get_string('nextquestion', 'elediacheckin'),
     'strprev'         => get_string('prevquestion', 'elediacheckin'),
