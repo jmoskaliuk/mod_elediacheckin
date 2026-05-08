@@ -173,7 +173,7 @@ class sync_service {
     /**
      * Map a validated question array from the bundle to a database row.
      *
-     * @param array<string, mixed> $q The question array.
+     * @param array $q The question array.
      * @param content_bundle $bundle The content bundle.
      * @param int $now Current Unix timestamp.
      * @return \stdClass Database record object.

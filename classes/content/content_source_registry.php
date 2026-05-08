@@ -40,7 +40,7 @@ final class content_source_registry {
     /**
      * Lazily build and return the registry.
      *
-     * @return array<string, content_source_interface>
+     * @return array
      */
     public static function all(): array {
         if (self::$sources === null) {
@@ -86,7 +86,7 @@ final class content_source_registry {
     /**
      * Instantiate the default set of sources shipped with the plugin.
      *
-     * @return array<int, content_source_interface>
+     * @return array
      */
     private static function build_default_sources(): array {
         $sources = [

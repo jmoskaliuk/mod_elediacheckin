@@ -363,7 +363,7 @@ final class activity_pool {
      * @param \stdClass $instance Row from the {elediacheckin} table.
      * @param string $activeziel Single ziel key to draw for.
      * @param string[] $langcandidates Ordered list of lang codes.
-     * @param array<string,bool> $seen Map of externalid → true for seen questions.
+     * @param array $seen Map of externalid → true for seen questions.
      * @return \stdClass|null The randomly selected question, or null if pool is empty.
      */
     public static function pick_random_excluding(
@@ -437,7 +437,7 @@ final class activity_pool {
      * @param \stdClass $instance The activity instance.
      * @param string $activeziel Single ziel key to filter by.
      * @param string[] $langcandidates Ordered language fallback chain.
-     * @return array<string, mixed> Pool diagnostic data.
+     * @return array Pool diagnostic data.
      */
     public static function describe_pool(
         \stdClass $instance,
@@ -466,7 +466,7 @@ final class activity_pool {
      * @param \stdClass $instance The activity instance.
      * @param string $activeziel Single ziel key.
      * @param string[] $langcandidates Ordered language fallback chain.
-     * @return array<string, mixed> {pool, owncount, bundlecount, bundlecountbeforeaudience, bundlefilteredout}.
+     * @return array {pool, owncount, bundlecount, bundlecountbeforeaudience, bundlefilteredout}.
      */
     private static function analyze_pool(
         \stdClass $instance,

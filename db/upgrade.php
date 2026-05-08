@@ -72,21 +72,25 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
 
         $tablequestion->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $tablequestion->add_field('stage', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
-        $tablequestion->add_field('bundleid', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('bundleversion', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('externalid', XMLDB_TYPE_CHAR, '128', null, XMLDB_NOTNULL, null, '');
-        $tablequestion->add_field('ziel', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, '');
-        // categories is NULL allowed per install.xml — relaxed in step 2026040543.
+        // CHAR NOT NULL columns must not declare DEFAULT '' — Moodle 4.5+ XMLDB
+        // validation flags an empty-string default as invalid and auto-fixes it,
+        // emitting a debugging() notice that becomes fatal in DEBUG_DEVELOPER.
+        // We populate these columns explicitly during sync so no default is needed.
+        $tablequestion->add_field('bundleid', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $tablequestion->add_field('bundleversion', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $tablequestion->add_field('externalid', XMLDB_TYPE_CHAR, '128', null, XMLDB_NOTNULL, null, null);
+        $tablequestion->add_field('ziel', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
+        // Categories is NULL-allowed per install.xml — relaxed in step 2026040543.
         // Create it that way directly so we never go through the NOT NULL DEFAULT ''
         // intermediate state that triggers Moodle 4.5+ XMLDB warnings.
         $tablequestion->add_field('categories', XMLDB_TYPE_CHAR, '255', null, null, null, null);
         $tablequestion->add_field('frage', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $tablequestion->add_field('hasanswer', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
         $tablequestion->add_field('antwort', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $tablequestion->add_field('lang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, '');
+        $tablequestion->add_field('lang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null);
         $tablequestion->add_field('author', XMLDB_TYPE_CHAR, '255', null, null, null, null);
         $tablequestion->add_field('quelle', XMLDB_TYPE_CHAR, '255', null, null, null, null);
-        // license is NULL allowed per install.xml — relaxed in step 2026040543.
+        // License is NULL-allowed per install.xml — relaxed in step 2026040543.
         $tablequestion->add_field('license', XMLDB_TYPE_CHAR, '64', null, null, null, null);
         $tablequestion->add_field('qversion', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, '1');
         $tablequestion->add_field('qstatus', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, 'published');
@@ -628,8 +632,8 @@ function xmldb_elediacheckin_upgrade(int $oldversion): bool {
         $qcols = [
             ['categories', XMLDB_TYPE_CHAR, '255', 'ziel'],
             ['zielgruppe', XMLDB_TYPE_CHAR, '255', 'categories'],
-            ['kontext',    XMLDB_TYPE_CHAR, '255', 'zielgruppe'],
-            ['license',    XMLDB_TYPE_CHAR, '64',  'quelle'],
+            ['kontext', XMLDB_TYPE_CHAR, '255', 'zielgruppe'],
+            ['license', XMLDB_TYPE_CHAR, '64', 'quelle'],
         ];
         foreach ($qcols as [$name, $type, $len, $after]) {
             $field = new xmldb_field($name, $type, $len, null, null, null, null, $after);
