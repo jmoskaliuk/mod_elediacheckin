@@ -67,7 +67,23 @@ Cards can be shown in normal view, popup view or fullscreen/presentation mode.
 The companion block can pass the currently previewed card to the activity so
 the launched view opens the same card.
 
-### F08 Moodle Integration
+### F08 Filter Feedback
+
+When mixed mode is active and the configured target group / context filter
+removes every bundle question while own questions still render, the views
+show an explanatory inline notice instead of leaving the user to debug the
+empty pool. Powered by `activity_pool::analyze_pool()` which produces both
+the merged pool and the diagnostic counts in a single pass.
+
+### F09 Read-Through Cache
+
+`question_provider` and `category_provider` populate Moodle application
+caches (defined in `db/caches.php`) on every read instead of only purging
+them after sync. Filter results are keyed by a normalised SHA-1 of the
+filter array; id lookups are keyed by raw id. The sync service purges both
+caches on every successful sync run.
+
+### F10 Moodle Integration
 
 The module follows Moodle conventions for:
 
@@ -90,10 +106,11 @@ The module follows Moodle conventions for:
 
 ## Open Product Questions
 
-- Should release metadata stay at `0.2.0` locally while remote tags show
-  `v0.9.0`, or should the versioning story be consolidated?
-- Which local documentation and prototype artefacts belong in the module repo,
-  and which should remain separate working material?
-- Should premium content remain compiled out by default, or become a documented
-  optional integration later?
+- Should the release jump to `MATURITY_STABLE` / `1.0.0` for the first
+  Moodle Plugins Directory submission, or stay at `MATURITY_BETA` / `0.9.0`
+  for one more iteration cycle?
+- Which local documentation and prototype artefacts belong in the module
+  repo, and which should remain separate working material?
+- Should premium content remain compiled out by default, or become a
+  documented optional integration later?
 

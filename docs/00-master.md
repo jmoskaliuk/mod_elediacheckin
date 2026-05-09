@@ -10,8 +10,8 @@
 - **Type:** Moodle activity module
 - **Repository:** `https://github.com/jmoskaliuk/mod_elediacheckin`
 - **Companion plugin:** `block_elediacheckin`
-- **Current local release metadata:** `0.2.0`, `MATURITY_ALPHA`
-- **Target Moodle:** Moodle 4.5+
+- **Current release metadata:** `0.9.0`, `MATURITY_BETA`, `version = 2026040603`
+- **Target Moodle:** Moodle 4.5+ (CI matrix covers 4.5, 5.0, 5.1)
 - **License:** GNU GPL v3 or later
 
 ## Purpose
@@ -67,31 +67,25 @@ activities.
 
 ## Current Local State
 
-As of 2026-05-08 this working copy is based on `origin/main` commit `fd31aa2`,
-with local modifications and additional working artefacts. DevFlow work should
-not assume that the local tree is already release-clean.
+As of 2026-05-09 this working copy is on `origin/main` at commit `d3fe170`.
+Working tree is clean of intentional product changes; only build/deployment
+helpers and supporting prototypes remain untracked.
 
-Latest DevFlow refresh: 2026-05-08 after splitting the local project into two
-Git working copies and adding this DevFlow set.
-
-Tracked module files currently differ from `origin/main` in these groups:
-
-- repository metadata and release notes: `.gitattributes`, `CHANGES.md`,
-  `version.php`, `thirdpartylibs.xml`
-- content and schema services
-- activity pool, question provider and sync service
-- presentation/view templates
-- AMD category filter build artefacts
-- PHPUnit and Behat tests
-- `README.md` and DevFlow documentation
+Latest DevFlow refresh: 2026-05-09 after the v2026040601 → v2026040603
+release window which addressed the plugin code review and the Moodle 4.5+
+XMLDB CHAR-NOT-NULL-DEFAULT-empty-string warning.
 
 Important local artefacts outside the module repository boundary include:
 
 - `block_elediacheckin/` - separate Git working copy
 - `content_elediacheckin/` - content bundle working material
 - `license_server/` - local premium/license server prototype
-- `mod_elediacheckin/` - older or packaged nested copy
 - release ZIP files and deployment helpers
+
+The previously documented nested `mod_elediacheckin/` snapshot has been
+removed because it carried a stale `db/install.xml` with the
+`NOTNULL="true" DEFAULT=""` pattern that triggered Moodle's runtime XMLDB
+warning when accidentally deployed.
 
 ## Working Rules
 
