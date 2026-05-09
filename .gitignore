@@ -1,0 +1,19 @@
+# Secrets and credentials — never commit.
+.github-token
+*.env
+!*.env.example
+
+# macOS finder noise.
+.DS_Store
+
+# Local deploy / build helpers and snapshots — separate from plugin source.
+.deploy/
+moodle-update.sh
+*.zip
+
+# Sibling working material that lives next to the plugin but is not part of
+# this Moodle plugin's repository:
+#   content_elediacheckin/  - content bundle drafts (synced via separate repo)
+#   license_server/         - prototype eLeDia license-server, separate code
+content_elediacheckin/
+license_server/
